@@ -1,0 +1,377 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Business {
+  id                String                   @id @default(uuid())
+  name              String                   @default("My Business")
+  type              String                   @default("RESTAURANT")
+  isActive          Boolean                  @default(true)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  
+  branches          Branch[]
+  users             User[]
+  categories        Category[]
+  menuItems         MenuItem[]
+  tables            Table[]
+  customers         Customer[]
+  orders            Order[]
+  inventoryItems    InventoryItem[]
+  suppliers         Supplier[]
+  promotions        Promotion[]
+  systemSettings    SystemSetting[]
+  auditLogs         AuditLog[]
+  profileSettings   BusinessProfileSettings?
+  moduleConfig      TenantModuleConfig?
+  dashboardConfig   DashboardConfig?
+  customFields      CustomFieldDefinition[]
+  invoiceTypes      InvoiceType[]
+}
+
+model Branch {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  code       String
+  name       String
+  address    String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  users      User[]
+}
+
+model BusinessProfileSettings {
+  id                    String   @id @default(uuid())
+  businessId            String   @unique @default("biz-default-business")
+  business              Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  logoUrl               String?
+  businessName          String   @default("My Business")
+  legalName             String?
+  address               String   @default("124, NSC Bose Road, My Business, Chennai, TN - 600001")
+  city                  String   @default("Chennai")
+  state                 String   @default("Tamil Nadu")
+  pincode               String   @default("600001")
+  phone                 String   @default("+91 98765 43210")
+  email                 String?  @default("contact@mybusiness.com")
+  currencyCode          String   @default("INR")
+  currencySymbol        String   @default("â‚¹")
+  timezone              String   @default("Asia/Kolkata")
+  invoicePrefix         String   @default("INV/")
+  orderPrefix           String   @default("ORD-")
+  nextInvoiceNumber     Int      @default(1001)
+  invoiceResetFrequency String   @default("YEARLY")
+  gstin                 String?  @default("33AAAAA0000A1Z5")
+  enableGst             Boolean  @default(true)
+  taxSystemName         String   @default("GST")
+  taxCalculationMode    String   @default("EXCLUSIVE")
+  licenseNumber         String?  @default("12421001000543")
+  defaultPaperSize      String   @default("80MM")
+  defaultTemplate       String   @default("STANDARD")
+  showLogoOnInvoice     Boolean  @default(true)
+  termsText             String?  @default("Goods once sold will not be taken back. Subject to Chennai Jurisdiction.")
+  thankYouNote          String?  @default("Thank you for dining at My Business! Visit again soon ðŸ˜Š")
+  activeTheme           String   @default("DARK_GOLD")
+  compactMode           Boolean  @default(false)
+  businessHours         Json?    @default("[]")
+  enabledModules        Json?    @default("{}")
+  updatedAt             DateTime @updatedAt
+}
+
+model TenantModuleConfig {
+  id                   String   @id @default(uuid())
+  businessId           String   @unique @default("biz-default-business")
+  business             Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  enableInventory      Boolean  @default(true)
+  enableKitchen        Boolean  @default(true)
+  enableCrm            Boolean  @default(true)
+  enablePurchase       Boolean  @default(false)
+  enableSales          Boolean  @default(true)
+  enableDelivery       Boolean  @default(false)
+  enableAccounts       Boolean  @default(false)
+  enableReports        Boolean  @default(true)
+  enableUsers          Boolean  @default(true)
+  enableSettings       Boolean  @default(true)
+  updatedAt            DateTime @updatedAt
+}
+
+model CustomFieldDefinition {
+  id            String   @id @default(uuid())
+  businessId    String   @default("biz-default-business")
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  key           String
+  label         String
+  dataType      String   @default("TEXT")
+  unit          String?
+  options       Json?
+  defaultValue  String?
+  isRequired    Boolean  @default(false)
+  isSearchable  Boolean  @default(false)
+  isFilterable  Boolean  @default(true)
+  showInPosGrid Boolean  @default(true)
+  showInInvoice Boolean  @default(false)
+  displayOrder  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model InvoiceType {
+  id                     String   @id @default(uuid())
+  businessId             String   @default("biz-default-business")
+  business               Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  code                   String
+  name                   String
+  direction              String   @default("OUTWARD_SALES")
+  requiresCustomer       Boolean  @default(false)
+  requiresDoctor         Boolean  @default(false)
+  requiresServicePoint   Boolean  @default(false)
+  requiresCreditApproval Boolean  @default(false)
+  defaultPaymentMethod   String   @default("CASH")
+  surcharges             Json?    @default("[]")
+  isActive               Boolean  @default(true)
+  displayOrder           Int      @default(0)
+  orders                 Order[]
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model DashboardConfig {
+  id             String   @id @default(uuid())
+  businessId     String   @unique @default("biz-default-business")
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  widgets        Json     @default("[]")
+  refreshRateSec Int      @default(60)
+  updatedAt      DateTime @updatedAt
+}
+
+model User {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branchId   String?
+  branch     Branch?  @relation(fields: [branchId], references: [id])
+  username   String   @unique
+  password   String
+  role       String   @default("CASHIER") // ADMIN, MANAGER, CASHIER
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Category {
+  id         String     @id @default(uuid())
+  businessId String     @default("biz-default-business")
+  business   Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String     @unique
+  slug       String?
+  parentId   String?
+  parent     Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children   Category[] @relation("CategoryHierarchy")
+  menuItems  MenuItem[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model MenuItem {
+  id             String       @id @default(uuid())
+  businessId     String       @default("biz-default-business")
+  business       Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name           String
+  categoryId     String
+  category       Category     @relation(fields: [categoryId], references: [id])
+  price          Float
+  gst            Float        @default(5.0)
+  hsnCode        String?      @default("2106")
+  kitchenSection String?      @default("Main Kitchen")
+  dietary        String       @default("VEG") // VEG, NON_VEG, EGG, CHICKEN
+  imageUrl       String?
+  isAvailable    Boolean      @default(true)
+  attributes     Json?        @default("{}")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  orderItems     OrderItem[]
+  promotionsBuy  Promotion[]  @relation("BuyItem")
+  promotionsGet  Promotion[]  @relation("GetItem")
+  recipeItems    RecipeItem[]
+}
+
+model Table {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String   @unique
+  capacity   Int
+  status     String   @default("VACANT") // VACANT, OCCUPIED, RESERVED
+  orders     Order[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Customer {
+  id              String    @id @default(uuid())
+  businessId      String    @default("biz-default-business")
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name            String
+  mobile          String    @unique
+  email           String?
+  gstNumber       String?
+  birthDate       DateTime?
+  anniversaryDate DateTime?
+  loyaltyPoints   Int       @default(0)
+  orders          Order[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Order {
+  id                String       @id @default(uuid())
+  businessId        String       @default("biz-default-business")
+  business          Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invoiceTypeId     String?
+  invoiceType       InvoiceType? @relation(fields: [invoiceTypeId], references: [id])
+  orderNumber       String       @unique
+  status            String       @default("PENDING") // PENDING, PREPARING, READY, SERVED, COMPLETED, CANCELLED
+  orderType         String       @default("DINE_IN") // DINE_IN, TAKEAWAY, DELIVERY
+  tableId           String?
+  table             Table?       @relation(fields: [tableId], references: [id])
+  customerId        String?
+  customer          Customer?    @relation(fields: [customerId], references: [id])
+  customerNotes     String?
+  kitchenNotes      String?
+  estimatedPrepTime Int?
+  isStockDeducted   Boolean      @default(false)
+  subtotal          Float
+  tax               Float
+  packingCharge     Float        @default(0)
+  deliveryCharge    Float        @default(0)
+  discount          Float        @default(0)
+  total             Float
+  paymentMethod     String       @default("CASH") // CASH, UPI, CARD
+  customFields      Json?        @default("{}")
+  items             OrderItem[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity   Int
+  price      Float
+  discount   Float    @default(0)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model InventoryItem {
+  id           String              @id @default(uuid())
+  businessId   String              @default("biz-default-business")
+  business     Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name         String              @unique
+  sku          String?             @unique
+  unit         String              // kg, l, g, pcs, etc.
+  currentStock Float               @default(0)
+  minStock     Float               @default(5)
+  costPerUnit  Float               @default(0)
+  supplierId   String?
+  supplier     Supplier?           @relation(fields: [supplierId], references: [id])
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  recipeItems  RecipeItem[]
+  movements    InventoryMovement[]
+}
+
+model Supplier {
+  id             String          @id @default(uuid())
+  businessId     String          @default("biz-default-business")
+  business       Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name           String
+  contactPerson  String?
+  phone          String?
+  email          String?
+  address        String?
+  inventoryItems InventoryItem[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model RecipeItem {
+  id              String        @id @default(uuid())
+  menuItemId      String
+  menuItem        MenuItem      @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  quantityNeeded  Float
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model InventoryMovement {
+  id              String        @id @default(uuid())
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  type            String        // STOCK_IN, STOCK_OUT, WASTE, AUTO_DEDUCT
+  quantity        Float
+  reason          String?
+  createdAt       DateTime      @default(now())
+}
+
+model Promotion {
+  id             String    @id @default(uuid())
+  businessId     String    @default("biz-default-business")
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name           String
+  code           String?   @unique
+  type           String    // FLAT, PERCENTAGE, BOGO
+  discountValue  Float     // Amount for FLAT, % for PERCENTAGE
+  minOrderValue  Float?
+  autoApply      Boolean   @default(false)
+  priority       Int       @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
+  happyHourStart String?   // "14:00"
+  happyHourEnd   String?   // "17:00"
+  daysOfWeek     String?   // "1,2,3,4,5"
+  
+  buyItemId      String?
+  buyItem        MenuItem? @relation("BuyItem", fields: [buyItemId], references: [id])
+  buyQty         Int?
+  getItemId      String?
+  getItem        MenuItem? @relation("GetItem", fields: [getItemId], references: [id])
+  getQty         Int?
+  getPrice       Float?
+
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model SystemSetting {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  key        String   @unique
+  value      String
+  updatedAt  DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  action     String
+  details    String
+  user       String   @default("system")
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+}
+

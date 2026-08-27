@@ -1,0 +1,201 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   @default("CASHIER") // ADMIN, MANAGER, CASHIER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  menuItems MenuItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MenuItem {
+  id             String      @id @default(uuid())
+  name           String
+  categoryId     String
+  category       Category    @relation(fields: [categoryId], references: [id])
+  price          Float
+  gst            Float       @default(5.0)
+  hsnCode        String?     @default("2106")
+  kitchenSection String?     @default("Main Kitchen")
+  dietary        String      @default("VEG") // VEG, NON_VEG, EGG, CHICKEN
+  imageUrl       String?
+  isAvailable    Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  orderItems     OrderItem[]
+  promotionsBuy  Promotion[] @relation("BuyItem")
+  promotionsGet  Promotion[] @relation("GetItem")
+  recipeItems    RecipeItem[]
+}
+
+model Table {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  capacity  Int
+  status    String   @default("VACANT") // VACANT, OCCUPIED, RESERVED
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id            String    @id @default(uuid())
+  name          String
+  mobile        String    @unique
+  email         String?
+  gstNumber     String?
+  birthDate     DateTime?
+  anniversaryDate DateTime?
+  loyaltyPoints Int       @default(0)
+  orders        Order[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Order {
+  id                String      @id @default(uuid())
+  orderNumber       String      @unique
+  status            String      @default("PENDING") // PENDING, PREPARING, READY, SERVED, COMPLETED, CANCELLED
+  orderType         String      @default("DINE_IN") // DINE_IN, TAKEAWAY, DELIVERY
+  tableId           String?
+  table             Table?      @relation(fields: [tableId], references: [id])
+  customerId        String?
+  customer          Customer?   @relation(fields: [customerId], references: [id])
+  customerNotes     String?
+  kitchenNotes      String?
+  estimatedPrepTime Int?
+  isStockDeducted   Boolean     @default(false)
+  subtotal          Float
+  tax               Float
+  packingCharge     Float       @default(0)
+  deliveryCharge    Float       @default(0)
+  discount          Float       @default(0)
+  total             Float
+  paymentMethod     String      @default("CASH") // CASH, UPI, CARD
+  items             OrderItem[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity   Int
+  price      Float
+  discount   Float    @default(0)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model InventoryItem {
+  id          String             @id @default(uuid())
+  name        String             @unique
+  sku         String?            @unique
+  unit        String             // kg, l, g, pcs, etc.
+  currentStock Float             @default(0)
+  minStock    Float              @default(5)
+  costPerUnit Float              @default(0)
+  supplierId  String?
+  supplier    Supplier?          @relation(fields: [supplierId], references: [id])
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  recipeItems RecipeItem[]
+  movements   InventoryMovement[]
+}
+
+model Supplier {
+  id             String          @id @default(uuid())
+  name           String
+  contactPerson  String?
+  phone          String?
+  email          String?
+  address        String?
+  inventoryItems InventoryItem[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model RecipeItem {
+  id              String        @id @default(uuid())
+  menuItemId      String
+  menuItem        MenuItem      @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  quantityNeeded  Float
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model InventoryMovement {
+  id              String        @id @default(uuid())
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  type            String        // STOCK_IN, STOCK_OUT, WASTE, AUTO_DEDUCT
+  quantity        Float
+  reason          String?
+  createdAt       DateTime      @default(now())
+}
+
+model Promotion {
+  id              String    @id @default(uuid())
+  name            String
+  code            String?   @unique
+  type            String    // FLAT, PERCENTAGE, BOGO
+  discountValue   Float     // Amount for FLAT, % for PERCENTAGE
+  minOrderValue   Float?
+  autoApply       Boolean   @default(false)
+  priority        Int       @default(0)
+  startDate       DateTime?
+  endDate         DateTime?
+  happyHourStart  String?   // "14:00"
+  happyHourEnd    String?   // "17:00"
+  daysOfWeek      String?   // "1,2,3,4,5"
+  
+  buyItemId       String?
+  buyItem         MenuItem? @relation("BuyItem", fields: [buyItemId], references: [id])
+  buyQty          Int?
+  getItemId       String?
+  getItem         MenuItem? @relation("GetItem", fields: [getItemId], references: [id])
+  getQty          Int?
+  getPrice        Float?
+
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  details   String
+  user      String   @default("system")
+  ipAddress String?
+  createdAt DateTime @default(now())
+}

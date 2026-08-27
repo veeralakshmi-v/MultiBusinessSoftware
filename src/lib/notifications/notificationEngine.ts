@@ -1,0 +1,349 @@
+import { 
+  NotificationChannel, 
+  NotificationEvent, 
+  NotificationPayload, 
+  NotificationRecord, 
+  NotificationTemplate 
+} from '../../types/notification';
+
+export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
+  // 1. INVOICE_CREATED
+  {
+    event: 'INVOICE_CREATED',
+    channel: 'WHATSAPP',
+    titleTemplate: 'Invoice #{{invoiceNumber}} from {{businessName}}',
+    bodyTemplate: '🧾 *{{businessName}}*\nDear {{customerName}}, thank you for your visit! Your bill for invoice *#{{invoiceNumber}}* total is *₹{{amount}}*.\nView Invoice: {{invoiceUrl}}',
+    enabled: true,
+  },
+  {
+    event: 'INVOICE_CREATED',
+    channel: 'SMS',
+    titleTemplate: 'Bill #{{invoiceNumber}}',
+    bodyTemplate: 'Dear {{customerName}}, your bill of Rs.{{amount}} for Inv #{{invoiceNumber}} at {{businessName}} is generated. Thank you!',
+    enabled: true,
+  },
+  {
+    event: 'INVOICE_CREATED',
+    channel: 'EMAIL',
+    titleTemplate: 'Tax Invoice #{{invoiceNumber}} - {{businessName}}',
+    bodyTemplate: 'Dear {{customerName}},\n\nPlease find attached your tax invoice #{{invoiceNumber}} for Rs.{{amount}}.\n\nWarm regards,\n{{businessName}}',
+    enabled: true,
+  },
+  {
+    event: 'INVOICE_CREATED',
+    channel: 'PUSH',
+    titleTemplate: 'New Bill Generated: ₹{{amount}}',
+    bodyTemplate: 'Invoice #{{invoiceNumber}} processed for {{customerName}}.',
+    enabled: true,
+  },
+  {
+    event: 'INVOICE_CREATED',
+    channel: 'IN_APP',
+    titleTemplate: 'Invoice #{{invoiceNumber}} Completed',
+    bodyTemplate: 'Successfully generated bill for ₹{{amount}} ({{customerName}}).',
+    enabled: true,
+  },
+
+  // 2. PAYMENT_DUE
+  {
+    event: 'PAYMENT_DUE',
+    channel: 'WHATSAPP',
+    titleTemplate: 'Payment Reminder - {{businessName}}',
+    bodyTemplate: '⚠️ *Payment Reminder - {{businessName}}*\nDear {{customerName}}, your payment of *₹{{amount}}* for invoice *#{{invoiceNumber}}* is due on *{{dueDate}}*. Kindly settle at the earliest.',
+    enabled: true,
+  },
+  {
+    event: 'PAYMENT_DUE',
+    channel: 'SMS',
+    titleTemplate: 'Payment Due Alert',
+    bodyTemplate: 'Reminder: Rs.{{amount}} is due on {{dueDate}} for Inv #{{invoiceNumber}} at {{businessName}}. Please pay soon.',
+    enabled: true,
+  },
+  {
+    event: 'PAYMENT_DUE',
+    channel: 'EMAIL',
+    titleTemplate: 'Statement Reminder: Payment Due on {{dueDate}}',
+    bodyTemplate: 'Dear {{customerName}},\n\nThis is a friendly reminder that an outstanding payment of Rs.{{amount}} for invoice #{{invoiceNumber}} is due on {{dueDate}}.\n\nThank you,\n{{businessName}}',
+    enabled: true,
+  },
+  {
+    event: 'PAYMENT_DUE',
+    channel: 'IN_APP',
+    titleTemplate: 'Credit Payment Due: {{customerName}}',
+    bodyTemplate: '₹{{amount}} due on {{dueDate}} for Invoice #{{invoiceNumber}}.',
+    enabled: true,
+  },
+
+  // 3. LOW_STOCK
+  {
+    event: 'LOW_STOCK',
+    channel: 'IN_APP',
+    titleTemplate: '🚨 Low Stock Alert: {{itemName}}',
+    bodyTemplate: '{{itemName}} is down to {{stockRemaining}} {{unit}}. Reorder threshold reached.',
+    enabled: true,
+  },
+  {
+    event: 'LOW_STOCK',
+    channel: 'PUSH',
+    titleTemplate: 'Stock Alert: {{itemName}}',
+    bodyTemplate: 'Only {{stockRemaining}} units left in inventory.',
+    enabled: true,
+  },
+  {
+    event: 'LOW_STOCK',
+    channel: 'EMAIL',
+    titleTemplate: 'Inventory Alert: Low Stock for {{itemName}}',
+    bodyTemplate: 'Attention Manager,\n\nThe product {{itemName}} (SKU: {{sku}}) has dropped to {{stockRemaining}} units.\nPlease create a purchase order.\n\nInventory Bot',
+    enabled: true,
+  },
+  {
+    event: 'LOW_STOCK',
+    channel: 'WHATSAPP',
+    titleTemplate: 'Low Stock Alert',
+    bodyTemplate: '🚨 *Inventory Alert*\nProduct *{{itemName}}* has only *{{stockRemaining}} units* remaining.',
+    enabled: true,
+  },
+
+  // 4. PURCHASE_RECEIVED
+  {
+    event: 'PURCHASE_RECEIVED',
+    channel: 'IN_APP',
+    titleTemplate: '📦 Purchase GRN Inward Received',
+    bodyTemplate: 'PO #{{purchaseOrderNo}} inward received from {{supplierName}} ({{itemCount}} items, ₹{{totalAmount}}).',
+    enabled: true,
+  },
+  {
+    event: 'PURCHASE_RECEIVED',
+    channel: 'EMAIL',
+    titleTemplate: 'Goods Receipt Note: PO #{{purchaseOrderNo}}',
+    bodyTemplate: 'Purchase Order #{{purchaseOrderNo}} has been verified and stock updated.\nSupplier: {{supplierName}}\nTotal Amount: Rs.{{totalAmount}}',
+    enabled: true,
+  },
+  {
+    event: 'PURCHASE_RECEIVED',
+    channel: 'PUSH',
+    titleTemplate: 'Purchase Order Received',
+    bodyTemplate: 'PO #{{purchaseOrderNo}} goods added to stock.',
+    enabled: true,
+  },
+
+  // 5. CUSTOMER_CREATED
+  {
+    event: 'CUSTOMER_CREATED',
+    channel: 'WHATSAPP',
+    titleTemplate: 'Welcome to {{businessName}}!',
+    bodyTemplate: '🎉 *Welcome to {{businessName}}!*\nDear {{customerName}}, thank you for registering with us. You have been awarded *{{loyaltyPoints}}* loyalty reward points.',
+    enabled: true,
+  },
+  {
+    event: 'CUSTOMER_CREATED',
+    channel: 'SMS',
+    titleTemplate: 'Welcome to {{businessName}}',
+    bodyTemplate: 'Welcome to {{businessName}}, {{customerName}}! Your membership is active with {{loyaltyPoints}} loyalty points. Visit us again!',
+    enabled: true,
+  },
+  {
+    event: 'CUSTOMER_CREATED',
+    channel: 'IN_APP',
+    titleTemplate: 'New Customer Registered',
+    bodyTemplate: '{{customerName}} ({{mobile}}) enrolled with {{loyaltyPoints}} points.',
+    enabled: true,
+  },
+
+  // 6. STAFF_PUNCHED_IN
+  {
+    event: 'STAFF_PUNCHED_IN',
+    channel: 'IN_APP',
+    titleTemplate: '📍 Attendance: {{staffName}} Punched IN',
+    bodyTemplate: '{{staffName}} punched IN at {{time}} with live location ({{location}}).',
+    enabled: true,
+  },
+
+  // 7. STAFF_PUNCHED_OUT
+  {
+    event: 'STAFF_PUNCHED_OUT',
+    channel: 'IN_APP',
+    titleTemplate: '⏰ Attendance: {{staffName}} Punched OUT',
+    bodyTemplate: '{{staffName}} punched OUT at {{time}}. Shift concluded.',
+    enabled: true,
+  },
+
+  // 8. LEAVE_REQUESTED
+  {
+    event: 'LEAVE_REQUESTED',
+    channel: 'IN_APP',
+    titleTemplate: '📝 New Leave Application: {{staffName}}',
+    bodyTemplate: '{{staffName}} requested {{type}} for {{date}}. Reason: "{{reason}}"',
+    enabled: true,
+  },
+
+  // 9. LEAVE_STATUS_CHANGED
+  {
+    event: 'LEAVE_STATUS_CHANGED',
+    channel: 'IN_APP',
+    titleTemplate: '📋 Leave Application Update',
+    bodyTemplate: 'Leave request for {{date}} ({{type}}) was {{status}} by Admin.',
+    enabled: true,
+  },
+];
+
+export class NotificationEngine {
+  private static STORAGE_KEY = 'multi_biz_notifications';
+
+  /**
+   * Render tokens in template string e.g. {{customerName}} -> "John Doe"
+   */
+  static renderTemplate(templateStr: string, data: Record<string, any>): string {
+    return templateStr.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_, token) => {
+      const val = data[token];
+      if (val === undefined || val === null) return '';
+      return String(val);
+    });
+  }
+
+  /**
+   * Dispatches notifications across requested or all enabled channels
+   */
+  static dispatch(payload: NotificationPayload): {
+    success: boolean;
+    dispatches: NotificationRecord[];
+  } {
+    const { event, recipient, data, channels } = payload;
+    const defaultData = {
+      businessName: 'Apex Multi-Business POS',
+      customerName: recipient.name || 'Valued Customer',
+      mobile: recipient.mobile || '',
+      email: recipient.email || '',
+      amount: '0.00',
+      invoiceNumber: 'INV-1001',
+      invoiceUrl: 'https://billing.app/view',
+      dueDate: new Date().toLocaleDateString('en-IN'),
+      itemName: 'Item',
+      stockRemaining: '5',
+      unit: 'units',
+      purchaseOrderNo: 'PO-501',
+      supplierName: 'Direct Wholesaler',
+      itemCount: '10',
+      totalAmount: '5000',
+      loyaltyPoints: '100',
+      ...data,
+    };
+
+    // Match templates for this event
+    const matchingTemplates = DEFAULT_NOTIFICATION_TEMPLATES.filter(t => {
+      if (t.event !== event) return false;
+      if (!t.enabled) return false;
+      if (channels && channels.length > 0) {
+        return channels.includes(t.channel);
+      }
+      return true;
+    });
+
+    const dispatches: NotificationRecord[] = matchingTemplates.map(tmpl => {
+      const title = this.renderTemplate(tmpl.titleTemplate, defaultData);
+      const body = this.renderTemplate(tmpl.bodyTemplate, defaultData);
+
+      const record: NotificationRecord = {
+        id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+        event,
+        channel: tmpl.channel,
+        recipient,
+        title,
+        body,
+        status: 'SENT',
+        createdAt: new Date().toISOString(),
+        metadata: defaultData,
+      };
+
+      return record;
+    });
+
+    // Save to in-app history store
+    this.saveNotificationRecords(dispatches);
+
+    return {
+      success: dispatches.length > 0,
+      dispatches,
+    };
+  }
+
+  /**
+   * Persistence helpers
+   */
+  static getNotifications(limit: number = 50): NotificationRecord[] {
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (!raw) {
+        // Provide starter notifications
+        const initial: NotificationRecord[] = [
+          {
+            id: 'notif-init-1',
+            event: 'INVOICE_CREATED',
+            channel: 'IN_APP',
+            recipient: { name: 'VIP Guest' },
+            title: 'Invoice #INV-2026-01 Generated',
+            body: 'Successfully generated bill for ₹1,850.00.',
+            status: 'SENT',
+            createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+          },
+          {
+            id: 'notif-init-2',
+            event: 'LOW_STOCK',
+            channel: 'IN_APP',
+            recipient: { role: 'MANAGER' },
+            title: '🚨 Low Stock Alert: Paracetamol 500mg',
+            body: 'Paracetamol 500mg is down to 4 units. Reorder threshold reached.',
+            status: 'SENT',
+            createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+          },
+          {
+            id: 'notif-init-3',
+            event: 'CUSTOMER_CREATED',
+            channel: 'WHATSAPP',
+            recipient: { name: 'Dr. John Watson', mobile: '+919876543210' },
+            title: 'Welcome to LifeCare Pharmacy',
+            body: 'Dear Dr. John Watson, welcome to LifeCare Pharmacy! 100 points added.',
+            status: 'DELIVERED',
+            createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+          }
+        ];
+        this.saveNotificationRecords(initial);
+        return initial;
+      }
+      const parsed: NotificationRecord[] = JSON.parse(raw);
+      return parsed.slice(0, limit);
+    } catch {
+      return [];
+    }
+  }
+
+  static saveNotificationRecords(newRecords: NotificationRecord[]): void {
+    try {
+      const existing = this.getNotifications(100);
+      const combined = [...newRecords, ...existing.filter(e => !newRecords.some(n => n.id === e.id))];
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(combined.slice(0, 100)));
+    } catch (e) {
+      console.error('Failed to save notification records', e);
+    }
+  }
+
+  static markAsRead(id: string): void {
+    const list = this.getNotifications(100);
+    const updated = list.map(item => item.id === id ? { ...item, status: 'READ' as const } : item);
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+  }
+
+  static markAllAsRead(): void {
+    const list = this.getNotifications(100);
+    const updated = list.map(item => ({ ...item, status: 'READ' as const }));
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+  }
+
+  static getUnreadCount(): number {
+    return this.getNotifications(100).filter(n => n.status !== 'READ').length;
+  }
+
+  static clearAll(): void {
+    localStorage.removeItem(this.STORAGE_KEY);
+  }
+}

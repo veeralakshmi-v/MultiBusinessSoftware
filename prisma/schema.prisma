@@ -1,0 +1,765 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Primary Tenant & Multi-Branch Models
+model Business {
+  id                String                   @id @default(uuid())
+  name              String                   @default("My Business")
+  type              String                   @default("RESTAURANT")
+  isActive          Boolean                  @default(true)
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  
+  branches          Branch[]
+  users             User[]
+  categories        Category[]
+  menuItems         MenuItem[]
+  tables            Table[]
+  customers         Customer[]
+  orders            Order[]
+  rawMaterials      RawMaterial[]
+  inventoryItems    InventoryItem[]
+  suppliers         Supplier[]
+  promotions        Promotion[]
+  systemSettings    SystemSetting[]
+  auditLogs         AuditLog[]
+  profileSettings   BusinessProfileSettings?
+  moduleConfig      TenantModuleConfig?
+  dashboardConfig   DashboardConfig?
+  customFields      CustomFieldDefinition[]
+  invoiceTypes      InvoiceType[]
+  // Feature 19 – Attendance Module
+  departments       Department[]
+  designations      Designation[]
+  employees         Employee[]
+  shifts            Shift[]
+  officeLocations   OfficeLocation[]
+  attendances       Attendance[]
+  leaveTypes        LeaveType[]
+  leaveRequests     LeaveRequest[]
+  holidays          Holiday[]
+  attendanceLogs    AttendanceLog[]
+  attendanceSettings AttendanceSettings?
+}
+
+model Branch {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  code       String
+  name       String
+  address    String?
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  users      User[]
+  // Feature 19 – Attendance Module
+  departments     Department[]
+  employees       Employee[]
+  shifts          Shift[]
+  officeLocations OfficeLocation[]
+  holidays        Holiday[]
+}
+
+// 2. Settings & Module Configurations
+model BusinessProfileSettings {
+  id                    String   @id @default(uuid())
+  businessId            String   @unique @default("biz-default-business")
+  business              Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  logoUrl               String?
+  businessName          String   @default("My Business")
+  legalName             String?
+  address               String   @default("124, NSC Bose Road, My Business, Chennai, TN - 600001")
+  city                  String   @default("Chennai")
+  state                 String   @default("Tamil Nadu")
+  pincode               String   @default("600001")
+  phone                 String   @default("+91 98765 43210")
+  email                 String?  @default("contact@mybusiness.com")
+  currencyCode          String   @default("INR")
+  currencySymbol        String   @default("â‚¹")
+  timezone              String   @default("Asia/Kolkata")
+  invoicePrefix         String   @default("INV/")
+  orderPrefix           String   @default("ORD-")
+  nextInvoiceNumber     Int      @default(1001)
+  invoiceResetFrequency String   @default("YEARLY")
+  gstin                 String?  @default("33AAAAA0000A1Z5")
+  enableGst             Boolean  @default(true)
+  taxSystemName         String   @default("GST")
+  taxCalculationMode    String   @default("EXCLUSIVE")
+  licenseNumber         String?  @default("12421001000543")
+  defaultPaperSize      String   @default("80MM")
+  defaultTemplate       String   @default("STANDARD")
+  showLogoOnInvoice     Boolean  @default(true)
+  termsText             String?  @default("Goods once sold will not be taken back. Subject to Chennai Jurisdiction.")
+  thankYouNote          String?  @default("Thank you for dining at My Business! Visit again soon ðŸ˜Š")
+  activeTheme           String   @default("DARK_GOLD")
+  compactMode           Boolean  @default(false)
+  businessHours         String?  @default("[]")
+  enabledModules        String?  @default("{}")
+  updatedAt             DateTime @updatedAt
+}
+
+model TenantModuleConfig {
+  id                   String   @id @default(uuid())
+  businessId           String   @unique @default("biz-default-business")
+  business             Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  enableInventory      Boolean  @default(true)
+  enableKitchen        Boolean  @default(true)
+  enableCrm            Boolean  @default(true)
+  enablePurchase       Boolean  @default(false)
+  enableSales          Boolean  @default(true)
+  enableDelivery       Boolean  @default(false)
+  enableAccounts       Boolean  @default(false)
+  enableReports        Boolean  @default(true)
+  enableUsers          Boolean  @default(true)
+  enableSettings       Boolean  @default(true)
+  updatedAt            DateTime @updatedAt
+}
+
+model CustomFieldDefinition {
+  id            String   @id @default(uuid())
+  businessId    String   @default("biz-default-business")
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  key           String
+  label         String
+  dataType      String   @default("TEXT")
+  unit          String?
+  options       String?
+  defaultValue  String?
+  isRequired    Boolean  @default(false)
+  isSearchable  Boolean  @default(false)
+  isFilterable  Boolean  @default(true)
+  showInPosGrid Boolean  @default(true)
+  showInInvoice Boolean  @default(false)
+  displayOrder  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model InvoiceType {
+  id                     String   @id @default(uuid())
+  businessId             String   @default("biz-default-business")
+  business               Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  code                   String
+  name                   String
+  direction              String   @default("OUTWARD_SALES")
+  requiresCustomer       Boolean  @default(false)
+  requiresDoctor         Boolean  @default(false)
+  requiresServicePoint   Boolean  @default(false)
+  requiresCreditApproval Boolean  @default(false)
+  defaultPaymentMethod   String   @default("CASH")
+  surcharges             String?  @default("[]")
+  isActive               Boolean  @default(true)
+  displayOrder           Int      @default(0)
+  orders                 Order[]
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model DashboardConfig {
+  id             String   @id @default(uuid())
+  businessId     String   @unique @default("biz-default-business")
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  widgets        String   @default("[]")
+  refreshRateSec Int      @default(60)
+  updatedAt      DateTime @updatedAt
+}
+
+// 3. User Accounts
+model User {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branchId   String?
+  branch     Branch?  @relation(fields: [branchId], references: [id])
+  username   String   @unique
+  password   String
+  role       String   @default("CASHIER") // ADMIN, MANAGER, CASHIER, KITCHEN_STAFF
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// 4. Dynamic Categories
+model Category {
+  id         String     @id @default(uuid())
+  businessId String     @default("biz-default-business")
+  business   Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String     @unique
+  slug       String?
+  parentId   String?
+  parent     Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children   Category[] @relation("CategoryHierarchy")
+  menuItems  MenuItem[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+// 5. Products / Menu Items
+model MenuItem {
+  id             String       @id @default(uuid())
+  businessId     String       @default("biz-default-business")
+  business       Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name           String
+  categoryId     String
+  category       Category     @relation(fields: [categoryId], references: [id])
+  price          Float
+  gst            Float        @default(5.0)
+  hsnCode        String?      @default("2106")
+  kitchenSection String?      @default("Main Kitchen")
+  dietary        String       @default("VEG") // VEG, NON_VEG, EGG, CHICKEN
+  imageUrl       String?
+  isAvailable    Boolean      @default(true)
+  attributes     String?      @default("{}") // Dynamic JSON metadata attributes
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  orderItems     OrderItem[]
+  promotionsBuy  Promotion[]  @relation("BuyItem")
+  promotionsGet  Promotion[]  @relation("GetItem")
+  recipeItems    RecipeItem[]
+}
+
+// 6. Tables & Service Points
+model Table {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String   @unique
+  capacity   Int
+  status     String   @default("VACANT") // VACANT, OCCUPIED, RESERVED
+  orders     Order[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// 7. Customers
+model Customer {
+  id              String    @id @default(uuid())
+  businessId      String    @default("biz-default-business")
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name            String
+  mobile          String    @unique
+  email           String?
+  address         String?
+  gstNumber       String?
+  birthDate       DateTime?
+  birthday        DateTime?
+  anniversaryDate DateTime?
+  loyaltyPoints   Int       @default(0)
+  favoriteItems   String?
+  orders          Order[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// 8. Orders
+model Order {
+  id                String       @id @default(uuid())
+  businessId        String       @default("biz-default-business")
+  business          Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invoiceTypeId     String?
+  invoiceType       InvoiceType? @relation(fields: [invoiceTypeId], references: [id])
+  orderNumber       String       @unique
+  status            String       @default("PENDING") // PENDING, PREPARING, READY, SERVED, COMPLETED, CANCELLED
+  orderType         String       @default("DINE_IN") // DINE_IN, TAKEAWAY, DELIVERY
+  tableId           String?
+  table             Table?       @relation(fields: [tableId], references: [id])
+  customerId        String?
+  customer          Customer?    @relation(fields: [customerId], references: [id])
+  customerNotes     String?
+  kitchenNotes      String?
+  estimatedPrepTime Int?
+  isStockDeducted   Boolean      @default(false)
+  subtotal          Float
+  tax               Float
+  packingCharge     Float        @default(0)
+  deliveryCharge    Float        @default(0)
+  discount          Float        @default(0)
+  total             Float
+  paymentMethod     String       @default("CASH") // CASH, UPI, CARD
+  customFields      String?      @default("{}")
+  items             OrderItem[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity   Int
+  price      Float
+  discount   Float    @default(0)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model RawMaterial {
+  id            String                 @id @default(uuid())
+  businessId    String                 @default("biz-default-business")
+  business      Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name          String                 @unique
+  unit          String
+  currentStock  Float                  @default(0)
+  minStock      Float                  @default(5)
+  minStockLevel Float                  @default(5)
+  costPerUnit   Float                  @default(0)
+  pricePerUnit  Float                  @default(0)
+  supplierId    String?
+  supplier      Supplier?              @relation(fields: [supplierId], references: [id])
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  recipeItems   RecipeItem[]           @relation("RawMaterialRecipes")
+  transactions  InventoryTransaction[]
+}
+
+model InventoryItem {
+  id           String              @id @default(uuid())
+  businessId   String              @default("biz-default-business")
+  business     Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name         String              @unique
+  sku          String?             @unique
+  unit         String
+  currentStock Float               @default(0)
+  minStock     Float               @default(5)
+  costPerUnit  Float               @default(0)
+  supplierId   String?
+  supplier     Supplier?           @relation(fields: [supplierId], references: [id])
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  recipeItems  RecipeItem[]        @relation("InventoryItemRecipes")
+  movements    InventoryMovement[]
+}
+
+model Supplier {
+  id             String          @id @default(uuid())
+  businessId     String          @default("biz-default-business")
+  business       Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name           String
+  contact        String?
+  contactPerson  String?
+  phone          String?
+  email          String?
+  address        String?
+  rawMaterials   RawMaterial[]
+  inventoryItems InventoryItem[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model RecipeItem {
+  id              String         @id @default(uuid())
+  menuItemId      String
+  menuItem        MenuItem       @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  rawMaterialId   String?
+  rawMaterial     RawMaterial?   @relation("RawMaterialRecipes", fields: [rawMaterialId], references: [id], onDelete: Cascade)
+  inventoryItemId String?
+  inventoryItem   InventoryItem? @relation("InventoryItemRecipes", fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  quantityUsed    Float          @default(0)
+  quantityNeeded  Float          @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model InventoryTransaction {
+  id            String      @id @default(uuid())
+  rawMaterialId String
+  rawMaterial   RawMaterial @relation(fields: [rawMaterialId], references: [id], onDelete: Cascade)
+  type          String
+  quantity      Float
+  unitPrice     Float       @default(0)
+  totalValue    Float?
+  referenceId   String?
+  notes         String?
+  reason        String?
+  createdAt     DateTime    @default(now())
+}
+
+model InventoryMovement {
+  id              String        @id @default(uuid())
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  type            String        // STOCK_IN, STOCK_OUT, WASTE, AUTO_DEDUCT
+  quantity        Float
+  reason          String?
+  createdAt       DateTime      @default(now())
+}
+
+model Promotion {
+  id             String    @id @default(uuid())
+  businessId     String    @default("biz-default-business")
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name           String
+  code           String?   @unique
+  type           String    // FLAT, PERCENTAGE, BOGO
+  discountValue  Float     // Amount for FLAT, % for PERCENTAGE
+  minOrderValue  Float?
+  autoApply      Boolean   @default(false)
+  priority       Int       @default(0)
+  startDate      DateTime?
+  endDate        DateTime?
+  happyHourStart String?   // "14:00"
+  happyHourEnd   String?   // "17:00"
+  daysOfWeek     String?   // "1,2,3,4,5"
+  
+  buyItemId      String?
+  buyItem        MenuItem? @relation("BuyItem", fields: [buyItemId], references: [id])
+  buyQty         Int?
+  getItemId      String?
+  getItem        MenuItem? @relation("GetItem", fields: [getItemId], references: [id])
+  getQty         Int?
+  getPrice       Float?
+
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model SystemSetting {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  key        String   @unique
+  value      String
+  updatedAt  DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  businessId String   @default("biz-default-business")
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  action     String
+  details    String
+  user       String   @default("system")
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+}
+
+// ============================================================
+// FEATURE 19 – ATTENDANCE MODULE DATABASE SCHEMA
+// 13 Tables: Employee, Department, Designation, Shift,
+// Attendance, AttendanceLocation, OfficeLocation, LeaveType,
+// LeaveRequest, Holiday, BreakTime, AttendanceLog,
+// AttendanceSettings
+// ============================================================
+
+// ── TABLE 1: Department ──────────────────────────────────────
+model Department {
+  id          String      @id @default(uuid())
+  businessId  String      @default("biz-default-business")
+  business    Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branchId    String?
+  branch      Branch?     @relation(fields: [branchId], references: [id])
+  name        String
+  code        String?
+  description String?
+  managerId   String?     // FK → Employee (self-referential, kept as plain String to avoid circular FK)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  employees   Employee[]
+  designations Designation[]
+}
+
+// ── TABLE 2: Designation ─────────────────────────────────────
+model Designation {
+  id           String      @id @default(uuid())
+  businessId   String      @default("biz-default-business")
+  business     Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  title        String
+  grade        String?
+  salaryBand   String?
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  employees    Employee[]
+}
+
+// ── TABLE 3: Employee ────────────────────────────────────────
+model Employee {
+  id              String          @id @default(uuid())
+  businessId      String          @default("biz-default-business")
+  business        Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branchId        String?
+  branch          Branch?         @relation(fields: [branchId], references: [id])
+  departmentId    String?
+  department      Department?     @relation(fields: [departmentId], references: [id])
+  designationId   String?
+  designation     Designation?    @relation(fields: [designationId], references: [id])
+  shiftId         String?
+  shift           Shift?          @relation(fields: [shiftId], references: [id])
+  employeeCode    String          @unique
+  firstName       String
+  lastName        String
+  fullName        String
+  email           String?
+  phone           String?
+  gender          String          @default("MALE")         // MALE, FEMALE, OTHER
+  dateOfBirth     DateTime?
+  dateOfJoining   DateTime        @default(now())
+  employmentType  String          @default("FULL_TIME")    // FULL_TIME, PART_TIME, CONTRACT
+  status          String          @default("ACTIVE")       // ACTIVE, INACTIVE, TERMINATED, ON_LEAVE
+  role            String          @default("EMPLOYEE")     // ADMIN, HR, MANAGER, EMPLOYEE
+  profilePhoto    String?
+  address         String?
+  emergencyContact String?
+  bankAccount     String?
+  ifscCode        String?
+  panNumber       String?
+  aadharNumber    String?
+  pfNumber        String?
+  esiNumber       String?
+  baseSalary      Float           @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  attendances     Attendance[]
+  leaveRequests   LeaveRequest[]
+  breakTimes      BreakTime[]
+  attendanceLogs  AttendanceLog[]
+}
+
+// ── TABLE 4: Shift ───────────────────────────────────────────
+model Shift {
+  id                String     @id @default(uuid())
+  businessId        String     @default("biz-default-business")
+  business          Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branchId          String?
+  branch            Branch?    @relation(fields: [branchId], references: [id])
+  name              String
+  code              String?
+  startTime         String                                    // "08:00"
+  endTime           String                                    // "17:00"
+  gracePeriodMinutes Int       @default(15)
+  breakDurationMins  Int       @default(60)
+  workingHours      Float      @default(8.0)
+  overtimeThresholdMins Int    @default(480)
+  isNightShift      Boolean    @default(false)
+  daysOfWeek        String     @default("1,2,3,4,5")         // CSV: 0=Sun … 6=Sat
+  isActive          Boolean    @default(true)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  employees         Employee[]
+  attendances       Attendance[]
+}
+
+// ── TABLE 5: OfficeLocation ──────────────────────────────────
+model OfficeLocation {
+  id            String     @id @default(uuid())
+  businessId    String     @default("biz-default-business")
+  business      Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branchId      String?
+  branch        Branch?    @relation(fields: [branchId], references: [id])
+  officeName    String
+  address       String?
+  latitude      Float
+  longitude     Float
+  allowedRadius Float      @default(100)                     // in metres
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  attendanceLocations AttendanceLocation[]
+}
+
+// ── TABLE 6: Attendance ──────────────────────────────────────
+model Attendance {
+  id                 String               @id @default(uuid())
+  businessId         String               @default("biz-default-business")
+  business           Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  employeeId         String
+  employee           Employee             @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shiftId            String?
+  shift              Shift?               @relation(fields: [shiftId], references: [id])
+  attendanceDate     DateTime
+  status             String               @default("PRESENT") // PRESENT, ABSENT, LATE, HALF_DAY, LEAVE, HOLIDAY, WEEKEND, WFH
+  punchInTime        DateTime?
+  punchOutTime       DateTime?
+  grossWorkMinutes   Int                  @default(0)
+  breakMinutes       Int                  @default(0)
+  netWorkMinutes     Int                  @default(0)
+  overtimeMinutes    Int                  @default(0)
+  lateMinutes        Int                  @default(0)
+  earlyLeaveMinutes  Int                  @default(0)
+  punchInLatitude    Float?
+  punchInLongitude   Float?
+  punchOutLatitude   Float?
+  punchOutLongitude  Float?
+  punchInDeviceInfo  String?              // JSON – browser/device/IP
+  punchOutDeviceInfo String?
+  isManualEntry      Boolean              @default(false)
+  editedBy           String?
+  editReason         String?
+  notes              String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  breakTimes         BreakTime[]
+  attendanceLocation AttendanceLocation?
+}
+
+// ── TABLE 7: AttendanceLocation ──────────────────────────────
+model AttendanceLocation {
+  id               String          @id @default(uuid())
+  attendanceId     String          @unique
+  attendance       Attendance      @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  officeLocationId String?
+  officeLocation   OfficeLocation? @relation(fields: [officeLocationId], references: [id])
+  punchInLat       Float
+  punchInLon       Float
+  punchInAccuracy  Float?
+  punchInAddress   String?
+  punchOutLat      Float?
+  punchOutLon      Float?
+  punchOutAccuracy Float?
+  punchOutAddress  String?
+  distanceFromOfficeM Float?                                // metres at punch-in
+  isWithinGeofence Boolean        @default(true)
+  ipAddress        String?
+  deviceInfo       String?
+  browser          String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+// ── TABLE 8: LeaveType ───────────────────────────────────────
+model LeaveType {
+  id              String         @id @default(uuid())
+  businessId      String         @default("biz-default-business")
+  business        Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name            String
+  code            String                                    // CL, EL, SL, ML …
+  description     String?
+  annualQuota     Float          @default(0)               // days per year
+  isCarryForward  Boolean        @default(false)
+  maxCarryDays    Int            @default(0)
+  isPaidLeave     Boolean        @default(true)
+  requiresApproval Boolean       @default(true)
+  noticeDaysReqd  Int            @default(0)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  leaveRequests   LeaveRequest[]
+}
+
+// ── TABLE 9: LeaveRequest ────────────────────────────────────
+model LeaveRequest {
+  id            String      @id @default(uuid())
+  businessId    String      @default("biz-default-business")
+  business      Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  employeeId    String
+  employee      Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveTypeId   String
+  leaveType     LeaveType   @relation(fields: [leaveTypeId], references: [id])
+  startDate     DateTime
+  endDate       DateTime
+  totalDays     Float
+  isHalfDay     Boolean     @default(false)
+  halfDaySession String?                                   // MORNING, AFTERNOON
+  reason        String?
+  status        String      @default("PENDING")            // PENDING, APPROVED, REJECTED, CANCELLED
+  appliedAt     DateTime    @default(now())
+  approvedBy    String?
+  approvedAt    DateTime?
+  rejectionReason String?
+  attachmentUrl String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// ── TABLE 10: Holiday ────────────────────────────────────────
+model Holiday {
+  id           String   @id @default(uuid())
+  businessId   String   @default("biz-default-business")
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  branchId     String?
+  branch       Branch?  @relation(fields: [branchId], references: [id])
+  holidayName  String
+  date         String                                       // "YYYY-MM-DD"
+  description  String?
+  isRecurring  Boolean  @default(false)                    // repeats same date every year
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ── TABLE 11: BreakTime ──────────────────────────────────────
+model BreakTime {
+  id           String     @id @default(uuid())
+  attendanceId String
+  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
+  employeeId   String
+  employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  breakType    String     @default("LUNCH")                // LUNCH, TEA, CUSTOM
+  label        String?
+  startTime    DateTime
+  endTime      DateTime?
+  durationMins Int        @default(0)
+  isActive     Boolean    @default(true)
+  notes        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+// ── TABLE 12: AttendanceLog ──────────────────────────────────
+// Immutable audit trail – every punch-in, punch-out, manual edit, and override recorded here
+model AttendanceLog {
+  id           String   @id @default(uuid())
+  businessId   String   @default("biz-default-business")
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  eventType    String                                       // PUNCH_IN, PUNCH_OUT, BREAK_START, BREAK_END, MANUAL_EDIT, OVERRIDE, LEAVE_APPLIED, LEAVE_APPROVED, LEAVE_REJECTED
+  eventTime    DateTime @default(now())
+  latitude     Float?
+  longitude    Float?
+  accuracy     Float?
+  ipAddress    String?
+  deviceInfo   String?
+  browser      String?
+  performedBy  String?                                      // userId or "SYSTEM"
+  previousValue String?                                     // JSON snapshot before change
+  newValue      String?                                     // JSON snapshot after change
+  notes        String?
+  createdAt    DateTime @default(now())
+}
+
+// ── TABLE 13: AttendanceSettings ────────────────────────────
+model AttendanceSettings {
+  id                      String   @id @default(uuid())
+  businessId              String   @unique @default("biz-default-business")
+  business                Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  enableGeofence          Boolean  @default(true)
+  defaultGeofenceRadiusM  Int      @default(100)
+  allowSelfieOnPunch      Boolean  @default(false)
+  allowWfhPunch           Boolean  @default(true)
+  enableOvertime          Boolean  @default(true)
+  overtimeMultiplier      Float    @default(1.5)
+  enableAutoAbsentMark    Boolean  @default(true)
+  autoAbsentAfterMins     Int      @default(60)
+  enableMissedPunchAlert  Boolean  @default(true)
+  missedPunchAlertMins    Int      @default(30)
+  enableLateAlert         Boolean  @default(true)
+  enableAbsentAlert       Boolean  @default(true)
+  enableLeaveNotification Boolean  @default(true)
+  weekOffDays             String   @default("0,6")          // CSV: 0=Sun, 6=Sat
+  workingHoursPerDay      Float    @default(8.0)
+  gracePeriodMins         Int      @default(15)
+  updatedAt               DateTime @updatedAt
+}
+
+
