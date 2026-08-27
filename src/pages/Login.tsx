@@ -174,13 +174,6 @@ export default function Login() {
               </button>
             </div>
           </form>
-          
-          <div className="mt-6 border-t border-[#1F1F21] pt-6">
-             <div className="text-xs text-center text-gray-500">
-                <p>Default Admin credentials:</p>
-                <p className="font-mono text-[#C5A059] mt-1">admin / admin123</p>
-             </div>
-          </div>
         </div>
       </div>
     </div>
