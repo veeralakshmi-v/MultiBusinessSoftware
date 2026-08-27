@@ -580,11 +580,28 @@ export default function EmployeeDirectory() {
                     onChange={(e) => setStaffRole(e.target.value as any)}
                     className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
                   >
-                    <option value="CASHIER">CASHIER</option>
-                    <option value="MANAGER">MANAGER</option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="STAFF">STAFF</option>
+                    <option value="CASHIER">CASHIER (POS & Customers)</option>
+                    <option value="MANAGER">MANAGER (POS, Stock, Reports)</option>
+                    <option value="ADMIN">ADMIN (Full Access)</option>
+                    <option value="KITCHEN_STAFF">KITCHEN_STAFF (Orders & Prep)</option>
+                    <option value="STAFF">STAFF (Attendance & POS)</option>
                   </select>
+                </div>
+
+                <div className="sm:col-span-2 p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-gray-300 flex items-center gap-1.5">
+                      <Shield className="w-3.5 h-3.5 text-[#C5A059]" /> Granted Role Access Scope:
+                    </span>
+                    <span className="font-mono text-[#C5A059] font-bold">{staffRole}</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    {staffRole === 'ADMIN' && "👑 Full System Administrator: Unrestricted access to all billing, items, inventory, sales reports, settings, and employee directory."}
+                    {staffRole === 'MANAGER' && "📊 Branch Manager: Granted access to POS Billing, Items Catalog, Inventory, Sales Reports, Customers & Staff Attendance."}
+                    {staffRole === 'CASHIER' && "💳 Billing Counter Cashier: Granted access to POS Billing, Customer Lookup, and Punch Attendance."}
+                    {staffRole === 'KITCHEN_STAFF' && "🍳 Kitchen Chef: Granted access to Items/Prep Queue & Punch Attendance."}
+                    {staffRole === 'STAFF' && "📋 General Staff: Granted access to Punch IN / OUT Attendance & POS Billing."}
+                  </p>
                 </div>
 
                 <div>

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Settings, LogOut, Receipt, Package,
   Boxes, BarChart3, ChevronLeft, ChevronRight,
-  PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList
+  PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList, ShieldAlert
 } from 'lucide-react';
 
 import { cn } from '../lib/utils';
@@ -29,8 +29,31 @@ export default function DashboardLayout() {
   const brandTitle = businessProfile.businessName || "My Business";
   const brandTagline = businessProfile.tagline || "Universal Billing System";
 
+  // Role-Based Access Helper
+  const isRouteAllowedForRole = (role: string, href: string): boolean => {
+    if (!role || role === 'ADMIN') return true;
+
+    if (role === 'MANAGER') {
+      return href !== '/dashboard/settings' && href !== '/dashboard/employees';
+    }
+
+    if (role === 'CASHIER') {
+      return href === '/dashboard/billing' || href === '/dashboard/customers' || href === '/dashboard/attendance' || href === '/dashboard';
+    }
+
+    if (role === 'KITCHEN_STAFF') {
+      return href === '/dashboard/items' || href === '/dashboard/attendance' || href === '/dashboard';
+    }
+
+    if (role === 'STAFF') {
+      return href === '/dashboard/attendance' || href === '/dashboard/billing' || href === '/dashboard';
+    }
+
+    return true;
+  };
+
   // Streamlined, universal navigation for all businesses
-  const navigation = [
+  const allNavigation = [
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -77,6 +100,9 @@ export default function DashboardLayout() {
       icon: Settings,
     },
   ];
+
+  const navigation = allNavigation.filter(item => isRouteAllowedForRole(user.role, item.href));
+  const isCurrentRouteAllowed = isRouteAllowedForRole(user.role, location.pathname);
 
   return (
     <div className="flex h-screen bg-[#0A0A0B] text-[#E0E0E0] font-sans overflow-hidden">
@@ -247,7 +273,29 @@ export default function DashboardLayout() {
 
         <main className={cn("flex-1 bg-[#0A0A0B]", location.pathname === '/billing' ? "p-2 lg:p-3 overflow-hidden flex flex-col h-[calc(100vh-64px)]" : "p-3 sm:p-5 lg:p-8 overflow-y-auto")}>
           <div className={cn("w-full h-full flex flex-col flex-1 min-w-0", location.pathname === '/billing' ? "overflow-hidden" : "mx-auto max-w-7xl")}>
-            <Outlet />
+            {isCurrentRouteAllowed ? (
+              <Outlet />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-[#131315] border border-[#2D2D30] rounded-2xl shadow-2xl space-y-4 my-auto">
+                <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+                  <ShieldAlert className="w-8 h-8" />
+                </div>
+                <div className="space-y-1 max-w-md">
+                  <h2 className="text-xl font-bold text-white font-serif">Access Restricted ({user.role})</h2>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Your assigned role <span className="font-mono text-[#C5A059] font-bold">{user.role}</span> does not have permission to access <span className="font-mono text-white">{location.pathname}</span>.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    to={navigation[0]?.href || '/dashboard/billing'}
+                    className="px-5 py-2.5 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:bg-[#b08d4a] transition-all inline-flex items-center gap-2"
+                  >
+                    <span>Go to Authorized Section</span>
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
         </main>
       </div>
