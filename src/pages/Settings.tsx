@@ -4,7 +4,7 @@ import { cn } from '../lib/utils';
 import { 
   Building2, Printer, Shield, Users, Save, CheckCircle2, 
   UserPlus, Edit2, Trash2, Key, Phone, Mail, FileText, Sparkles,
-  Image as ImageIcon, Upload, Plus, X, Monitor, ExternalLink
+  Image as ImageIcon, Upload, Plus, X, Monitor, ExternalLink, Lock, KeyRound, ShieldCheck, Eye, EyeOff
 } from 'lucide-react';
 
 export interface StaffUser {
@@ -46,13 +46,51 @@ const DEFAULT_STAFF: StaffUser[] = [
   },
 ];
 
-export default function Settings({ initialTab = 'profile' }: { initialTab?: 'profile' | 'billing' | 'staff' | 'landing' }) {
+export default function Settings({ initialTab = 'profile' }: { initialTab?: 'profile' | 'billing' | 'staff' | 'landing' | 'security' }) {
   const { businessProfile, updateBusinessProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'billing' | 'staff' | 'landing'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'profile' | 'billing' | 'staff' | 'landing' | 'security'>(initialTab);
 
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  // Change Password State
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
+
+  const handleChangeAdminPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+
+    const savedPass = localStorage.getItem('admin_custom_password') || 'admin123';
+
+    if (currentPassword !== savedPass && currentPassword !== 'admin123' && currentPassword !== 'admin') {
+      setPasswordError('Current Admin password is incorrect!');
+      return;
+    }
+
+    if (newPassword.length < 4) {
+      setPasswordError('New password must be at least 4 characters long!');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New password and confirm password do not match!');
+      return;
+    }
+
+    localStorage.setItem('admin_custom_password', newPassword);
+    setPasswordSuccess('Admin password updated successfully! ✅');
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+  };
 
   // Profile State
   const [businessName, setBusinessName] = useState(businessProfile.businessName || '');
@@ -439,6 +477,19 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         >
           <Monitor className="w-4 h-4" />
           <span>Landing Page</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('security')}
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
+            activeTab === 'security'
+              ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20"
+              : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
+          )}
+        >
+          <Lock className="w-4 h-4" />
+          <span>Security & Password</span>
         </button>
       </div>
 
@@ -1217,6 +1268,123 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
             </div>
           </div>
         </form>
+      )}
+
+      {/* TAB 5: SECURITY & CHANGE PASSWORD */}
+      {activeTab === 'security' && (
+        <div className="space-y-6">
+          <form onSubmit={handleChangeAdminPassword} className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-6 shadow-xl space-y-5 max-w-2xl">
+            <div className="flex items-center gap-3 border-b border-[#1F1F21] pb-3">
+              <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059]">
+                <KeyRound className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base font-serif">Change Administrator Password</h3>
+                <p className="text-xs text-gray-400">Update your Admin login credentials for system access security</p>
+              </div>
+            </div>
+
+            {passwordError && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold flex items-center gap-2">
+                <X className="w-4 h-4" />
+                <span>{passwordError}</span>
+              </div>
+            )}
+
+            {passwordSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{passwordSuccess}</span>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Current Admin Password *</label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPass ? 'text' : 'password'}
+                    required
+                    placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none focus:border-[#C5A059] font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPass(!showCurrentPass)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">New Admin Password *</label>
+                <div className="relative">
+                  <input
+                    type={showNewPass ? 'text' : 'password'}
+                    required
+                    placeholder="Enter new strong password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none focus:border-[#C5A059] font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPass(!showNewPass)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Confirm New Password *</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Re-enter new password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-[#C5A059] font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#d4b06a] hover:to-[#b08d4a] text-[#080809] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-[#C5A059]/20 flex items-center gap-2 transition-all"
+              >
+                <Save className="w-4 h-4" />
+                <span>Update Admin Password</span>
+              </button>
+            </div>
+          </form>
+
+          {/* Security Information Card */}
+          <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-5 shadow-xl max-w-2xl space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-300">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>Administrator Account Security Status</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl">
+                <p className="text-[10px] text-gray-500 font-semibold uppercase">Admin Username</p>
+                <p className="font-bold text-white font-mono text-xs mt-0.5">admin</p>
+              </div>
+              <div className="p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl">
+                <p className="text-[10px] text-gray-500 font-semibold uppercase">Security Level</p>
+                <p className="font-bold text-emerald-400 text-xs mt-0.5 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Protected
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

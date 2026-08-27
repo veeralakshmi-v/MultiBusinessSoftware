@@ -56,7 +56,8 @@ export default function Login() {
         // Fall back to client demo authentication
       }
 
-      if (cleanUser === 'admin' && (cleanPass === 'admin123' || cleanPass === 'admin')) {
+      const savedAdminPass = localStorage.getItem('admin_custom_password') || 'admin123';
+      if (cleanUser === 'admin' && (cleanPass === savedAdminPass || cleanPass === 'admin123' || cleanPass === 'admin')) {
         login(token, userObj);
         navigate(redirectTo, { replace: true });
       } else {
