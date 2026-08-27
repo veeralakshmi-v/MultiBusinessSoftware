@@ -1239,6 +1239,10 @@ app.put('/api/attendance/settings', async (req, res) => {
 // END OF FEATURE 20 ATTENDANCE APIs
 // ─────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`⚡ Multi-Business Billing Backend API running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`⚡ Multi-Business Billing Backend API running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
