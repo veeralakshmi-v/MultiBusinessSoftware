@@ -22,7 +22,10 @@ export const PROJECT_MENU_ITEMS = [
 ] as const;
 
 export function parseAppAccess(val?: string): string[] {
-  if (!val || val.includes('Full Access') || val.includes('ALL_MODULES')) {
+  if (!val || val === 'No Access' || val === 'None') {
+    return [];
+  }
+  if (val.includes('Full Access') || val.includes('ALL_MODULES')) {
     return [...PROJECT_MENU_ITEMS];
   }
   if (val === 'POS & Sales Billing Only') {
@@ -39,7 +42,7 @@ export function parseAppAccess(val?: string): string[] {
   }
   const parts = val.split(',').map(s => s.trim()).filter(Boolean);
   const matched = parts.filter(p => PROJECT_MENU_ITEMS.includes(p as any));
-  return matched.length > 0 ? matched : [...PROJECT_MENU_ITEMS];
+  return matched;
 }
 
 export default function EmployeeDirectory() {
@@ -92,7 +95,7 @@ export default function EmployeeDirectory() {
   const [staffCategory, setStaffCategory] = useState('Management/Admin');
   const [customCategoryTitle, setCustomCategoryTitle] = useState('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
-  const [selectedAppAccess, setSelectedAppAccess] = useState<string[]>([...PROJECT_MENU_ITEMS]);
+  const [selectedAppAccess, setSelectedAppAccess] = useState<string[]>([]);
   const [staffPhone, setStaffPhone] = useState('');
   const [staffFamilyPhone, setStaffFamilyPhone] = useState('');
   const [staffEmail, setStaffEmail] = useState('');
@@ -121,7 +124,7 @@ export default function EmployeeDirectory() {
       setStaffName(st.name || '');
       setStaffPhone(st.phone || '');
       setStaffUsername(st.phone || st.username || '');
-      
+
       const roleVal = st.role || 'CASHIER';
       if (STANDARD_ROLES.includes(roleVal)) {
         setStaffRole(roleVal);
@@ -166,7 +169,7 @@ export default function EmployeeDirectory() {
       setStaffCategory('Management/Admin');
       setCustomCategoryTitle('');
       setIsCustomCategory(false);
-      setSelectedAppAccess([...PROJECT_MENU_ITEMS]);
+      setSelectedAppAccess([]);
       setStaffFamilyPhone('');
       setStaffEmail('');
       setStaffPin('');
@@ -224,8 +227,8 @@ export default function EmployeeDirectory() {
     const computedAppAccess = selectedAppAccess.length === PROJECT_MENU_ITEMS.length
       ? 'Full Access (All Modules & POS)'
       : selectedAppAccess.length === 0
-      ? 'Full Access (All Modules & POS)'
-      : selectedAppAccess.join(', ');
+        ? 'No Access'
+        : selectedAppAccess.join(', ');
     const computedRole = isCustomRole ? (customRoleTitle.trim() || 'CUSTOM') : staffRole;
     const computedStatus = computedRole === 'ADMIN' ? 'ACTIVE' : staffStatus;
 
@@ -477,9 +480,6 @@ export default function EmployeeDirectory() {
 
               {/* Card Footer: Edit Button */}
               <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between">
-                <span className="text-[10px] text-gray-500 flex items-center gap-1 font-semibold">
-                  Click card to Edit details
-                </span>
                 <button
                   type="button"
                   onClick={(e) => {
@@ -602,7 +602,7 @@ export default function EmployeeDirectory() {
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#C5A059]" />
                 <h3 className="font-bold text-white text-base">
-                  {selectedStaff ? `Employee Details: ${selectedStaff.name}` : 'Add New Staff Member'}
+                  {selectedStaff ? `Employee Details: ${selectedStaff.name}` : 'New Employee Details'}
                 </h3>
               </div>
               <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white p-1">

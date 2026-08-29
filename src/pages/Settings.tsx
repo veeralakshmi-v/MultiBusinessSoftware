@@ -140,7 +140,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
   const [staffCategory, setStaffCategory] = useState('Management/Admin');
   const [customCategoryTitle, setCustomCategoryTitle] = useState('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
-  const [selectedAppAccess, setSelectedAppAccess] = useState<string[]>([...PROJECT_MENU_ITEMS]);
+  const [selectedAppAccess, setSelectedAppAccess] = useState<string[]>([]);
   const [staffPhone, setStaffPhone] = useState('');
   const [staffFamilyPhone, setStaffFamilyPhone] = useState('');
   const [staffEmail, setStaffEmail] = useState('');
@@ -355,7 +355,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       setStaffCategory('Management/Admin');
       setCustomCategoryTitle('');
       setIsCustomCategory(false);
-      setSelectedAppAccess([...PROJECT_MENU_ITEMS]);
+      setSelectedAppAccess([]);
       setStaffPhone('');
       setStaffFamilyPhone('');
       setStaffEmail('');
@@ -404,7 +404,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
     const computedAppAccess = selectedAppAccess.length === PROJECT_MENU_ITEMS.length
       ? 'Full Access (All Modules & POS)'
       : selectedAppAccess.length === 0
-      ? 'Full Access (All Modules & POS)'
+      ? 'No Access'
       : selectedAppAccess.join(', ');
     const computedRole = isCustomRole ? (customRoleTitle.trim() || 'CUSTOM') : staffRole;
     const computedStatus = computedRole === 'ADMIN' ? 'ACTIVE' : staffStatus;
@@ -915,7 +915,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#C5A059]" />
                 <h3 className="font-bold text-white text-base">
-                  {editingStaff ? 'Edit Staff Details' : 'Add New Staff Member'}
+                  {editingStaff ? 'Edit Staff Details' : 'New Employee Details'}
                 </h3>
               </div>
               <button onClick={() => setIsStaffModalOpen(false)} className="text-gray-400 hover:text-white p-1">

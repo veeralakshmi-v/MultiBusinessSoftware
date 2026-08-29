@@ -2,21 +2,24 @@
 
 :root {
   --theme-font: 'Outfit', sans-serif;
-  --theme-bg-primary: #0A0A0B;
-  --theme-bg-surface: #131315;
-  --theme-bg-card: #1A1A1C;
-  --theme-btn-secondary: #C5A059;
-  --theme-btn-secondary-hover: #B08D4A;
-  --theme-btn-text: #0A0A0B;
-  --theme-text-primary: #FFFFFF;
-  --theme-text-accent: #C5A059;
-  --theme-text-muted: rgba(255, 255, 255, 0.65);
-  --theme-border-tint: rgba(197, 160, 89, 0.35);
-  --theme-glow: 0 0 20px rgba(197, 160, 89, 0.25);
-  --theme-primary: #C5A059;
-  --theme-primary-hover: #B08D4A;
-  --theme-primary-bg: rgba(197, 160, 89, 0.12);
-  --theme-primary-border: rgba(197, 160, 89, 0.35);
+  --theme-bg-primary: #F8FAFC;
+  --theme-bg-surface: #FFFFFF;
+  --theme-bg-card: #F1F5F9;
+  --theme-btn-secondary: #2563EB;
+  --theme-btn-secondary-hover: #1D4ED8;
+  --theme-btn-text: #FFFFFF;
+  --theme-btn-outline-bg: #F1F5F9;
+  --theme-btn-outline-text: #0F172A;
+  --theme-input-bg: #FFFFFF;
+  --theme-text-primary: #0F172A;
+  --theme-text-accent: #2563EB;
+  --theme-text-muted: #64748B;
+  --theme-border-tint: #E2E8F0;
+  --theme-glow: 0 4px 20px rgba(37, 99, 235, 0.18);
+  --theme-primary: #2563EB;
+  --theme-primary-hover: #1D4ED8;
+  --theme-primary-bg: rgba(37, 99, 235, 0.12);
+  --theme-primary-border: rgba(37, 99, 235, 0.25);
 }
 
 /* Global Typography Font Family Override */
@@ -234,7 +237,7 @@ textarea::placeholder {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2D2D30;
+  background: var(--theme-border-tint);
   border-radius: 4px;
 }
 
@@ -244,7 +247,7 @@ textarea::placeholder {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #2D2D30 var(--theme-bg-primary);
+  scrollbar-color: var(--theme-border-tint) var(--theme-bg-primary);
 }
 
 

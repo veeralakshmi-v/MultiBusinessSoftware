@@ -43,7 +43,65 @@ function adjustColorBrightness(hex: string, amount: number): string {
 }
 
 export const COLOR_PRESETS: ColorPreset[] = [
-  // ── ROW 1: DARK LUXURY MODE PRESETS ─────────────────────────
+  // ── ROW 1: CLEAN LIGHT MODE PRESETS (WHITE BACKGROUNDS) ─────
+  {
+    id: 'LIGHT_SAPPHIRE',
+    name: 'Ice White & Sapphire Blue',
+    primaryBg: '#F8FAFC',
+    secondaryBtn: '#2563EB',
+    secondaryHover: '#1D4ED8',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#0F172A',
+    textAccentColor: '#2563EB',
+    surfaceBg: '#FFFFFF',
+    cardBg: '#F1F5F9',
+    borderTint: '#E2E8F0',
+    glow: '0 4px 20px rgba(37, 99, 235, 0.18)',
+  },
+  {
+    id: 'LIGHT_ROYAL_GOLD',
+    name: 'Clean Ivory & Royal Gold',
+    primaryBg: '#F8F9FA',
+    secondaryBtn: '#C5A059',
+    secondaryHover: '#B08D4A',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#1A1A1C',
+    textAccentColor: '#9B783E',
+    surfaceBg: '#FFFFFF',
+    cardBg: '#F1F3F5',
+    borderTint: 'rgba(197, 160, 89, 0.35)',
+    glow: '0 4px 20px rgba(197, 160, 89, 0.18)',
+  },
+  {
+    id: 'LIGHT_EMERALD',
+    name: 'Mint White & Imperial Emerald',
+    primaryBg: '#F0FDF4',
+    secondaryBtn: '#059669',
+    secondaryHover: '#047857',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#064E3B',
+    textAccentColor: '#047857',
+    surfaceBg: '#FFFFFF',
+    cardBg: '#DCFCE7',
+    borderTint: 'rgba(5, 150, 105, 0.35)',
+    glow: '0 4px 20px rgba(5, 150, 105, 0.18)',
+  },
+  {
+    id: 'LIGHT_AMETHYST',
+    name: 'Soft Violet & Amethyst Purple',
+    primaryBg: '#FAF5FF',
+    secondaryBtn: '#7C3AED',
+    secondaryHover: '#6D28D9',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#2E1065',
+    textAccentColor: '#6D28D9',
+    surfaceBg: '#FFFFFF',
+    cardBg: '#F3E8FF',
+    borderTint: 'rgba(124, 58, 237, 0.35)',
+    glow: '0 4px 20px rgba(124, 58, 237, 0.18)',
+  },
+
+  // ── ROW 2: DARK LUXURY MODE PRESETS ─────────────────────────
   {
     id: 'LUXURY_GOLD',
     name: 'Royal Gold & Obsidian',
@@ -99,64 +157,6 @@ export const COLOR_PRESETS: ColorPreset[] = [
     cardBg: '#281B4D',
     borderTint: 'rgba(139, 92, 246, 0.35)',
     glow: '0 0 20px rgba(139, 92, 246, 0.25)',
-  },
-
-  // ── ROW 2: CLEAN LIGHT MODE PRESETS (WHITE BACKGROUNDS) ─────
-  {
-    id: 'LIGHT_ROYAL_GOLD',
-    name: 'Clean Ivory & Royal Gold',
-    primaryBg: '#F8F9FA',
-    secondaryBtn: '#C5A059',
-    secondaryHover: '#B08D4A',
-    textOnSecondary: '#FFFFFF',
-    textColor: '#1A1A1C',
-    textAccentColor: '#9B783E',
-    surfaceBg: '#FFFFFF',
-    cardBg: '#F1F3F5',
-    borderTint: 'rgba(197, 160, 89, 0.35)',
-    glow: '0 4px 20px rgba(197, 160, 89, 0.18)',
-  },
-  {
-    id: 'LIGHT_SAPPHIRE',
-    name: 'Ice White & Sapphire Blue',
-    primaryBg: '#F0F4F8',
-    secondaryBtn: '#2563EB',
-    secondaryHover: '#1D4ED8',
-    textOnSecondary: '#FFFFFF',
-    textColor: '#0F172A',
-    textAccentColor: '#1D4ED8',
-    surfaceBg: '#FFFFFF',
-    cardBg: '#E2E8F0',
-    borderTint: 'rgba(37, 99, 235, 0.35)',
-    glow: '0 4px 20px rgba(37, 99, 235, 0.18)',
-  },
-  {
-    id: 'LIGHT_EMERALD',
-    name: 'Mint White & Imperial Emerald',
-    primaryBg: '#F0FDF4',
-    secondaryBtn: '#059669',
-    secondaryHover: '#047857',
-    textOnSecondary: '#FFFFFF',
-    textColor: '#064E3B',
-    textAccentColor: '#047857',
-    surfaceBg: '#FFFFFF',
-    cardBg: '#DCFCE7',
-    borderTint: 'rgba(5, 150, 105, 0.35)',
-    glow: '0 4px 20px rgba(5, 150, 105, 0.18)',
-  },
-  {
-    id: 'LIGHT_AMETHYST',
-    name: 'Soft Violet & Amethyst Purple',
-    primaryBg: '#FAF5FF',
-    secondaryBtn: '#7C3AED',
-    secondaryHover: '#6D28D9',
-    textOnSecondary: '#FFFFFF',
-    textColor: '#2E1065',
-    textAccentColor: '#6D28D9',
-    surfaceBg: '#FFFFFF',
-    cardBg: '#F3E8FF',
-    borderTint: 'rgba(124, 58, 237, 0.35)',
-    glow: '0 4px 20px rgba(124, 58, 237, 0.18)',
   },
 ];
 
@@ -316,12 +316,21 @@ export class ThemeEngine {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
+        if (parsed.colorPreset === 'LUXURY_GOLD' && !parsed.userCustomized) {
+          parsed.colorPreset = 'LIGHT_SAPPHIRE';
+          parsed.primaryBgColor = '#F8FAFC';
+          parsed.secondaryBtnColor = '#2563EB';
+          parsed.textColor = '#0F172A';
+          parsed.textAccentColor = '#2563EB';
+          parsed.invoiceTheme = 'MODERN_BLUE';
+          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed));
+        }
         const preset = COLOR_PRESETS.find(c => c.id === parsed.colorPreset) || COLOR_PRESETS[0];
         return {
           ...parsed,
           primaryBgColor: parsed.primaryBgColor || preset.primaryBg,
           secondaryBtnColor: parsed.secondaryBtnColor || preset.secondaryBtn,
-          textColor: parsed.textColor || preset.textColor || '#FFFFFF',
+          textColor: parsed.textColor || preset.textColor || '#0F172A',
           textAccentColor: parsed.textAccentColor || preset.textAccentColor || preset.secondaryBtn,
         };
       }
@@ -334,7 +343,7 @@ export class ThemeEngine {
       logoUrl: '',
       brandTitle: template?.invoiceLayout?.headerTitle || 'Apex Multi-Business Billing',
       brandTagline: template?.invoiceLayout?.tagline || 'Enterprise Cloud Point of Sale & Billing System',
-      colorPreset: 'LUXURY_GOLD',
+      colorPreset: 'LIGHT_SAPPHIRE',
       primaryBgColor: defaultPreset.primaryBg,
       secondaryBtnColor: defaultPreset.secondaryBtn,
       textColor: defaultPreset.textColor,
@@ -343,7 +352,7 @@ export class ThemeEngine {
 
       fontSize: 'MEDIUM',
       iconStyle: 'ROUNDED_ORGANIC',
-      invoiceTheme: 'LUXURY_GOLD',
+      invoiceTheme: 'MODERN_BLUE',
       headerTitle: template?.invoiceLayout?.headerTitle || 'Apex Multi-Business Billing',
       tagline: template?.invoiceLayout?.tagline || 'Enterprise Point of Sale',
       termsText: template?.invoiceLayout?.termsText || 'Goods once sold cannot be returned without original bill.',
