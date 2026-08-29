@@ -448,8 +448,8 @@ export default function WebsiteBuilder() {
           </div>
 
           {/* Render Store Preview Component */}
-          <div className={cn("mx-auto transition-all", previewDevice === 'MOBILE' ? "max-w-md border-8 border-[#262629] rounded-3xl overflow-hidden shadow-2xl" : "w-full")}>
-            <WebsitePreviewRender config={config} items={items} businessName={businessProfile.businessName} />
+          <div className={cn("mx-auto transition-all", previewDevice === 'MOBILE' ? "max-w-sm border-8 border-[#262629] rounded-3xl overflow-hidden shadow-2xl" : "w-full")}>
+            <WebsitePreviewRender config={config} items={items} businessName={businessProfile.businessName} isMobileView={previewDevice === 'MOBILE'} />
           </div>
         </div>
       )}
@@ -458,7 +458,7 @@ export default function WebsiteBuilder() {
 }
 
 // Subcomponent for Website Preview
-function WebsitePreviewRender({ config, items, businessName }: { config: WebsiteConfig; items: any[]; businessName: string }) {
+function WebsitePreviewRender({ config, items, businessName, isMobileView }: { config: WebsiteConfig; items: any[]; businessName: string; isMobileView?: boolean }) {
   const brand = businessName || 'My Business';
   const displayItems = items.length > 0 ? items : [
     { id: 'demo-1', name: 'Fresh Organic Apples', price: 120, category: 'Fresh Produce', unit: 'Kg', currentStock: 25 },
@@ -469,14 +469,14 @@ function WebsitePreviewRender({ config, items, businessName }: { config: Website
   return (
     <div className="bg-[#0A0A0B] text-gray-100 font-sans rounded-xl overflow-hidden shadow-2xl border border-[#1F1F21]">
       {/* Store Header */}
-      <header className="bg-[#131315] border-b border-[#1F1F21] px-5 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#C5A059] flex items-center justify-center font-bold text-[#0A0A0B]">
+      <header className="bg-[#131315] border-b border-[#1F1F21] px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5 truncate">
+          <div className="w-8 h-8 rounded-lg bg-[#C5A059] flex items-center justify-center font-bold text-[#0A0A0B] flex-shrink-0">
             {brand.charAt(0).toUpperCase()}
           </div>
-          <div>
-            <h1 className="font-serif font-bold text-sm text-white leading-tight">{brand}</h1>
-            <span className="text-[10px] text-gray-400">Official Storefront</span>
+          <div className="truncate">
+            <h1 className="font-serif font-bold text-xs sm:text-sm text-white leading-tight truncate">{brand}</h1>
+            <span className="text-[10px] text-gray-400 block truncate">Official Storefront</span>
           </div>
         </div>
 
@@ -484,7 +484,7 @@ function WebsitePreviewRender({ config, items, businessName }: { config: Website
           href={`https://wa.me/${config.whatsapp}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5"
+          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-xl flex items-center gap-1 flex-shrink-0"
         >
           <MessageSquare className="w-3.5 h-3.5" />
           <span>WhatsApp Us</span>
@@ -492,17 +492,18 @@ function WebsitePreviewRender({ config, items, businessName }: { config: Website
       </header>
 
       {/* Hero Banner Section */}
-      <div className="relative bg-gradient-to-r from-black/90 via-black/60 to-transparent py-12 px-6 overflow-hidden">
+      <div className="relative bg-black py-10 px-5 overflow-hidden">
         <img
           src={config.heroBannerUrl}
           alt="Hero Banner"
-          className="absolute inset-0 w-full h-full object-cover opacity-35"
+          className="absolute inset-0 w-full h-full object-cover opacity-40 filter brightness-90"
         />
-        <div className="relative z-10 max-w-xl space-y-3">
-          <h2 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight leading-snug">
+        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/40" />
+        <div className="relative z-10 max-w-xl space-y-2.5">
+          <h2 className="text-lg sm:text-2xl font-serif font-bold text-white tracking-tight leading-snug drop-shadow-md">
             {config.heroTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-gray-300">
+          <p className="text-xs sm:text-sm text-gray-200 drop-shadow">
             {config.heroSubtitle}
           </p>
           <div className="pt-2">
@@ -510,7 +511,7 @@ function WebsitePreviewRender({ config, items, businessName }: { config: Website
               href={`https://wa.me/${config.whatsapp}?text=Hi%20${encodeURIComponent(brand)},%20I%20want%20to%20place%20an%20order`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#C5A059] text-[#0A0A0B] font-extrabold text-xs rounded-xl shadow-lg hover:bg-[#b08d4a]"
+              className="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>{config.heroCtaText}</span>
@@ -520,32 +521,32 @@ function WebsitePreviewRender({ config, items, businessName }: { config: Website
       </div>
 
       {/* Product Catalog Grid */}
-      <div className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white font-serif">Featured Catalog & Items ({displayItems.length})</h3>
+      <div className="p-4 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xs sm:text-sm font-bold text-white font-serif">Featured Catalog ({displayItems.length})</h3>
           <span className="text-[10px] text-gray-400">Live Inventory Sync</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={cn("grid gap-3", isMobileView ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3")}>
           {displayItems.map(item => (
-            <div key={item.id} className="bg-[#131315] border border-[#1F1F21] p-4 rounded-xl space-y-3 flex flex-col justify-between hover:border-[#C5A059]/40 transition-all">
+            <div key={item.id} className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-xl space-y-3 flex flex-col justify-between hover:border-[#C5A059]/40 transition-all">
               <div>
-                <div className="flex items-start justify-between">
-                  <h4 className="font-bold text-white text-xs">{item.name}</h4>
+                <div className="flex items-start justify-between gap-1">
+                  <h4 className="font-bold text-white text-xs truncate max-w-[140px]">{item.name}</h4>
                   {config.showStockStatus && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap flex-shrink-0">
                       In Stock
                     </span>
                   )}
                 </div>
-                <div className="text-[10px] text-gray-500 mt-0.5">{item.category || 'General'} • per {item.unit || 'Pcs'}</div>
+                <div className="text-[10px] text-gray-400 mt-0.5">{item.category || 'General'} • per {item.unit || 'Pcs'}</div>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-[#1F1F21]">
+              <div className="flex items-center justify-between pt-2 border-t border-[#1F1F21] gap-1 flex-wrap">
                 {config.showPrices ? (
                   <span className="font-mono font-bold text-white text-sm">₹{Number(item.price || 0).toFixed(2)}</span>
                 ) : (
-                  <span className="text-[10px] text-gray-500">Contact for Price</span>
+                  <span className="text-[10px] text-gray-400">Available</span>
                 )}
 
                 {config.enableWhatsAppOrder && (
@@ -553,7 +554,7 @@ function WebsitePreviewRender({ config, items, businessName }: { config: Website
                     href={`https://wa.me/${config.whatsapp}?text=Hi,%20I%20want%20to%20order%20${encodeURIComponent(item.name)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-2.5 py-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold text-[10px] rounded-lg hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-1"
+                    className="px-2.5 py-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold text-[10px] rounded-lg hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-1 whitespace-nowrap flex-shrink-0"
                   >
                     <MessageSquare className="w-3 h-3" />
                     <span>Order</span>
