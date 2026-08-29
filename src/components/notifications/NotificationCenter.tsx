@@ -25,8 +25,14 @@ export default function NotificationCenter() {
 
   useEffect(() => {
     loadNotifications();
-    const interval = setInterval(loadNotifications, 10000);
-    return () => clearInterval(interval);
+    window.addEventListener('notification_dispatched', loadNotifications);
+    window.addEventListener('storage', loadNotifications);
+    const interval = setInterval(loadNotifications, 5000);
+    return () => {
+      window.removeEventListener('notification_dispatched', loadNotifications);
+      window.removeEventListener('storage', loadNotifications);
+      clearInterval(interval);
+    };
   }, [loadNotifications]);
 
   // Close dropdown on click outside

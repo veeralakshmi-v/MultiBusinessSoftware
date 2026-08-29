@@ -261,6 +261,11 @@ export class NotificationEngine {
     // Save to in-app history store
     this.saveNotificationRecords(dispatches);
 
+    try {
+      window.dispatchEvent(new Event('notification_dispatched'));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+
     return {
       success: dispatches.length > 0,
       dispatches,
@@ -277,7 +282,12 @@ export class NotificationEngine {
         return [];
       }
       const parsed: NotificationRecord[] = JSON.parse(raw);
-      return parsed.slice(0, limit);
+      // Automatically purge old mock starter notifications if stored in user's browser
+      const cleaned = parsed.filter(n => !n.id.startsWith('notif-init-'));
+      if (cleaned.length !== parsed.length) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cleaned));
+      }
+      return cleaned.slice(0, limit);
     } catch {
       return [];
     }
@@ -310,6 +320,10 @@ export class NotificationEngine {
   }
 
   static clearAll(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify([]));
+    try {
+      window.dispatchEvent(new Event('notification_dispatched'));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
   }
 }
