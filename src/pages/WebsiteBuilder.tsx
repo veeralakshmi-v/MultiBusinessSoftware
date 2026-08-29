@@ -35,6 +35,67 @@ const PRESET_BANNERS = [
   { name: 'Fashion & Boutique', url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80' },
 ];
 
+export const getThemeStyles = (theme: string = 'gold') => {
+  switch (theme) {
+    case 'emerald':
+      return {
+        brandBg: 'bg-emerald-600 text-white',
+        brandText: 'text-emerald-400',
+        brandBorder: 'border-emerald-500/30',
+        brandPill: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+        buttonBg: 'bg-emerald-600 hover:bg-emerald-500 text-white',
+        accentText: 'text-emerald-400',
+        badgeBg: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+        orderBtn: 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600 hover:text-white',
+      };
+    case 'blue':
+      return {
+        brandBg: 'bg-blue-600 text-white',
+        brandText: 'text-blue-400',
+        brandBorder: 'border-blue-500/30',
+        brandPill: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+        buttonBg: 'bg-blue-600 hover:bg-blue-500 text-white',
+        accentText: 'text-blue-400',
+        badgeBg: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+        orderBtn: 'bg-blue-600/20 text-blue-400 border-blue-500/30 hover:bg-blue-600 hover:text-white',
+      };
+    case 'purple':
+      return {
+        brandBg: 'bg-purple-600 text-white',
+        brandText: 'text-purple-400',
+        brandBorder: 'border-purple-500/30',
+        brandPill: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+        buttonBg: 'bg-purple-600 hover:bg-purple-500 text-white',
+        accentText: 'text-purple-400',
+        badgeBg: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+        orderBtn: 'bg-purple-600/20 text-purple-400 border-purple-500/30 hover:bg-purple-600 hover:text-white',
+      };
+    case 'amber':
+      return {
+        brandBg: 'bg-amber-500 text-[#0A0A0B]',
+        brandText: 'text-amber-400',
+        brandBorder: 'border-amber-500/30',
+        brandPill: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+        buttonBg: 'bg-amber-500 hover:bg-amber-400 text-[#0A0A0B]',
+        accentText: 'text-amber-400',
+        badgeBg: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+        orderBtn: 'bg-amber-500/20 text-amber-400 border-amber-500/30 hover:bg-amber-500 hover:text-[#0A0A0B]',
+      };
+    case 'gold':
+    default:
+      return {
+        brandBg: 'bg-[#C5A059] text-[#0A0A0B]',
+        brandText: 'text-[#C5A059]',
+        brandBorder: 'border-[#C5A059]/30',
+        brandPill: 'bg-[#C5A059]/15 text-[#C5A059] border-[#C5A059]/30',
+        buttonBg: 'bg-[#C5A059] hover:bg-[#b08d4a] text-[#0A0A0B]',
+        accentText: 'text-[#C5A059]',
+        badgeBg: 'bg-[#C5A059]/15 text-[#C5A059] border-[#C5A059]/30',
+        orderBtn: 'bg-[#C5A059]/20 text-[#C5A059] border-[#C5A059]/30 hover:bg-[#C5A059] hover:text-[#0A0A0B]',
+      };
+  }
+};
+
 export default function WebsiteBuilder() {
   const { businessProfile } = useAuth();
   const [copied, setCopied] = useState(false);
@@ -466,17 +527,19 @@ function WebsitePreviewRender({ config, items, businessName, isMobileView }: { c
     { id: 'demo-3', name: 'Pure Cow Milk 1 Litre', price: 65, category: 'Dairy', unit: 'Litre', currentStock: 50 },
   ];
 
+  const themeStyles = getThemeStyles(config.themeColor);
+
   return (
     <div className="bg-[#0A0A0B] text-gray-100 font-sans rounded-xl overflow-hidden shadow-2xl border border-[#1F1F21]">
       {/* Store Header */}
       <header className="bg-[#131315] border-b border-[#1F1F21] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5 truncate">
-          <div className="w-8 h-8 rounded-lg bg-[#C5A059] flex items-center justify-center font-bold text-[#0A0A0B] flex-shrink-0">
+          <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold flex-shrink-0 shadow", themeStyles.brandBg)}>
             {brand.charAt(0).toUpperCase()}
           </div>
           <div className="truncate">
             <h1 className="font-serif font-bold text-xs sm:text-sm text-white leading-tight truncate">{brand}</h1>
-            <span className="text-[10px] text-gray-400 block truncate">Official Storefront</span>
+            <span className={cn("text-[10px] block truncate font-semibold uppercase", themeStyles.accentText)}>Official Storefront</span>
           </div>
         </div>
 
@@ -484,7 +547,7 @@ function WebsitePreviewRender({ config, items, businessName, isMobileView }: { c
           href={`https://wa.me/${config.whatsapp}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-xl flex items-center gap-1 flex-shrink-0"
+          className={cn("px-2.5 py-1.5 font-bold text-[11px] rounded-xl flex items-center gap-1 flex-shrink-0 shadow", themeStyles.buttonBg)}
         >
           <MessageSquare className="w-3.5 h-3.5" />
           <span>WhatsApp Us</span>
@@ -496,14 +559,20 @@ function WebsitePreviewRender({ config, items, businessName, isMobileView }: { c
         <img
           src={config.heroBannerUrl}
           alt="Hero Banner"
-          className="absolute inset-0 w-full h-full object-cover opacity-40 filter brightness-90"
+          className="absolute inset-0 w-full h-full object-cover opacity-45 filter brightness-90"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/80 to-black/50" />
         <div className="relative z-10 max-w-xl space-y-2.5">
-          <h2 className="text-lg sm:text-2xl font-serif font-bold text-white tracking-tight leading-snug drop-shadow-md">
+          <h2
+            className="text-lg sm:text-2xl font-serif font-extrabold tracking-tight leading-snug drop-shadow-xl"
+            style={{ color: '#ffffff' }}
+          >
             {config.heroTitle}
           </h2>
-          <p className="text-xs sm:text-sm text-gray-200 drop-shadow">
+          <p
+            className="text-xs sm:text-sm font-medium drop-shadow-md"
+            style={{ color: '#f3f4f6' }}
+          >
             {config.heroSubtitle}
           </p>
           <div className="pt-2">
@@ -511,7 +580,7 @@ function WebsitePreviewRender({ config, items, businessName, isMobileView }: { c
               href={`https://wa.me/${config.whatsapp}?text=Hi%20${encodeURIComponent(brand)},%20I%20want%20to%20place%20an%20order`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all"
+              className={cn("inline-flex items-center gap-2 px-3.5 py-2 font-extrabold text-xs rounded-xl shadow-lg transition-all", themeStyles.buttonBg)}
             >
               <ShoppingBag className="w-4 h-4" />
               <span>{config.heroCtaText}</span>
@@ -529,12 +598,12 @@ function WebsitePreviewRender({ config, items, businessName, isMobileView }: { c
 
         <div className={cn("grid gap-3", isMobileView ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3")}>
           {displayItems.map(item => (
-            <div key={item.id} className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-xl space-y-3 flex flex-col justify-between hover:border-[#C5A059]/40 transition-all">
+            <div key={item.id} className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-xl space-y-3 flex flex-col justify-between hover:border-gray-600 transition-all">
               <div>
                 <div className="flex items-start justify-between gap-1">
                   <h4 className="font-bold text-white text-xs truncate max-w-[140px]">{item.name}</h4>
                   {config.showStockStatus && (
-                    <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap flex-shrink-0">
+                    <span className={cn("text-[9px] font-extrabold px-1.5 py-0.5 rounded whitespace-nowrap flex-shrink-0 border", themeStyles.badgeBg)}>
                       In Stock
                     </span>
                   )}
@@ -554,7 +623,7 @@ function WebsitePreviewRender({ config, items, businessName, isMobileView }: { c
                     href={`https://wa.me/${config.whatsapp}?text=Hi,%20I%20want%20to%20order%20${encodeURIComponent(item.name)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-2.5 py-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold text-[10px] rounded-lg hover:bg-emerald-600 hover:text-white transition-all flex items-center gap-1 whitespace-nowrap flex-shrink-0"
+                    className={cn("px-2.5 py-1 font-bold text-[10px] rounded-lg transition-all flex items-center gap-1 whitespace-nowrap flex-shrink-0 border", themeStyles.orderBtn)}
                   >
                     <MessageSquare className="w-3 h-3" />
                     <span>Order</span>
