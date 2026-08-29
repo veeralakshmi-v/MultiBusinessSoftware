@@ -6,6 +6,57 @@ import {
 import { cn } from '../lib/utils';
 import { WebsiteConfig } from './WebsiteBuilder';
 
+const getThemeStyles = (theme: string = 'gold') => {
+  switch (theme) {
+    case 'emerald':
+      return {
+        brandBg: 'bg-emerald-600 text-white',
+        brandText: 'text-emerald-400',
+        brandBorder: 'border-emerald-500/30',
+        brandPill: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+        buttonBg: 'bg-emerald-600 hover:bg-emerald-500 text-white',
+        activeTab: 'bg-emerald-600 text-white shadow',
+      };
+    case 'blue':
+      return {
+        brandBg: 'bg-blue-600 text-white',
+        brandText: 'text-blue-400',
+        brandBorder: 'border-blue-500/30',
+        brandPill: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+        buttonBg: 'bg-blue-600 hover:bg-blue-500 text-white',
+        activeTab: 'bg-blue-600 text-white shadow',
+      };
+    case 'purple':
+      return {
+        brandBg: 'bg-purple-600 text-white',
+        brandText: 'text-purple-400',
+        brandBorder: 'border-purple-500/30',
+        brandPill: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+        buttonBg: 'bg-purple-600 hover:bg-purple-500 text-white',
+        activeTab: 'bg-purple-600 text-white shadow',
+      };
+    case 'amber':
+      return {
+        brandBg: 'bg-amber-500 text-[#0A0A0B]',
+        brandText: 'text-amber-400',
+        brandBorder: 'border-amber-500/30',
+        brandPill: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+        buttonBg: 'bg-amber-500 hover:bg-amber-400 text-[#0A0A0B]',
+        activeTab: 'bg-amber-500 text-[#0A0A0B] shadow',
+      };
+    case 'gold':
+    default:
+      return {
+        brandBg: 'bg-[#C5A059] text-[#0A0A0B]',
+        brandText: 'text-[#C5A059]',
+        brandBorder: 'border-[#C5A059]/30',
+        brandPill: 'bg-[#C5A059]/15 text-[#C5A059] border-[#C5A059]/30',
+        buttonBg: 'bg-[#C5A059] hover:bg-[#b08d4a] text-[#0A0A0B]',
+        activeTab: 'bg-[#C5A059] text-[#0A0A0B] shadow',
+      };
+  }
+};
+
 export default function PublicStorefront() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -38,6 +89,8 @@ export default function PublicStorefront() {
       enableWhatsAppOrder: true,
     };
   });
+
+  const themeStyles = getThemeStyles(config.themeColor);
 
   // Load Business Profile
   const businessName = (() => {
@@ -72,12 +125,12 @@ export default function PublicStorefront() {
       {/* Top Navbar */}
       <header className="sticky top-0 z-40 bg-[#131315]/90 backdrop-blur-md border-b border-[#1F1F21] px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#C5A059] flex items-center justify-center font-bold text-[#0A0A0B] text-lg shadow-lg">
+          <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg", themeStyles.brandBg)}>
             {businessName.charAt(0).toUpperCase()}
           </div>
           <div>
             <h1 className="font-serif font-bold text-base text-white tracking-tight leading-tight">{businessName}</h1>
-            <span className="text-[10px] text-[#C5A059] font-semibold tracking-wider uppercase block">Official Online Catalog</span>
+            <span className={cn("text-[10px] font-semibold tracking-wider uppercase block", themeStyles.brandText)}>Official Online Catalog</span>
           </div>
         </div>
 
@@ -87,7 +140,7 @@ export default function PublicStorefront() {
               href={`tel:${config.phone}`}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[#1A1A1C] hover:bg-[#252528] text-gray-300 border border-[#2D2D30] text-xs font-bold rounded-xl transition-all"
             >
-              <Phone className="w-3.5 h-3.5 text-[#C5A059]" />
+              <Phone className={cn("w-3.5 h-3.5", themeStyles.brandText)} />
               <span>Call Us</span>
             </a>
           )}
@@ -97,7 +150,7 @@ export default function PublicStorefront() {
               href={`https://wa.me/${config.whatsapp}?text=Hi%20${encodeURIComponent(businessName)},%20I%20have%20an%20inquiry`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold rounded-xl shadow-lg transition-all"
+              className={cn("flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-extrabold rounded-xl shadow-lg transition-all", themeStyles.buttonBg)}
             >
               <MessageSquare className="w-4 h-4" />
               <span>WhatsApp Order</span>
@@ -107,20 +160,21 @@ export default function PublicStorefront() {
       </header>
 
       {/* Hero Banner */}
-      <div className="relative bg-gradient-to-r from-black/95 via-black/75 to-transparent py-16 sm:py-24 px-6 sm:px-12 border-b border-[#1F1F21] overflow-hidden">
+      <div className="relative bg-black py-16 sm:py-24 px-6 sm:px-12 border-b border-[#1F1F21] overflow-hidden">
         <img
           src={config.heroBannerUrl}
           alt="Business Banner"
-          className="absolute inset-0 w-full h-full object-cover opacity-30"
+          className="absolute inset-0 w-full h-full object-cover opacity-45 filter brightness-90"
         />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/80 to-black/50" />
         <div className="relative z-10 max-w-2xl space-y-4">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#C5A059]/15 border border-[#C5A059]/30 text-[#C5A059] text-xs font-extrabold uppercase tracking-wider">
+          <span className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider border", themeStyles.brandPill)}>
             <Sparkles className="w-3.5 h-3.5" /> Direct Store Order
           </span>
-          <h2 className="text-2xl sm:text-4xl font-serif font-bold text-white tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-4xl font-serif font-extrabold text-white !text-white tracking-tight leading-tight drop-shadow-xl">
             {config.heroTitle}
           </h2>
-          <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
+          <p className="text-sm sm:text-base text-gray-100 !text-gray-100 font-medium leading-relaxed drop-shadow-md">
             {config.heroSubtitle}
           </p>
 
@@ -129,7 +183,7 @@ export default function PublicStorefront() {
               href={`https://wa.me/${config.whatsapp}?text=Hi%20${encodeURIComponent(businessName)},%20I%20want%20to%20order`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#C5A059] hover:bg-[#b08d4a] text-[#0A0A0B] font-extrabold text-xs rounded-xl shadow-xl transition-all"
+              className={cn("inline-flex items-center gap-2 px-5 py-2.5 font-extrabold text-xs rounded-xl shadow-xl transition-all", themeStyles.buttonBg)}
             >
               <ShoppingBag className="w-4 h-4" />
               <span>{config.heroCtaText}</span>
