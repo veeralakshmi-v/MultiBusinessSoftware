@@ -20,6 +20,8 @@ const EmployeeLogin  = lazy(() => import('./pages/EmployeeLogin'));
 const EmployeePortal = lazy(() => import('./pages/EmployeePortal'));
 const StaffAttendance = lazy(() => import('./pages/StaffAttendance'));
 const EmployeeDirectory = lazy(() => import('./pages/EmployeeDirectory'));
+const WebsiteBuilder    = lazy(() => import('./pages/WebsiteBuilder'));
+const PublicStorefront  = lazy(() => import('./pages/PublicStorefront'));
 
 function PageLoader() {
   return (
@@ -48,6 +50,8 @@ export default function App() {
               {/* Landing page is the default root */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/store" element={<PublicStorefront />} />
+              <Route path="/website" element={<PublicStorefront />} />
 
               {/* ── EMPLOYEE ROUTES ─────────────────────────────── */}
               <Route path="/employee-login" element={<EmployeeLogin />} />
@@ -73,6 +77,7 @@ export default function App() {
                 <Route path="employees"  element={<EmployeeDirectory />} />
                 <Route path="attendance" element={<StaffAttendance />} />
                 <Route path="settings"   element={<Settings initialTab="profile" />} />
+                <Route path="website"    element={<WebsiteBuilder />} />
               </Route>
 
               {/* Catch-all → landing page */}

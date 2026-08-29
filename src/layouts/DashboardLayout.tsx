@@ -3,7 +3,7 @@ import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Settings, LogOut, Receipt, Package,
-  Boxes, BarChart3, ChevronLeft, ChevronRight, Menu, X,
+  Boxes, BarChart3, ChevronLeft, ChevronRight, Menu, X, Globe,
   PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList, ShieldAlert, Palette
 } from 'lucide-react';
 
@@ -72,6 +72,7 @@ export default function DashboardLayout() {
         '/dashboard/attendance': 'Staff Attendance',
         '/dashboard/customers': 'Customers',
         '/dashboard/settings': 'Settings',
+        '/dashboard/website': 'My Website',
       };
 
       const menuItem = routeMenuMap[href];
@@ -140,6 +141,11 @@ export default function DashboardLayout() {
       name: 'Settings',
       href: '/dashboard/settings',
       icon: Settings,
+    },
+    {
+      name: 'My Website',
+      href: '/dashboard/website',
+      icon: Globe,
     },
   ];
 
