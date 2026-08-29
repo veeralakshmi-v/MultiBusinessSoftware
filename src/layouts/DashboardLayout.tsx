@@ -3,7 +3,7 @@ import { Outlet, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Settings, LogOut, Receipt, Package,
-  Boxes, BarChart3, ChevronLeft, ChevronRight,
+  Boxes, BarChart3, ChevronLeft, ChevronRight, Menu, X,
   PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList, ShieldAlert, Palette
 } from 'lucide-react';
 
@@ -18,8 +18,14 @@ export default function DashboardLayout() {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('sidebar_collapsed') === 'true';
   });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   const [, setThemeVersion] = useState(0);
+
+  // Auto-close mobile menu on route navigation
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleThemeChange = () => {
@@ -254,17 +260,104 @@ export default function DashboardLayout() {
       </aside>
 
 
+      {/* Mobile Hamburger Slide-Over Navigation Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-[#131315] w-72 h-full border-r border-[#2D2D30] p-5 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left">
+            {/* Drawer Header */}
+            <div>
+              <div className="flex items-center justify-between border-b border-[#222225] pb-4 mb-4">
+                <div className="flex items-center">
+                  <div className="w-9 h-9 btn-theme-secondary rounded-xl flex items-center justify-center font-bold text-lg mr-3 shadow-md">
+                    {brandTitle.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h2 className="font-serif font-bold text-sm text-white tracking-tight">{brandTitle}</h2>
+                    <span className="text-[10px] text-[#C5A059] font-bold block uppercase">{brandTagline}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-white bg-[#1A1A1C]"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Navigation Items */}
+              <nav className="space-y-1.5">
+                {navigation.map((item) => {
+                  const isActive = location.pathname === item.href ||
+                    (item.href !== '/dashboard' && location.pathname.startsWith(item.href)) ||
+                    (item.href === '/dashboard/items' && location.pathname === '/dashboard/menu');
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={cn(
+                        'flex items-center px-3.5 py-3 text-xs font-bold rounded-xl transition-all',
+                        isActive
+                          ? 'bg-[#C5A059]/20 text-[#C5A059] border-l-4 border-[#C5A059]'
+                          : 'text-gray-300 hover:bg-[#1A1A1C] hover:text-white'
+                      )}
+                    >
+                      <Icon className={cn('h-4 w-4 mr-3', isActive ? 'text-[#C5A059]' : 'text-gray-400')} />
+                      <span>{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* Mobile Drawer Footer */}
+            <div className="border-t border-[#222225] pt-4 space-y-3">
+              <div className="flex items-center justify-between bg-[#1A1A1C] p-2.5 rounded-xl border border-[#2D2D30]">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-[#C5A059] flex items-center justify-center text-xs font-bold text-[#0A0A0B]">
+                    {user.username.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-white leading-tight">{user.username}</div>
+                    <div className="text-[10px] text-gray-500 uppercase">{user.role}</div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); logout(); }}
+                className="flex items-center justify-center w-full px-3 py-2.5 text-xs font-bold rounded-xl bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors gap-2"
+              >
+                <LogOut className="h-4 w-4 text-red-400" />
+                <span>Logout Account</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Backdrop Click */}
+          <div className="flex-1" onClick={() => setIsMobileMenuOpen(false)} />
+        </div>
+      )}
+
       {/* Main content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-16 bg-[#0F0F10] border-b border-[#1F1F21] flex items-center justify-between px-6 lg:px-8 z-10 flex-shrink-0">
-          <div className="flex items-center gap-4">
-            {/* Mobile Header Logo */}
+        <header className="h-16 bg-[#0F0F10] border-b border-[#1F1F21] flex items-center justify-between px-4 lg:px-8 z-10 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {/* Mobile Hamburger & Logo */}
             <div className="flex items-center md:hidden">
-              <div className="w-8 h-8 bg-[#C5A059] rounded-lg flex items-center justify-center text-[#0A0A0B] font-bold text-lg mr-3">
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-2 rounded-xl text-gray-300 hover:text-white bg-[#1A1A1C] border border-[#2D2D30] mr-2"
+                title="Open Navigation Menu"
+              >
+                <Menu className="w-5 h-5 text-[#C5A059]" />
+              </button>
+              <div className="w-8 h-8 btn-theme-secondary rounded-lg flex items-center justify-center font-bold text-lg mr-2 flex-shrink-0">
                 {brandTitle.charAt(0).toUpperCase()}
               </div>
-              <h1 className="font-serif font-bold text-base tracking-tight text-white truncate max-w-[150px]">{brandTitle}</h1>
+              <h1 className="font-serif font-bold text-sm tracking-tight text-white truncate max-w-[120px]">{brandTitle}</h1>
             </div>
 
             {/* Desktop Sidebar Toggle in Top Bar */}
