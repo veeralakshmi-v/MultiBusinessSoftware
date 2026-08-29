@@ -102,6 +102,7 @@ export default function WebsiteBuilder() {
   const [activeTab, setActiveTab] = useState<'CONTENT' | 'THEME' | 'PREVIEW'>('CONTENT');
   const [previewDevice, setPreviewDevice] = useState<'DESKTOP' | 'MOBILE'>('DESKTOP');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [showCustomUrlInput, setShowCustomUrlInput] = useState(false);
 
   const [items, setItems] = useState<any[]>([]);
 
@@ -282,41 +283,71 @@ export default function WebsiteBuilder() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-400 font-bold mb-1.5">Button Text (CTA)</label>
-                  <input
-                    type="text"
-                    value={config.heroCtaText}
-                    onChange={e => setConfig(c => ({ ...c, heroCtaText: e.target.value }))}
-                    placeholder="e.g. Order via WhatsApp"
-                    className="w-full px-3.5 py-2.5 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl text-white outline-none focus:border-[#C5A059]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-400 font-bold mb-1.5">Banner Image Preset</label>
-                  <select
-                    value={config.heroBannerUrl}
-                    onChange={e => setConfig(c => ({ ...c, heroBannerUrl: e.target.value }))}
-                    className="w-full px-3.5 py-2.5 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl text-white outline-none focus:border-[#C5A059]"
-                  >
-                    {PRESET_BANNERS.map((preset, idx) => (
-                      <option key={idx} value={preset.url}>{preset.name}</option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-gray-400 font-bold mb-1.5">Button Text (CTA)</label>
+                <input
+                  type="text"
+                  value={config.heroCtaText}
+                  onChange={e => setConfig(c => ({ ...c, heroCtaText: e.target.value }))}
+                  placeholder="e.g. Order via WhatsApp"
+                  className="w-full px-3.5 py-2.5 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl text-white outline-none focus:border-[#C5A059]"
+                />
               </div>
 
               <div>
-                <label className="block text-gray-400 font-bold mb-1.5">Custom Banner Image URL</label>
-                <input
-                  type="text"
-                  value={config.heroBannerUrl}
-                  onChange={e => setConfig(c => ({ ...c, heroBannerUrl: e.target.value }))}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3.5 py-2.5 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl text-white outline-none focus:border-[#C5A059] font-mono text-[11px]"
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-gray-400 font-bold">Banner Image Preset</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomUrlInput(!showCustomUrlInput)}
+                    className="text-[11px] font-bold text-[#C5A059] hover:underline flex items-center gap-1"
+                  >
+                    {showCustomUrlInput ? 'Hide Custom Link' : '⚙️ Custom Image Link'}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {PRESET_BANNERS.map((preset, idx) => {
+                    const isSelected = config.heroBannerUrl === preset.url;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setConfig(c => ({ ...c, heroBannerUrl: preset.url }))}
+                        className={cn(
+                          "relative rounded-xl overflow-hidden border-2 transition-all text-left group h-20 flex flex-col justify-end p-2.5",
+                          isSelected ? "border-[#C5A059] shadow-lg ring-2 ring-[#C5A059]/40" : "border-[#262629] hover:border-gray-500 opacity-80 hover:opacity-100"
+                        )}
+                      >
+                        <img
+                          src={preset.url}
+                          alt={preset.name}
+                          className="absolute inset-0 w-full h-full object-cover filter brightness-75 group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent" />
+                        <span className="relative z-10 font-bold text-[11px] text-white leading-tight drop-shadow">{preset.name}</span>
+                        {isSelected && (
+                          <span className="absolute top-1.5 right-1.5 z-10 w-4 h-4 rounded-full bg-[#C5A059] text-[#0A0A0B] flex items-center justify-center font-bold text-[10px] shadow">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {showCustomUrlInput && (
+                  <div className="mt-3 space-y-1">
+                    <label className="block text-gray-400 text-[11px] font-bold">Paste Custom Image URL</label>
+                    <input
+                      type="text"
+                      value={config.heroBannerUrl}
+                      onChange={e => setConfig(c => ({ ...c, heroBannerUrl: e.target.value }))}
+                      placeholder="https://images.unsplash.com/..."
+                      className="w-full px-3.5 py-2.5 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl text-white outline-none focus:border-[#C5A059] font-mono text-[11px]"
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
