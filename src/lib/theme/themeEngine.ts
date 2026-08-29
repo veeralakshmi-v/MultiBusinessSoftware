@@ -6,69 +6,157 @@ import {
 } from '../../types/theme';
 import { BusinessTemplate } from '../../types/template';
 
+function hexToRgb(hex: string): string {
+  let c = hex.replace('#', '');
+  if (c.length === 3) {
+    c = c.split('').map(x => x + x).join('');
+  }
+  const num = parseInt(c, 16);
+  if (isNaN(num)) return '197, 160, 89';
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `${r}, ${g}, ${b}`;
+}
+
+function getContrastTextColor(hex: string): string {
+  let c = hex.replace('#', '');
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  const num = parseInt(c, 16);
+  if (isNaN(num)) return '#FFFFFF';
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.55 ? '#0A0A0B' : '#FFFFFF';
+}
+
+function adjustColorBrightness(hex: string, amount: number): string {
+  let c = hex.replace('#', '');
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  let num = parseInt(c, 16);
+  if (isNaN(num)) return hex;
+  let r = Math.min(255, Math.max(0, (num >> 16) + amount));
+  let g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+  let b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
 export const COLOR_PRESETS: ColorPreset[] = [
+  // ── ROW 1: DARK LUXURY MODE PRESETS ─────────────────────────
   {
     id: 'LUXURY_GOLD',
-    name: 'Royal Gold (Default)',
-    primary: '#C5A059',
-    primaryHover: '#B08D4A',
-    bgTint: 'rgba(197, 160, 89, 0.12)',
+    name: 'Royal Gold & Obsidian',
+    primaryBg: '#0A0A0B',
+    secondaryBtn: '#C5A059',
+    secondaryHover: '#B08D4A',
+    textOnSecondary: '#0A0A0B',
+    textColor: '#F3E5AB',
+    textAccentColor: '#C5A059',
+    surfaceBg: '#131315',
+    cardBg: '#1A1A1C',
     borderTint: 'rgba(197, 160, 89, 0.35)',
     glow: '0 0 20px rgba(197, 160, 89, 0.25)',
   },
   {
-    id: 'ROYAL_EMERALD',
-    name: 'Imperial Emerald',
-    primary: '#10B981',
-    primaryHover: '#059669',
-    bgTint: 'rgba(16, 185, 129, 0.12)',
-    borderTint: 'rgba(16, 185, 129, 0.35)',
-    glow: '0 0 20px rgba(16, 185, 129, 0.25)',
-  },
-  {
     id: 'SAPPHIRE_BLUE',
-    name: 'Sapphire Blue',
-    primary: '#3B82F6',
-    primaryHover: '#2563EB',
-    bgTint: 'rgba(59, 130, 246, 0.12)',
+    name: 'Sapphire Blue & Navy',
+    primaryBg: '#0B132B',
+    secondaryBtn: '#3B82F6',
+    secondaryHover: '#2563EB',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#E2E8F0',
+    textAccentColor: '#60A5FA',
+    surfaceBg: '#1C2541',
+    cardBg: '#253259',
     borderTint: 'rgba(59, 130, 246, 0.35)',
     glow: '0 0 20px rgba(59, 130, 246, 0.25)',
   },
   {
+    id: 'ROYAL_EMERALD',
+    name: 'Imperial Emerald & Forest',
+    primaryBg: '#051C14',
+    secondaryBtn: '#10B981',
+    secondaryHover: '#059669',
+    textOnSecondary: '#051C14',
+    textColor: '#D1FAE5',
+    textAccentColor: '#34D399',
+    surfaceBg: '#0A2E21',
+    cardBg: '#113E2E',
+    borderTint: 'rgba(16, 185, 129, 0.35)',
+    glow: '0 0 20px rgba(16, 185, 129, 0.25)',
+  },
+  {
     id: 'AMETHYST_PURPLE',
-    name: 'Amethyst Purple',
-    primary: '#8B5CF6',
-    primaryHover: '#7C3AED',
-    bgTint: 'rgba(139, 92, 246, 0.12)',
+    name: 'Amethyst Purple & Deep Violet',
+    primaryBg: '#100926',
+    secondaryBtn: '#8B5CF6',
+    secondaryHover: '#7C3AED',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#F3E8FF',
+    textAccentColor: '#A78BFA',
+    surfaceBg: '#1E143B',
+    cardBg: '#281B4D',
     borderTint: 'rgba(139, 92, 246, 0.35)',
     glow: '0 0 20px rgba(139, 92, 246, 0.25)',
   },
+
+  // ── ROW 2: CLEAN LIGHT MODE PRESETS (WHITE BACKGROUNDS) ─────
   {
-    id: 'RUBY_ROSE',
-    name: 'Ruby Crimson',
-    primary: '#F43F5E',
-    primaryHover: '#E11D48',
-    bgTint: 'rgba(244, 63, 94, 0.12)',
-    borderTint: 'rgba(244, 63, 94, 0.35)',
-    glow: '0 0 20px rgba(244, 63, 94, 0.25)',
+    id: 'LIGHT_ROYAL_GOLD',
+    name: 'Clean Ivory & Royal Gold',
+    primaryBg: '#F8F9FA',
+    secondaryBtn: '#C5A059',
+    secondaryHover: '#B08D4A',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#1A1A1C',
+    textAccentColor: '#9B783E',
+    surfaceBg: '#FFFFFF',
+    cardBg: '#F1F3F5',
+    borderTint: 'rgba(197, 160, 89, 0.35)',
+    glow: '0 4px 20px rgba(197, 160, 89, 0.18)',
   },
   {
-    id: 'SUNSET_AMBER',
-    name: 'Sunset Amber',
-    primary: '#F59E0B',
-    primaryHover: '#D97706',
-    bgTint: 'rgba(245, 158, 11, 0.12)',
-    borderTint: 'rgba(245, 158, 11, 0.35)',
-    glow: '0 0 20px rgba(245, 158, 11, 0.25)',
+    id: 'LIGHT_SAPPHIRE',
+    name: 'Ice White & Sapphire Blue',
+    primaryBg: '#F0F4F8',
+    secondaryBtn: '#2563EB',
+    secondaryHover: '#1D4ED8',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#0F172A',
+    textAccentColor: '#1D4ED8',
+    surfaceBg: '#FFFFFF',
+    cardBg: '#E2E8F0',
+    borderTint: 'rgba(37, 99, 235, 0.35)',
+    glow: '0 4px 20px rgba(37, 99, 235, 0.18)',
   },
   {
-    id: 'SLATE_CYAN',
-    name: 'Nordic Cyan',
-    primary: '#06B6D4',
-    primaryHover: '#0891B2',
-    bgTint: 'rgba(6, 182, 212, 0.12)',
-    borderTint: 'rgba(6, 182, 212, 0.35)',
-    glow: '0 0 20px rgba(6, 182, 212, 0.25)',
+    id: 'LIGHT_EMERALD',
+    name: 'Mint White & Imperial Emerald',
+    primaryBg: '#F0FDF4',
+    secondaryBtn: '#059669',
+    secondaryHover: '#047857',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#064E3B',
+    textAccentColor: '#047857',
+    surfaceBg: '#FFFFFF',
+    cardBg: '#DCFCE7',
+    borderTint: 'rgba(5, 150, 105, 0.35)',
+    glow: '0 4px 20px rgba(5, 150, 105, 0.18)',
+  },
+  {
+    id: 'LIGHT_AMETHYST',
+    name: 'Soft Violet & Amethyst Purple',
+    primaryBg: '#FAF5FF',
+    secondaryBtn: '#7C3AED',
+    secondaryHover: '#6D28D9',
+    textOnSecondary: '#FFFFFF',
+    textColor: '#2E1065',
+    textAccentColor: '#6D28D9',
+    surfaceBg: '#FFFFFF',
+    cardBg: '#F3E8FF',
+    borderTint: 'rgba(124, 58, 237, 0.35)',
+    glow: '0 4px 20px rgba(124, 58, 237, 0.18)',
   },
 ];
 
@@ -114,9 +202,10 @@ export const INVOICE_THEME_DETAILS: Record<InvoiceThemeId, { name: string; descr
     description: 'High-density receipt layout with dark banner headers and condensed typography.',
     headerClass: 'bg-[#1A1A1C] text-white p-2 rounded-lg',
     borderClass: 'border-[#2D2D30]',
-    badgeColor: 'bg-[#252528] text-gray-300 border-[#3D3D42]',
+    badgeColor: 'bg-[#1A1A1C] text-white border-gray-700',
   },
 };
+
 
 export class ThemeEngine {
   private static STORAGE_KEY = 'multi_biz_theme_config';
@@ -129,16 +218,71 @@ export class ThemeEngine {
     const root = document.documentElement;
 
     // 1. Color Palette Resolution
-    const colorPreset = COLOR_PRESETS.find(c => c.id === config.colorPreset) || COLOR_PRESETS[0];
-    const primary = config.customPrimaryColor || colorPreset.primary;
-    const hover = colorPreset.primaryHover;
-    const bgTint = colorPreset.bgTint;
-    const borderTint = colorPreset.borderTint;
+    const preset = COLOR_PRESETS.find(c => c.id === config.colorPreset) || COLOR_PRESETS[0];
 
-    root.style.setProperty('--theme-primary', primary);
-    root.style.setProperty('--theme-primary-hover', hover);
-    root.style.setProperty('--theme-primary-bg', bgTint);
+    const primaryBg = config.primaryBgColor || preset.primaryBg;
+    const secondaryBtn = config.secondaryBtnColor || preset.secondaryBtn;
+    
+    // Check if background is light color
+    const isLightBg = getContrastTextColor(primaryBg) === '#0A0A0B';
+
+    const textColor = config.textColor || preset.textColor || (isLightBg ? '#1A1A1C' : '#FFFFFF');
+    const textAccentColor = config.textAccentColor || preset.textAccentColor || secondaryBtn;
+
+    const secondaryHover = config.secondaryBtnColor
+      ? adjustColorBrightness(secondaryBtn, -20)
+      : preset.secondaryHover;
+
+    const textOnSecondary = config.secondaryBtnColor
+      ? getContrastTextColor(secondaryBtn)
+      : preset.textOnSecondary;
+
+    const surfaceBg = config.primaryBgColor
+      ? (isLightBg ? '#FFFFFF' : adjustColorBrightness(primaryBg, 14))
+      : preset.surfaceBg;
+
+    const cardBg = config.primaryBgColor
+      ? (isLightBg ? '#EDF2F7' : adjustColorBrightness(primaryBg, 22))
+      : preset.cardBg;
+
+    const rgbSecondary = hexToRgb(secondaryBtn);
+    const rgbText = hexToRgb(textColor);
+    const borderTint = isLightBg ? 'rgba(0, 0, 0, 0.15)' : `rgba(${rgbSecondary}, 0.35)`;
+    const glow = `0 0 20px rgba(${rgbSecondary}, 0.25)`;
+
+    // Inject Primary & Secondary & Font Color & Button CSS Root Variables
+    root.style.setProperty('--theme-bg-primary', primaryBg);
+    root.style.setProperty('--theme-bg-surface', surfaceBg);
+    root.style.setProperty('--theme-bg-card', cardBg);
+    root.style.setProperty('--theme-btn-secondary', secondaryBtn);
+    root.style.setProperty('--theme-btn-secondary-rgb', rgbSecondary);
+    root.style.setProperty('--theme-btn-secondary-hover', secondaryHover);
+    root.style.setProperty('--theme-btn-text', textOnSecondary);
+    root.style.setProperty('--theme-btn-outline-bg', isLightBg ? '#EDF2F7' : '#1A1A1C');
+    root.style.setProperty('--theme-btn-outline-text', isLightBg ? '#1A1A1C' : '#FFFFFF');
+    root.style.setProperty('--theme-input-bg', isLightBg ? '#FFFFFF' : surfaceBg);
+    root.style.setProperty('--theme-text-primary', textColor);
+    root.style.setProperty('--theme-text-accent', textAccentColor);
+    root.style.setProperty('--theme-text-muted', isLightBg ? 'rgba(30, 41, 59, 0.75)' : 'rgba(255, 255, 255, 0.65)');
+    root.style.setProperty('--theme-border-tint', borderTint);
+    root.style.setProperty('--theme-glow', glow);
+
+    // Apply document background and body text color
+    document.body.style.backgroundColor = primaryBg;
+    document.body.style.color = textColor;
+
+
+
+
+
+    // Legacy variables fallback
+    root.style.setProperty('--theme-primary', secondaryBtn);
+    root.style.setProperty('--theme-primary-hover', secondaryHover);
+    root.style.setProperty('--theme-primary-bg', `rgba(${rgbSecondary}, 0.12)`);
     root.style.setProperty('--theme-primary-border', borderTint);
+
+    // Apply document background
+    document.body.style.backgroundColor = primaryBg;
 
     // 2. Typography / Font
     const font = FONT_PRESETS.find(f => f.id === config.fontFamily) || FONT_PRESETS[0];
@@ -148,11 +292,15 @@ export class ThemeEngine {
     // 3. Font Size Scaling
     if (config.fontSize === 'SMALL') {
       root.style.fontSize = '13px';
+      document.body.style.fontSize = '13px';
     } else if (config.fontSize === 'LARGE') {
-      root.style.fontSize = '16px';
+      root.style.fontSize = '17px';
+      document.body.style.fontSize = '17px';
     } else {
-      root.style.fontSize = '14px';
+      root.style.fontSize = '15px';
+      document.body.style.fontSize = '15px';
     }
+
 
     // 4. Update Document Title
     if (config.brandTitle) {
@@ -167,9 +315,19 @@ export class ThemeEngine {
     try {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (raw) {
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        const preset = COLOR_PRESETS.find(c => c.id === parsed.colorPreset) || COLOR_PRESETS[0];
+        return {
+          ...parsed,
+          primaryBgColor: parsed.primaryBgColor || preset.primaryBg,
+          secondaryBtnColor: parsed.secondaryBtnColor || preset.secondaryBtn,
+          textColor: parsed.textColor || preset.textColor || '#FFFFFF',
+          textAccentColor: parsed.textAccentColor || preset.textAccentColor || preset.secondaryBtn,
+        };
       }
     } catch {}
+
+    const defaultPreset = COLOR_PRESETS[0];
 
     // Fallback defaults from active template
     return {
@@ -177,7 +335,12 @@ export class ThemeEngine {
       brandTitle: template?.invoiceLayout?.headerTitle || 'Apex Multi-Business Billing',
       brandTagline: template?.invoiceLayout?.tagline || 'Enterprise Cloud Point of Sale & Billing System',
       colorPreset: 'LUXURY_GOLD',
+      primaryBgColor: defaultPreset.primaryBg,
+      secondaryBtnColor: defaultPreset.secondaryBtn,
+      textColor: defaultPreset.textColor,
+      textAccentColor: defaultPreset.textAccentColor,
       fontFamily: 'Outfit',
+
       fontSize: 'MEDIUM',
       iconStyle: 'ROUNDED_ORGANIC',
       invoiceTheme: 'LUXURY_GOLD',
@@ -202,3 +365,4 @@ export class ThemeEngine {
     }
   }
 }
+

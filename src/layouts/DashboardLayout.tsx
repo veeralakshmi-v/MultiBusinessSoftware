@@ -4,11 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Settings, LogOut, Receipt, Package,
   Boxes, BarChart3, ChevronLeft, ChevronRight,
-  PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList, ShieldAlert
+  PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList, ShieldAlert, Palette
 } from 'lucide-react';
 
 import { cn } from '../lib/utils';
 import NotificationCenter from '../components/notifications/NotificationCenter';
+import { ThemeEngine } from '../lib/theme/themeEngine';
 
 export default function DashboardLayout() {
   const { user, logout, businessProfile } = useAuth();
@@ -18,9 +19,23 @@ export default function DashboardLayout() {
     return localStorage.getItem('sidebar_collapsed') === 'true';
   });
 
+  const [, setThemeVersion] = useState(0);
+
   useEffect(() => {
-    localStorage.setItem('sidebar_collapsed', isCollapsed ? 'true' : 'false');
-  }, [isCollapsed]);
+    const handleThemeChange = () => {
+      ThemeEngine.applyTheme(ThemeEngine.getThemeConfig());
+      setThemeVersion(v => v + 1);
+    };
+    handleThemeChange();
+    window.addEventListener('theme_changed', handleThemeChange);
+    window.addEventListener('storage', handleThemeChange);
+    return () => {
+      window.removeEventListener('theme_changed', handleThemeChange);
+      window.removeEventListener('storage', handleThemeChange);
+    };
+  }, []);
+
+
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -33,6 +48,35 @@ export default function DashboardLayout() {
   const isRouteAllowedForRole = (role: string, href: string): boolean => {
     if (!role || role === 'ADMIN') return true;
 
+    // Check custom applicationAccess permissions if set for the employee
+    const appAccess = user?.applicationAccess;
+    if (appAccess) {
+      if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES')) {
+        return true;
+      }
+
+      const routeMenuMap: Record<string, string> = {
+        '/dashboard': 'Dashboard',
+        '/dashboard/billing': 'Billing POS',
+        '/dashboard/items': 'Categories & Items',
+        '/dashboard/menu': 'Categories & Items',
+        '/dashboard/inventory': 'Inventory',
+        '/dashboard/reports': 'Sales Reports',
+        '/dashboard/employees': 'Employee Details',
+        '/dashboard/attendance': 'Staff Attendance',
+        '/dashboard/customers': 'Customers',
+        '/dashboard/settings': 'Settings',
+      };
+
+      const menuItem = routeMenuMap[href];
+      if (menuItem) {
+        const allowedItems = appAccess.split(',').map(s => s.trim());
+        if (allowedItems.includes(menuItem)) {
+          return true;
+        }
+      }
+    }
+
     if (role === 'MANAGER') {
       return href !== '/dashboard/settings' && href !== '/dashboard/employees';
     }
@@ -41,16 +85,13 @@ export default function DashboardLayout() {
       return href === '/dashboard/billing' || href === '/dashboard/customers' || href === '/dashboard/attendance' || href === '/dashboard';
     }
 
-    if (role === 'KITCHEN_STAFF') {
-      return href === '/dashboard/items' || href === '/dashboard/attendance' || href === '/dashboard';
-    }
-
     if (role === 'STAFF') {
-      return href === '/dashboard/attendance' || href === '/dashboard/billing' || href === '/dashboard';
+      return href === '/dashboard/attendance' || href === '/dashboard';
     }
 
     return true;
   };
+
 
   // Streamlined, universal navigation for all businesses
   const allNavigation = [
@@ -65,12 +106,7 @@ export default function DashboardLayout() {
       icon: Receipt,
     },
     {
-      name: 'Categories & Items',
-      href: '/dashboard/items',
-      icon: Layers,
-    },
-    {
-      name: 'Inventory',
+      name: 'Products & Inventory',
       href: '/dashboard/inventory',
       icon: Boxes,
     },
@@ -109,22 +145,22 @@ export default function DashboardLayout() {
       {/* Collapsible Sidebar */}
       <aside
         className={cn(
-          "bg-[#0F0F10] border-r border-[#1F1F21] flex flex-col hidden md:flex transition-all duration-300 ease-in-out relative z-20 flex-shrink-0",
+          "bg-theme-surface border-r border-theme-secondary/20 flex flex-col hidden md:flex transition-all duration-300 ease-in-out relative z-20 flex-shrink-0",
           isCollapsed ? "w-20" : "w-64"
         )}
       >
         {/* Brand Header */}
-        <div className={cn("h-20 flex items-center border-b border-[#1F1F21] bg-[#0F0F10] transition-all px-4 justify-between")}>
+        <div className={cn("h-20 flex items-center border-b border-theme-secondary/20 bg-theme-surface transition-all px-4 justify-between")}>
           <div className="flex items-center truncate">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#E2B755] to-[#99732B] rounded-xl flex items-center justify-center text-[#0A0A0B] font-bold text-xl flex-shrink-0 shadow-lg shadow-[#C5A059]/20 border border-[#C5A059]/30">
+            <div className="w-10 h-10 btn-theme-secondary rounded-xl flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-lg border border-white/20">
               {brandTitle.charAt(0).toUpperCase()}
             </div>
             {!isCollapsed && (
               <div className="ml-3 truncate">
-                <h1 className="font-serif font-bold text-sm tracking-tight text-white truncate">
+                <h1 className="font-serif font-bold text-sm tracking-tight text-theme-primary truncate">
                   {brandTitle}
                 </h1>
-                <span className="text-[10px] text-[#C5A059] font-medium tracking-wider uppercase truncate block">
+                <span className="text-[10px] text-theme-accent font-medium tracking-wider uppercase truncate block">
                   {brandTagline}
                 </span>
               </div>
@@ -133,10 +169,10 @@ export default function DashboardLayout() {
 
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-[#1A1A1C] transition-colors"
+            className="p-1.5 rounded-lg nav-item-hover transition-colors"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {isCollapsed ? <ChevronRight className="w-5 h-5 text-[#C5A059]" /> : <ChevronLeft className="w-5 h-5" />}
+            {isCollapsed ? <ChevronRight className="w-5 h-5 text-theme-accent" /> : <ChevronLeft className="w-5 h-5" />}
           </button>
         </div>
 
@@ -157,15 +193,19 @@ export default function DashboardLayout() {
                     'flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-150 relative group',
                     isCollapsed ? "justify-center" : "justify-start",
                     isActive
-                      ? 'bg-[#1A1A1C] text-[#C5A059] border-l-2 border-[#C5A059] shadow-sm'
-                      : 'text-gray-400 hover:bg-[#1A1A1C] hover:text-white'
+                      ? 'border-l-4 shadow-sm font-bold bg-theme-secondary/20 text-theme-accent border-theme-secondary'
+                      : 'nav-item-hover opacity-85 hover:opacity-100'
                   )}
+                  style={isActive ? {
+                    borderColor: 'var(--theme-btn-secondary)',
+                    backgroundColor: 'rgba(var(--theme-btn-secondary-rgb, 197, 160, 89), 0.18)'
+                  } : {}}
                 >
                   <Icon
                     className={cn(
                       'h-5 w-5 flex-shrink-0 transition-colors',
                       isCollapsed ? '' : 'mr-3',
-                      isActive ? 'text-[#C5A059]' : 'text-gray-400 group-hover:text-white'
+                      isActive ? 'text-theme-accent' : 'opacity-80 group-hover:opacity-100'
                     )}
                     aria-hidden="true"
                   />
@@ -175,7 +215,7 @@ export default function DashboardLayout() {
 
                   {/* Tooltip for Collapsed State */}
                   {isCollapsed && (
-                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#1A1A1C] text-white text-xs font-bold rounded-lg shadow-xl border border-[#2D2D30] whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-theme-surface text-theme-primary text-xs font-bold rounded-lg shadow-xl border border-theme-secondary/30 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                       {item.name}
                     </div>
                   )}
@@ -186,32 +226,33 @@ export default function DashboardLayout() {
         </div>
 
         {/* Sidebar Footer & Collapse Toggle */}
-        <div className="p-3 border-t border-[#1F1F21] space-y-1">
+        <div className="p-3 border-t border-theme-secondary/20 space-y-1">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={cn(
-              "flex items-center w-full px-3 py-2 text-xs font-bold text-gray-400 rounded-xl hover:bg-[#1A1A1C] hover:text-[#C5A059] transition-colors mb-1",
+              "flex items-center w-full px-3 py-2 text-xs font-bold rounded-xl nav-item-hover transition-colors mb-1",
               isCollapsed ? "justify-center" : "justify-between"
             )}
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {!isCollapsed && <span className="uppercase tracking-wider text-[10px]">Sidebar View</span>}
-            {isCollapsed ? <PanelLeftOpen className="w-4 h-4 text-[#C5A059]" /> : <PanelLeftClose className="w-4 h-4 text-gray-400" />}
+            {!isCollapsed && <span className="uppercase tracking-wider text-[10px] opacity-75">Sidebar View</span>}
+            {isCollapsed ? <PanelLeftOpen className="w-4 h-4 text-theme-accent" /> : <PanelLeftClose className="w-4 h-4 opacity-75" />}
           </button>
 
           <button
             onClick={logout}
             className={cn(
-              "flex items-center w-full px-3 py-2.5 text-sm font-medium text-gray-400 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-colors",
+              "flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-xl hover:bg-red-500/15 text-red-400 hover:text-red-300 transition-colors",
               isCollapsed ? "justify-center" : "justify-start"
             )}
             title={isCollapsed ? "Logout" : undefined}
           >
-            <LogOut className={cn("h-5 w-5 flex-shrink-0 text-gray-400 hover:text-red-400", isCollapsed ? "" : "mr-3")} />
+            <LogOut className={cn("h-5 w-5 flex-shrink-0 text-red-400 hover:text-red-300", isCollapsed ? "" : "mr-3")} />
             {!isCollapsed && <span className="font-semibold">Logout</span>}
           </button>
         </div>
       </aside>
+
 
       {/* Main content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
@@ -244,11 +285,22 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Quick Theme Customizer Button */}
+            <Link
+              to="/dashboard/settings"
+              state={{ tab: 'theme' }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1A1A1C] hover:bg-[#252528] text-gray-300 hover:text-white border border-[#2D2D30] text-xs font-bold rounded-xl transition-all"
+              title="Change Application Theme & Color Palette"
+            >
+              <Palette className="w-4 h-4 text-theme-secondary" />
+              <span className="hidden md:inline">Theme</span>
+            </Link>
+
             {/* Quick POS Shortcut */}
-            {location.pathname !== '/billing' && (
+            {location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
               <Link
-                to="/billing"
-                className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 bg-[#C5A059] hover:bg-[#b08d4a] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 transition-all"
+                to="/dashboard/billing"
+                className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 btn-theme-secondary font-bold text-xs rounded-xl shadow-lg transition-all"
               >
                 <Receipt className="w-4 h-4" />
                 <span>Open POS</span>

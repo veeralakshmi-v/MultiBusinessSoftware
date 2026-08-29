@@ -1,7 +1,5 @@
-import app from '../server/index.js';
+import app from '../server/index';
 
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-export default app;
+export default function handler(req: any, res: any) {
+  return app(req, res);
+}

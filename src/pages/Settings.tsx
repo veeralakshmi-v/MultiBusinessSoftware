@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth, Role, LandingSlide } from '../context/AuthContext';
 import { cn } from '../lib/utils';
-import { 
-  Building2, Printer, Shield, Users, Save, CheckCircle2, 
+import {
+  Building2, Printer, Shield, Users, Save, CheckCircle2,
   UserPlus, Edit2, Trash2, Key, Phone, Mail, FileText, Sparkles,
-  Image as ImageIcon, Upload, Plus, X, Monitor, ExternalLink, Lock, KeyRound, ShieldCheck, Eye, EyeOff
+  Image as ImageIcon, Upload, Plus, X, Monitor, ExternalLink, Lock, KeyRound, ShieldCheck, Eye, EyeOff, Palette
 } from 'lucide-react';
+import ThemeCustomizer from '../components/theme/ThemeCustomizer';
+import { PROJECT_MENU_ITEMS, parseAppAccess } from './EmployeeDirectory';
 
 export interface StaffUser {
   id: string;
   name: string;
   username: string;
-  role: Role;
+  role: Role | string;
   category: string;
+  applicationAccess?: string;
   phone: string;
   familyPhone?: string;
   email: string;
@@ -32,7 +35,8 @@ const DEFAULT_STAFF: StaffUser[] = [
     name: 'Administrator',
     username: 'admin',
     role: 'ADMIN',
-    category: 'Management',
+    category: 'Management/Admin',
+    applicationAccess: 'Full Access (All Modules & POS)',
     phone: '9876543210',
     familyPhone: '9876543211',
     email: 'admin@mybusiness.com',
@@ -46,9 +50,10 @@ const DEFAULT_STAFF: StaffUser[] = [
   },
 ];
 
-export default function Settings({ initialTab = 'profile' }: { initialTab?: 'profile' | 'billing' | 'staff' | 'landing' | 'security' }) {
+export default function Settings({ initialTab = 'profile' }: { initialTab?: 'profile' | 'billing' | 'staff' | 'landing' | 'security' | 'theme' }) {
   const { businessProfile, updateBusinessProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'billing' | 'staff' | 'landing' | 'security'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'profile' | 'billing' | 'staff' | 'landing' | 'security' | 'theme'>(initialTab);
+
 
   useEffect(() => {
     setActiveTab(initialTab);
@@ -120,7 +125,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
   const [staffList, setStaffList] = useState<StaffUser[]>(() => {
     const saved = localStorage.getItem('universal_staff_list');
     if (saved) {
-      try { return JSON.parse(saved); } catch {}
+      try { return JSON.parse(saved); } catch { }
     }
     return DEFAULT_STAFF;
   });
@@ -129,8 +134,13 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
   const [editingStaff, setEditingStaff] = useState<StaffUser | null>(null);
   const [staffName, setStaffName] = useState('');
   const [staffUsername, setStaffUsername] = useState('');
-  const [staffRole, setStaffRole] = useState<Role>('CASHIER');
-  const [staffCategory, setStaffCategory] = useState('Billing POS');
+  const [staffRole, setStaffRole] = useState<string>('CASHIER');
+  const [customRoleTitle, setCustomRoleTitle] = useState('');
+  const [isCustomRole, setIsCustomRole] = useState(false);
+  const [staffCategory, setStaffCategory] = useState('Management/Admin');
+  const [customCategoryTitle, setCustomCategoryTitle] = useState('');
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [selectedAppAccess, setSelectedAppAccess] = useState<string[]>([...PROJECT_MENU_ITEMS]);
   const [staffPhone, setStaffPhone] = useState('');
   const [staffFamilyPhone, setStaffFamilyPhone] = useState('');
   const [staffEmail, setStaffEmail] = useState('');
@@ -293,19 +303,42 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
     }
   };
 
+  const STANDARD_ROLES = ['CASHIER', 'MANAGER', 'ADMIN', 'STAFF'];
+
   // Staff Modal
   const handleOpenStaffModal = (st?: StaffUser) => {
     if (st) {
       setEditingStaff(st);
       setStaffName(st.name || '');
-      setStaffUsername(st.username || '');
-      setStaffRole(st.role || 'CASHIER');
-      setStaffCategory(st.category || 'Billing POS');
-      setStaffPhone(st.phone || '');
+      setStaffUsername(st.phone || st.username || '');
+      
+      const roleVal = st.role || 'CASHIER';
+      if (STANDARD_ROLES.includes(roleVal)) {
+        setStaffRole(roleVal);
+        setCustomRoleTitle('');
+        setIsCustomRole(false);
+      } else {
+        setStaffRole('CUSTOM');
+        setCustomRoleTitle(roleVal);
+        setIsCustomRole(true);
+      }
+
+      const STANDARD_CATEGORIES = ['Management/Admin', 'Accounts & Finance', 'Sales & Marketing', 'HouseKeeping', 'General'];
+      const catVal = st.category || 'Management/Admin';
+      if (STANDARD_CATEGORIES.includes(catVal)) {
+        setStaffCategory(catVal);
+        setCustomCategoryTitle('');
+        setIsCustomCategory(false);
+      } else {
+        setStaffCategory('CUSTOM');
+        setCustomCategoryTitle(catVal);
+        setIsCustomCategory(true);
+      }
+      setSelectedAppAccess(parseAppAccess(st.applicationAccess));
       setStaffFamilyPhone(st.familyPhone || '');
       setStaffEmail(st.email || '');
       setStaffPin(st.pinCode || '1234');
-      setStaffStatus(st.status || 'ACTIVE');
+      setStaffStatus(roleVal === 'ADMIN' ? 'ACTIVE' : (st.status || 'ACTIVE'));
       setStaffDob(st.dob || '');
       setStaffDoj(st.doj || '');
       setStaffDor(st.dor || '');
@@ -317,7 +350,12 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       setStaffName('');
       setStaffUsername('');
       setStaffRole('CASHIER');
-      setStaffCategory('Billing POS');
+      setCustomRoleTitle('');
+      setIsCustomRole(false);
+      setStaffCategory('Management/Admin');
+      setCustomCategoryTitle('');
+      setIsCustomCategory(false);
+      setSelectedAppAccess([...PROJECT_MENU_ITEMS]);
       setStaffPhone('');
       setStaffFamilyPhone('');
       setStaffEmail('');
@@ -333,10 +371,28 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
     setIsStaffModalOpen(true);
   };
 
+  const isStaffPhoneDuplicate = !!staffPhone.trim() && staffList.some(s => {
+    if (editingStaff && s.id === editingStaff.id) return false;
+    const p = staffPhone.trim().toLowerCase();
+    return (
+      (s.phone && s.phone.trim().toLowerCase() === p) ||
+      (s.username && s.username.trim().toLowerCase() === p)
+    );
+  });
+
   const handleSaveStaff = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!staffName.trim() || !staffUsername.trim()) {
-      alert('Full Name and Username are required!');
+    const effectiveUsername = staffPhone.trim() || staffUsername.trim();
+    if (!staffName.trim()) {
+      alert('Full Name is required!');
+      return;
+    }
+    if (!effectiveUsername) {
+      alert('Contact Number (Mobile Number) is required as the default username!');
+      return;
+    }
+    if (isStaffPhoneDuplicate) {
+      alert('this number is already exits, give another number');
       return;
     }
     if (!staffAadhar.trim()) {
@@ -344,28 +400,38 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       return;
     }
 
+    const computedCategory = isCustomCategory ? (customCategoryTitle.trim() || 'General') : staffCategory;
+    const computedAppAccess = selectedAppAccess.length === PROJECT_MENU_ITEMS.length
+      ? 'Full Access (All Modules & POS)'
+      : selectedAppAccess.length === 0
+      ? 'Full Access (All Modules & POS)'
+      : selectedAppAccess.join(', ');
+    const computedRole = isCustomRole ? (customRoleTitle.trim() || 'CUSTOM') : staffRole;
+    const computedStatus = computedRole === 'ADMIN' ? 'ACTIVE' : staffStatus;
+
     if (editingStaff) {
       setStaffList(prev =>
         prev.map(s =>
           s.id === editingStaff.id
             ? {
-                ...s,
-                name: staffName.trim(),
-                username: staffUsername.trim(),
-                role: staffRole,
-                category: staffCategory,
-                phone: staffPhone.trim(),
-                familyPhone: staffFamilyPhone.trim(),
-                email: staffEmail.trim(),
-                pinCode: staffPin.trim() || '1234',
-                status: staffStatus,
-                dob: staffDob,
-                doj: staffDoj,
-                dor: staffDor,
-                aadharNumber: staffAadhar.trim(),
-                address: staffAddress.trim(),
-                photoUrl: staffPhoto,
-              }
+              ...s,
+              name: staffName.trim(),
+              username: effectiveUsername,
+              role: computedRole,
+              category: computedCategory,
+              applicationAccess: computedAppAccess,
+              phone: staffPhone.trim(),
+              familyPhone: staffFamilyPhone.trim(),
+              email: staffEmail.trim(),
+              pinCode: staffPin.trim() || '1234',
+              status: computedStatus,
+              dob: staffDob,
+              doj: staffDoj,
+              dor: staffDor,
+              aadharNumber: staffAadhar.trim(),
+              address: staffAddress.trim(),
+              photoUrl: staffPhoto,
+            }
             : s
         )
       );
@@ -373,14 +439,15 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       const newStaff: StaffUser = {
         id: `emp-${Date.now()}`,
         name: staffName.trim(),
-        username: staffUsername.trim(),
-        role: staffRole,
-        category: staffCategory,
+        username: effectiveUsername,
+        role: computedRole,
+        category: computedCategory,
+        applicationAccess: computedAppAccess,
         phone: staffPhone.trim(),
         familyPhone: staffFamilyPhone.trim(),
         email: staffEmail.trim(),
         pinCode: staffPin.trim() || '1234',
-        status: staffStatus,
+        status: computedStatus,
         dob: staffDob,
         doj: staffDoj,
         dor: staffDor,
@@ -484,14 +551,30 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'security'
-              ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20"
+              ? "btn-theme-secondary shadow-md"
               : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
           )}
         >
           <Lock className="w-4 h-4" />
           <span>Security & Password</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('theme')}
+          className={cn(
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
+            activeTab === 'theme'
+              ? "btn-theme-secondary shadow-md"
+              : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
+          )}
+        >
+          <Palette className="w-4 h-4" />
+          <span>Theme & Color Palette</span>
+        </button>
       </div>
+
+      {/* TAB: THEME & COLOR PALETTE */}
+      {activeTab === 'theme' && <ThemeCustomizer />}
 
       {/* TAB 1: BUSINESS PROFILE */}
       {activeTab === 'profile' && (
@@ -768,8 +851,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                       <span className={cn(
                         "px-2.5 py-0.5 rounded-full text-[10px] font-bold",
                         st.role === 'ADMIN' ? "bg-purple-500/10 text-purple-400 border border-purple-500/30" :
-                        st.role === 'MANAGER' ? "bg-blue-500/10 text-blue-400 border border-blue-500/30" :
-                        "bg-green-500/10 text-green-400 border border-green-500/30"
+                          st.role === 'MANAGER' ? "bg-blue-500/10 text-blue-400 border border-blue-500/30" :
+                            "bg-green-500/10 text-green-400 border border-green-500/30"
                       )}>
                         {st.role}
                       </span>
@@ -778,7 +861,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                       <span className={cn(
                         "px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase",
                         st.status === 'ACTIVE' ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25" :
-                        "bg-red-500/15 text-red-400 border border-red-500/25"
+                          "bg-red-500/15 text-red-400 border border-red-500/25"
                       )}>
                         {st.status || 'ACTIVE'}
                       </span>
@@ -892,45 +975,193 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Login Username *</label>
                   <input
                     type="text"
-                    required
-                    placeholder="e.g. ramesh_pos"
-                    value={staffUsername}
-                    onChange={(e) => setStaffUsername(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    disabled
+                    placeholder="Mobile number is default username"
+                    value={staffPhone || staffUsername}
+                    className={cn(
+                      "w-full rounded-xl px-3 py-2 text-xs font-mono outline-none cursor-not-allowed opacity-80 transition-all",
+                      isStaffPhoneDuplicate
+                        ? "bg-red-950/20 border border-red-500/50 text-red-300"
+                        : "bg-[#141416] border border-[#222225] text-gray-400"
+                    )}
                   />
+                  <p className={cn("text-[10px] mt-1 flex items-center gap-1 font-medium", isStaffPhoneDuplicate ? "text-red-400 font-bold" : "text-gray-400")}>
+                    {isStaffPhoneDuplicate ? "⚠️ this number is already exits, give another number" : "ℹ️ Mobile number is default username"}
+                  </p>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Category / Department *</label>
                   <select
-                    value={staffCategory}
-                    onChange={(e) => setStaffCategory(e.target.value)}
+                    value={isCustomCategory ? 'CUSTOM' : staffCategory}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'CUSTOM') {
+                        setIsCustomCategory(true);
+                        setStaffCategory('CUSTOM');
+                      } else {
+                        setIsCustomCategory(false);
+                        setStaffCategory(val);
+                      }
+                    }}
                     className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
                   >
-                    <option value="Billing POS">Billing POS</option>
-                    <option value="Sales">Sales</option>
-                    <option value="Inventory">Inventory</option>
-                    <option value="Kitchen">Kitchen</option>
-                    <option value="Management">Management</option>
-                    <option value="Accounts">Accounts</option>
-                    <option value="Security">Security</option>
+                    <option value="Management/Admin">Management/Admin</option>
+                    <option value="Accounts & Finance">Accounts & Finance</option>
+                    <option value="Sales & Marketing">Sales & Marketing</option>
+                    <option value="HouseKeeping">HouseKeeping</option>
                     <option value="General">General</option>
+                    <option value="CUSTOM">⚡ CUSTOM CATEGORY (Enter custom department)</option>
                   </select>
+
+                  {isCustomCategory && (
+                    <div className="mt-2 animate-in fade-in">
+                      <label className="block text-[11px] font-semibold text-[#C5A059] mb-1">Custom Department Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. IT & Security, Quality Control, Logistics"
+                        value={customCategoryTitle}
+                        onChange={(e) => setCustomCategoryTitle(e.target.value)}
+                        className="w-full bg-[#1A1A1C] border border-[#C5A059]/40 focus:border-[#C5A059] rounded-xl px-3 py-2 text-xs text-white outline-none font-medium"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Role *</label>
                   <select
-                    value={staffRole}
-                    onChange={(e) => setStaffRole(e.target.value as any)}
+                    value={isCustomRole ? 'CUSTOM' : staffRole}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'CUSTOM') {
+                        setIsCustomRole(true);
+                        setStaffRole('CUSTOM');
+                      } else {
+                        setIsCustomRole(false);
+                        setStaffRole(val);
+                        if (val === 'ADMIN') setStaffStatus('ACTIVE');
+                      }
+                    }}
                     className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
                   >
                     <option value="CASHIER">CASHIER</option>
                     <option value="MANAGER">MANAGER</option>
                     <option value="ADMIN">ADMIN</option>
                     <option value="STAFF">STAFF</option>
+                    <option value="CUSTOM">⚡ CUSTOM ROLE</option>
                   </select>
+
+                  {isCustomRole && (
+                    <div className="mt-2 animate-in fade-in">
+                      <label className="block text-[11px] font-semibold text-[#C5A059] mb-1">Custom Role Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Supervisor, Storekeeper, Delivery Executive"
+                        value={customRoleTitle}
+                        onChange={(e) => setCustomRoleTitle(e.target.value)}
+                        className="w-full bg-[#1A1A1C] border border-[#C5A059]/40 focus:border-[#C5A059] rounded-xl px-3 py-2 text-xs text-white outline-none font-medium"
+                      />
+                    </div>
+                  )}
                 </div>
+
+                <div className="sm:col-span-2 space-y-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label className="block text-xs font-semibold text-gray-300">
+                      Application Access * <span className="text-[10px] text-[#C5A059] font-normal">(Select allowed Project Menu items)</span>
+                    </label>
+                    <div className="flex items-center gap-2 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAppAccess([...PROJECT_MENU_ITEMS])}
+                        className="text-[11px] text-[#C5A059] hover:underline font-bold px-2.5 py-1 rounded-lg bg-[#C5A059]/10 border border-[#C5A059]/30 transition-all hover:bg-[#C5A059]/20"
+                      >
+                        Select All (Full Access)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAppAccess([])}
+                        className="text-[11px] text-gray-400 hover:text-white px-2 py-1 rounded-lg bg-white/5 border border-white/10 transition-all hover:bg-white/10"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Quick Presets */}
+                  <div className="flex flex-wrap items-center gap-1.5 pb-0.5">
+                    <span className="text-[10px] text-gray-500 font-semibold uppercase">Presets:</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAppAccess(['Billing POS', 'Customers', 'Staff Attendance'])}
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
+                    >
+                      POS Cashier
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAppAccess(['Dashboard', 'Billing POS', 'Categories & Items', 'Inventory', 'Sales Reports', 'Customers', 'Staff Attendance'])}
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
+                    >
+                      Store Manager
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAppAccess(['Staff Attendance'])}
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
+                    >
+                      Attendance Only
+                    </button>
+                  </div>
+
+                  {/* Checklist Multi-Select Container */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl max-h-56 overflow-y-auto">
+                    {PROJECT_MENU_ITEMS.map((item) => {
+                      const isChecked = selectedAppAccess.includes(item);
+                      return (
+                        <label
+                          key={item}
+                          className={cn(
+                            "flex items-center gap-2.5 p-2.5 rounded-xl border text-xs cursor-pointer transition-all select-none",
+                            isChecked
+                              ? "bg-[#C5A059]/15 border-[#C5A059]/50 text-white font-bold shadow-sm"
+                              : "bg-[#141416] border-[#222225] text-gray-400 hover:border-gray-600 hover:text-gray-200"
+                          )}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedAppAccess(prev => [...prev, item]);
+                              } else {
+                                setSelectedAppAccess(prev => prev.filter(i => i !== item));
+                              }
+                            }}
+                            className="w-4 h-4 rounded accent-[#C5A059] cursor-pointer flex-shrink-0"
+                          />
+                          <span className="truncate">{item}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-gray-400 px-1 pt-0.5">
+                    <span>
+                      {selectedAppAccess.length === PROJECT_MENU_ITEMS.length ? (
+                        <span className="text-emerald-400 font-semibold">⚡ Full Access (All 9 Menu Modules Selected)</span>
+                      ) : selectedAppAccess.length === 0 ? (
+                        <span className="text-red-400 font-semibold">⚠️ No access selected (Please check at least 1 menu module)</span>
+                      ) : (
+                        <span>Selected <strong className="text-[#C5A059]">{selectedAppAccess.length}</strong> of {PROJECT_MENU_ITEMS.length} menu modules</span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1">Date of Birth (DOB)</label>
@@ -975,14 +1206,31 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Contact Phone Number</label>
+                  <label className={cn("block text-xs font-semibold mb-1", isStaffPhoneDuplicate ? "text-red-400 font-bold" : "text-[#C5A059]")}>
+                    Contact Number (Default Username) *
+                  </label>
                   <input
                     type="tel"
+                    required
                     placeholder="+91 98765 00000"
                     value={staffPhone}
-                    onChange={(e) => setStaffPhone(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setStaffPhone(val);
+                      setStaffUsername(val);
+                    }}
+                    className={cn(
+                      "w-full bg-[#1A1A1C] rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
+                      isStaffPhoneDuplicate
+                        ? "border-2 border-red-500 text-red-300 focus:border-red-400"
+                        : "border border-[#C5A059]/40 focus:border-[#C5A059] text-white"
+                    )}
                   />
+                  {isStaffPhoneDuplicate && (
+                    <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-bold animate-in fade-in">
+                      ⚠️ this number is already exits, give another number
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1034,34 +1282,45 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                 <div className="sm:col-span-2 flex items-center justify-between p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl">
                   <div>
                     <p className="text-xs font-semibold text-white">Employment Status</p>
-                    <p className="text-[10px] text-gray-400">Set whether this staff account is currently Active or Inactive</p>
+                    <p className="text-[10px] text-gray-400">
+                      {staffRole === 'ADMIN'
+                        ? "Admin accounts are protected and strictly maintained as Active"
+                        : "Set whether this staff account is currently Active or Inactive"}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setStaffStatus('ACTIVE')}
-                      className={cn(
-                        "px-3 py-1 rounded-lg text-xs font-bold transition-all",
-                        staffStatus === 'ACTIVE'
-                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                          : "bg-[#141416] text-gray-400 hover:text-white"
-                      )}
-                    >
-                      ACTIVE
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setStaffStatus('INACTIVE')}
-                      className={cn(
-                        "px-3 py-1 rounded-lg text-xs font-bold transition-all",
-                        staffStatus === 'INACTIVE'
-                          ? "bg-red-500/20 text-red-400 border border-red-500/40"
-                          : "bg-[#141416] text-gray-400 hover:text-white"
-                      )}
-                    >
-                      INACTIVE
-                    </button>
-                  </div>
+                  {staffRole === 'ADMIN' ? (
+                    <div className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>ALWAYS ACTIVE (ADMIN)</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setStaffStatus('ACTIVE')}
+                        className={cn(
+                          "px-3 py-1 rounded-lg text-xs font-bold transition-all",
+                          staffStatus === 'ACTIVE'
+                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                            : "bg-[#141416] text-gray-400 hover:text-white"
+                        )}
+                      >
+                        ACTIVE
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setStaffStatus('INACTIVE')}
+                        className={cn(
+                          "px-3 py-1 rounded-lg text-xs font-bold transition-all",
+                          staffStatus === 'INACTIVE'
+                            ? "bg-red-500/20 text-red-400 border border-red-500/40"
+                            : "bg-[#141416] text-gray-400 hover:text-white"
+                        )}
+                      >
+                        INACTIVE
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1087,7 +1346,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       {/* TAB 4: LANDING PAGE CUSTOMIZATION */}
       {activeTab === 'landing' && (
         <form onSubmit={handleSaveLanding} className="space-y-6">
-          
+
           {/* Logo Upload */}
           <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-6 shadow-xl">
             <h3 className="font-bold text-white text-base border-b border-[#1F1F21] pb-3 flex items-center gap-2 mb-5">

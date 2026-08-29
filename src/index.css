@@ -1,5 +1,228 @@
 @import "tailwindcss";
 
+:root {
+  --theme-font: 'Outfit', sans-serif;
+  --theme-bg-primary: #0A0A0B;
+  --theme-bg-surface: #131315;
+  --theme-bg-card: #1A1A1C;
+  --theme-btn-secondary: #C5A059;
+  --theme-btn-secondary-hover: #B08D4A;
+  --theme-btn-text: #0A0A0B;
+  --theme-text-primary: #FFFFFF;
+  --theme-text-accent: #C5A059;
+  --theme-text-muted: rgba(255, 255, 255, 0.65);
+  --theme-border-tint: rgba(197, 160, 89, 0.35);
+  --theme-glow: 0 0 20px rgba(197, 160, 89, 0.25);
+  --theme-primary: #C5A059;
+  --theme-primary-hover: #B08D4A;
+  --theme-primary-bg: rgba(197, 160, 89, 0.12);
+  --theme-primary-border: rgba(197, 160, 89, 0.35);
+}
+
+/* Global Typography Font Family Override */
+body,
+button,
+input,
+select,
+textarea,
+h1, h2, h3, h4, h5, h6,
+p, span, div, a, label, table, th, td {
+  font-family: var(--theme-font, 'Outfit', sans-serif);
+}
+
+
+/* Dynamic Theme Utilities */
+.bg-theme-primary {
+  background-color: var(--theme-bg-primary) !important;
+}
+
+.bg-theme-surface {
+  background-color: var(--theme-bg-surface) !important;
+}
+
+.btn-theme-secondary {
+  background-color: var(--theme-btn-secondary) !important;
+  color: var(--theme-btn-text) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-theme-secondary:hover {
+  background-color: var(--theme-btn-secondary-hover) !important;
+  box-shadow: var(--theme-glow) !important;
+}
+
+.text-theme-primary {
+  color: var(--theme-text-primary) !important;
+}
+
+.text-theme-secondary,
+.text-theme-accent {
+  color: var(--theme-text-accent) !important;
+}
+
+.border-theme-secondary {
+  border-color: var(--theme-border-tint) !important;
+}
+
+.shadow-theme-glow {
+  box-shadow: var(--theme-glow) !important;
+}
+
+/* Tailwind Class Overrides for Theme System */
+body {
+  background-color: var(--theme-bg-primary) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+.bg-\[\#0A0A0B\],
+.bg-\[\#0a0a0b\],
+.bg-\[\#070708\],
+.bg-\[\#070709\],
+.bg-\[\#080809\],
+.bg-\[\#080808\],
+.bg-\[\#0D0D0F\],
+.bg-\[\#0d0d0f\] {
+  background-color: var(--theme-bg-primary) !important;
+}
+
+.bg-\[\#0F0F10\],
+.bg-\[\#0f0f10\],
+.bg-\[\#131315\],
+.bg-\[\#0E0E10\],
+.bg-\[\#0e0e10\],
+.bg-\[\#121214\],
+.bg-\[\#121215\],
+.bg-\[\#141416\],
+.bg-\[\#141415\],
+.bg-\[\#161618\],
+.bg-\[\#18181A\],
+.bg-\[\#18181B\],
+.bg-\[\#18181b\],
+.bg-\[\#1F1F21\],
+.bg-\[\#1f1f21\],
+.bg-\[\#1F1F22\],
+.bg-\[\#1f1f22\] {
+  background-color: var(--theme-bg-surface) !important;
+}
+
+
+.bg-\[\#1A1A1C\],
+.bg-\[\#1a1a1c\],
+.bg-\[\#1A1A1D\],
+.bg-\[\#1a1a1d\],
+.bg-\[\#222225\],
+.bg-\[\#22252D\],
+.bg-\[\#252528\],
+.bg-\[\#2D2D30\],
+.bg-black\/20,
+.bg-black\/40,
+.bg-black\/60 {
+  background-color: var(--theme-btn-outline-bg, var(--theme-bg-card)) !important;
+}
+
+/* Table Header Overrides for Theme System */
+table thead,
+table thead tr,
+table thead th {
+  background-color: var(--theme-bg-surface) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--theme-border-tint) !important;
+}
+
+/* Form Inputs, Search Bars & Textareas Overrides */
+input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+textarea,
+select {
+  background-color: var(--theme-input-bg, var(--theme-bg-surface)) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--theme-border-tint) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--theme-text-muted) !important;
+  opacity: 0.8 !important;
+}
+
+/* Hover State Theme Overrides */
+.nav-item-hover:hover,
+.hover\:bg-\[\#18181B\]:hover,
+.hover\:bg-\[\#18181A\]:hover,
+.hover\:bg-\[\#1A1A1C\]:hover,
+.hover\:bg-\[\#1a1a1c\]:hover,
+.hover\:bg-\[\#1F1F22\]:hover {
+  background-color: var(--theme-bg-card) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+.hover\:bg-\[\#C5A059\]:hover,
+.hover\:bg-\[\#c5a059\]:hover {
+  background-color: var(--theme-btn-secondary-hover) !important;
+  color: var(--theme-btn-text) !important;
+}
+
+.nav-item-hover:hover svg,
+.group:hover .group-hover\:text-white {
+  color: var(--theme-text-accent) !important;
+}
+
+/* Font / Text Color Overrides */
+.text-white,
+.text-gray-100,
+.text-gray-200,
+.text-\[\#E0E0E0\],
+.text-\[\#e0e0e0\] {
+  color: var(--theme-text-primary) !important;
+}
+
+.text-gray-300,
+.text-gray-400,
+.text-gray-500 {
+  color: var(--theme-text-muted) !important;
+}
+
+.text-\[\#C5A059\],
+.text-\[\#c5a059\] {
+  color: var(--theme-text-accent) !important;
+}
+
+/* Secondary Button Overrides */
+.bg-\[\#C5A059\],
+.bg-\[\#c5a059\],
+.bg-gradient-to-r.from-\[\#C5A059\],
+.bg-gradient-to-br.from-\[\#C5A059\],
+.bg-gradient-to-r.from-\[\#c5a059\],
+.bg-gradient-to-br.from-\[\#c5a059\],
+.from-\[\#C5A059\],
+.from-\[\#c5a059\] {
+  background-image: none !important;
+  background-color: var(--theme-btn-secondary) !important;
+  color: var(--theme-btn-text) !important;
+}
+
+
+.hover\:bg-\[\#b08d4a\]:hover,
+.hover\:bg-\[\#B08D4A\]:hover {
+  background-color: var(--theme-btn-secondary-hover) !important;
+}
+
+.border-\[\#C5A059\],
+.border-\[\#c5a059\],
+.border-\[\#1F1F21\],
+.border-\[\#2D2D30\],
+.border-\[\#222225\] {
+  border-color: var(--theme-border-tint) !important;
+}
+
+.focus\:border-\[\#C5A059\]:focus,
+.focus\:border-\[\#c5a059\]:focus {
+  border-color: var(--theme-btn-secondary) !important;
+}
+
+
+
+
+
 /* Custom Luxury Dark Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
@@ -7,7 +230,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0A0A0B;
+  background: var(--theme-bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -16,13 +239,14 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #C5A059;
+  background: var(--theme-btn-secondary);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #2D2D30 #0A0A0B;
+  scrollbar-color: #2D2D30 var(--theme-bg-primary);
 }
+
 
 /* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar {

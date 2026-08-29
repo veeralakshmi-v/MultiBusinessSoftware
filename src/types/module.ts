@@ -17,7 +17,7 @@ export type ModuleId =
   | 'users'         // User Accounts & RBAC
   | 'settings';     // Store Settings, Profile, Hardware
 
-export type UserRole = 'ADMIN' | 'MANAGER' | 'CASHIER' | 'KITCHEN_STAFF' | 'STAFF';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'CASHIER' | 'STAFF';
 
 export interface ModulePermissionDefinition {
   key: string;

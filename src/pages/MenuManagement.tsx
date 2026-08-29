@@ -77,22 +77,22 @@ export default function MenuManagement() {
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setCategories(data);
           localStorage.setItem('universal_categories', JSON.stringify(data));
         }
       })
-      .catch(() => setCategories([]));
+      .catch(() => {});
 
     fetch('/api/menu-items')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setItems(data);
           localStorage.setItem('universal_items', JSON.stringify(data));
         }
       })
-      .catch(() => setItems([]));
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -100,6 +100,18 @@ export default function MenuManagement() {
     window.addEventListener('storage', refreshCatalog);
     return () => window.removeEventListener('storage', refreshCatalog);
   }, []);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      localStorage.setItem('universal_categories', JSON.stringify(categories));
+    }
+  }, [categories]);
+
+  useEffect(() => {
+    if (items.length > 0) {
+      localStorage.setItem('universal_items', JSON.stringify(items));
+    }
+  }, [items]);
 
   // Compute item count per category
   const categoriesWithCounts = useMemo(() => {
@@ -110,14 +122,12 @@ export default function MenuManagement() {
   }, [categories, items]);
 
   const filteredItems = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    const searchTerms = q ? q.split(/\s+/) : [];
+
     return items.filter(item => {
       const matchCat = selectedCategory === 'ALL' || item.categoryId === selectedCategory;
-      const q = searchQuery.toLowerCase();
-      const matchSearch = 
-        !q ||
-        item.name.toLowerCase().includes(q) ||
-        (item.sku && item.sku.toLowerCase().includes(q)) ||
-        (item.barcode && item.barcode.toLowerCase().includes(q));
+      if (!matchCat) return false;
 
       const stock = item.currentStock ?? 0;
       const min = item.minStock ?? 10;
@@ -126,7 +136,20 @@ export default function MenuManagement() {
       else if (stockFilter === 'LOW_STOCK') matchStock = stock > 0 && stock <= min;
       else if (stockFilter === 'OUT_OF_STOCK') matchStock = stock <= 0;
 
-      return matchCat && matchSearch && matchStock;
+      if (!matchStock) return false;
+      if (searchTerms.length === 0) return true;
+
+      const searchableText = [
+        item.name,
+        item.categoryName,
+        item.description,
+        item.sku,
+        item.barcode,
+        item.hsnCode,
+        item.unit
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      return searchTerms.every(term => searchableText.includes(term));
     });
   }, [items, selectedCategory, searchQuery, stockFilter]);
 
@@ -148,9 +171,10 @@ export default function MenuManagement() {
     e.preventDefault();
     if (!catName.trim()) return;
 
+    let updatedCats: Category[];
     if (editingCategory) {
       const updatedCat = { ...editingCategory, name: catName.trim(), description: catDesc.trim() };
-      setCategories(prev => prev.map(c => c.id === editingCategory.id ? updatedCat : c));
+      updatedCats = categories.map(c => c.id === editingCategory.id ? updatedCat : c);
       try {
         fetch(`/api/categories/${editingCategory.id}`, {
           method: 'PUT',
@@ -164,7 +188,7 @@ export default function MenuManagement() {
         name: catName.trim(),
         description: catDesc.trim(),
       };
-      setCategories(prev => [...prev, newCat]);
+      updatedCats = [...categories, newCat];
       try {
         fetch('/api/categories', {
           method: 'POST',
@@ -173,6 +197,10 @@ export default function MenuManagement() {
         });
       } catch (e) {}
     }
+
+    setCategories(updatedCats);
+    localStorage.setItem('universal_categories', JSON.stringify(updatedCats));
+    window.dispatchEvent(new Event('storage'));
     setIsCategoryModalOpen(false);
   };
 
@@ -187,7 +215,10 @@ export default function MenuManagement() {
       if (!confirm('Are you sure you want to delete this category?')) return;
     }
 
-    setCategories(prev => prev.filter(c => c.id !== catId));
+    const updatedCats = categories.filter(c => c.id !== catId);
+    setCategories(updatedCats);
+    localStorage.setItem('universal_categories', JSON.stringify(updatedCats));
+    window.dispatchEvent(new Event('storage'));
     if (selectedCategory === catId) setSelectedCategory('ALL');
 
     try {
@@ -258,8 +289,9 @@ export default function MenuManagement() {
       isAvailable: itemAvailable,
     };
 
+    let updatedItems: MenuItem[];
     if (editingItem) {
-      setItems(prev => prev.map(i => i.id === editingItem.id ? itemData : i));
+      updatedItems = items.map(i => i.id === editingItem.id ? itemData : i);
       try {
         fetch(`/api/menu-items/${editingItem.id}`, {
           method: 'PUT',
@@ -268,7 +300,7 @@ export default function MenuManagement() {
         });
       } catch (e) {}
     } else {
-      setItems(prev => [itemData, ...prev]);
+      updatedItems = [itemData, ...items];
       try {
         fetch('/api/menu-items', {
           method: 'POST',
@@ -277,12 +309,18 @@ export default function MenuManagement() {
         });
       } catch (e) {}
     }
+
+    setItems(updatedItems);
+    localStorage.setItem('universal_items', JSON.stringify(updatedItems));
+    window.dispatchEvent(new Event('storage'));
     setIsItemModalOpen(false);
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
-    setItems(prev => prev.filter(i => i.id !== itemId));
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    const updated = items.filter(i => i.id !== itemId);
+    setItems(updated);
+    localStorage.setItem('universal_items', JSON.stringify(updated));
     try {
       fetch(`/api/menu-items/${itemId}`, { method: 'DELETE' });
     } catch (e) {}
@@ -319,19 +357,20 @@ export default function MenuManagement() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => handleOpenCategoryModal()}
-            className="px-3.5 py-2 bg-[#1A1A1C] hover:bg-[#252528] text-gray-200 hover:text-white border border-[#2D2D30] rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+            className="px-3.5 py-2 bg-theme-surface text-theme-primary border border-theme-secondary/30 hover:bg-theme-secondary/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
           >
-            <FolderPlus className="w-4 h-4 text-[#C5A059]" />
+            <FolderPlus className="w-4 h-4 text-theme-accent" />
             <span>Add Category</span>
           </button>
           <button
             onClick={() => handleOpenItemModal()}
-            className="px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:brightness-110 transition-all flex items-center gap-2"
+            className="px-4 py-2 btn-theme-secondary rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-current" />
             <span>Add New Item</span>
           </button>
         </div>
+
       </div>
 
       {/* Metrics Bar */}
@@ -381,7 +420,8 @@ export default function MenuManagement() {
       <div className="bg-[#131315] border border-[#1F1F21] p-4 rounded-2xl space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Select Category to View Items</span>
-          <span className="text-[11px] text-[#C5A059] font-medium">{filteredItems.length} products listed</span>
+          <span className="text-[11px] text-theme-accent font-medium">{filteredItems.length} products listed</span>
+
         </div>
 
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -390,12 +430,12 @@ export default function MenuManagement() {
             className={cn(
               "px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 flex-shrink-0 border",
               selectedCategory === 'ALL'
-                ? "bg-[#C5A059] text-[#0A0A0B] border-[#C5A059] shadow-md shadow-[#C5A059]/20"
-                : "bg-[#1A1A1C] text-gray-300 border-[#2D2D30] hover:text-white hover:border-[#3D3D42]"
+                ? "btn-theme-secondary shadow-md border-transparent"
+                : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
             )}
           >
             <span>All Items</span>
-            <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", selectedCategory === 'ALL' ? "bg-[#0A0A0B]/20 text-[#0A0A0B]" : "bg-[#252528] text-gray-400")}>
+            <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", selectedCategory === 'ALL' ? "bg-black/20 text-current" : "bg-white/10 text-theme-primary")}>
               {items.length}
             </span>
           </button>
@@ -407,14 +447,14 @@ export default function MenuManagement() {
                 <button
                   onClick={() => setSelectedCategory(cat.id)}
                   className={cn(
-                    "px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border",
+                    "px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border pr-8",
                     isSelected
-                      ? "bg-[#C5A059] text-[#0A0A0B] border-[#C5A059] shadow-md shadow-[#C5A059]/20"
-                      : "bg-[#1A1A1C] text-gray-300 border-[#2D2D30] hover:text-white hover:border-[#3D3D42]"
+                      ? "btn-theme-secondary shadow-md border-transparent"
+                      : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
                   )}
                 >
                   <span>{cat.name}</span>
-                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", isSelected ? "bg-[#0A0A0B]/20 text-[#0A0A0B]" : "bg-[#252528] text-gray-400")}>
+                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", isSelected ? "bg-black/20 text-current" : "bg-white/10 text-theme-primary")}>
                     {cat.itemCount}
                   </span>
                 </button>
@@ -594,10 +634,11 @@ export default function MenuManagement() {
               </p>
               <button
                 onClick={() => handleOpenItemModal()}
-                className="px-4 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-md"
+                className="px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl shadow-md"
               >
                 + Add Item Now
               </button>
+
             </div>
           )}
         </div>

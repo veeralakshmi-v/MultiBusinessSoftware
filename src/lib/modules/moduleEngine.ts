@@ -123,8 +123,8 @@ export const MODULE_REGISTRY: Record<ModuleId, ModuleDefinition> = {
       { path: '/orders', pageComponent: 'Orders', title: 'Fulfillment Queue', requiredPermission: 'viewFulfillment' }
     ],
     permissions: [
-      { key: 'viewFulfillment', name: 'View Orders Queue', description: 'Access live order prep screen', defaultRoles: ['ADMIN', 'MANAGER', 'STAFF', 'KITCHEN_STAFF'] },
-      { key: 'updateOrderStatus', name: 'Update Order Status', description: 'Advance preparation status', defaultRoles: ['ADMIN', 'MANAGER', 'STAFF', 'KITCHEN_STAFF'] },
+      { key: 'viewFulfillment', name: 'View Orders Queue', description: 'Access live order prep screen', defaultRoles: ['ADMIN', 'MANAGER', 'STAFF'] },
+      { key: 'updateOrderStatus', name: 'Update Order Status', description: 'Advance preparation status', defaultRoles: ['ADMIN', 'MANAGER', 'STAFF'] },
     ]
   },
 
@@ -467,12 +467,11 @@ export class ModuleEngine {
     enabledModules: EnabledModulesState,
     template: BusinessTemplate
   ): Record<UserRole, Record<string, boolean>> {
-    const roles: UserRole[] = ['ADMIN', 'MANAGER', 'CASHIER', 'KITCHEN_STAFF', 'STAFF'];
+    const roles: UserRole[] = ['ADMIN', 'MANAGER', 'CASHIER', 'STAFF'];
     const permissionsMap: Record<UserRole, Record<string, boolean>> = {
       ADMIN: {},
       MANAGER: {},
       CASHIER: {},
-      KITCHEN_STAFF: {},
       STAFF: {},
     };
 

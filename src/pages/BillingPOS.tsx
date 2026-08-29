@@ -5,10 +5,11 @@ import {
   Search, Plus, Minus, Trash2, X, IndianRupee, Printer, Save, Tag, 
   ShoppingCart, Check, User, QrCode, CreditCard, CheckCircle2, 
   RefreshCw, Barcode, ShieldAlert, Sparkles, Layers, UserPlus, 
-  ArrowRight, Clock, Receipt, Banknote, PauseCircle, PlayCircle, PackagePlus
+  ArrowRight, ArrowRightLeft, Clock, Receipt, Banknote, PauseCircle, PlayCircle, PackagePlus
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceModal';
+import { COMMON_UNITS } from './Inventory';
 
 interface Category {
   id: string;
@@ -28,6 +29,7 @@ interface MenuItem {
   barcode?: string;
   unit?: string;
   currentStock?: number;
+  description?: string;
   isAvailable: boolean;
 }
 
@@ -46,25 +48,111 @@ interface Customer {
   mobile: string;
   email?: string;
   address?: string;
+  pendingBalance?: number;
 }
 
 interface HeldBill {
   id: string;
-  billNumber: string;
-  time: string;
+  billNumber?: string;
+  heldAt?: string;
+  time?: string;
   customer: Customer | null;
   cart: CartItem[];
-  discount: number;
-  total: number;
+  discount?: number;
+  total?: number;
+  billType?: 'GST' | 'NON_GST';
+}
+
+export function getUnitType(unitStr?: string): 'WEIGHT' | 'VOLUME' | 'LENGTH' | 'PIECE' {
+  if (!unitStr) return 'PIECE';
+  const u = unitStr.toLowerCase().trim();
+  if (['kg', 'kilogram', 'kilograms', 'g', 'gram', 'grams', 'gm'].includes(u)) return 'WEIGHT';
+  if (['l', 'liter', 'liters', 'litre', 'litres', 'ml', 'milliliter', 'milliliters'].includes(u)) return 'VOLUME';
+  if (['m', 'meter', 'meters', 'cm', 'centimeter', 'centimeters'].includes(u)) return 'LENGTH';
+  return 'PIECE';
+}
+
+export function formatQuantityWithSubunit(qty: number, unitStr?: string): string {
+  if (!unitStr) return `${qty}`;
+  const u = unitStr.toLowerCase().trim();
+
+  if (['kg', 'kilogram', 'kilograms'].includes(u)) {
+    const grams = Math.round(qty * 1000);
+    if (grams < 1000) {
+      return `${grams} g (${qty} Kg)`;
+    } else {
+      return `${qty} Kg (${grams} g)`;
+    }
+  }
+
+  if (['g', 'gram', 'grams', 'gm'].includes(u)) {
+    return `${qty} g`;
+  }
+
+  if (['l', 'liter', 'liters', 'litre', 'litres'].includes(u)) {
+    const ml = Math.round(qty * 1000);
+    if (ml < 1000) {
+      return `${ml} ml (${qty} L)`;
+    } else {
+      return `${qty} L (${ml} ml)`;
+    }
+  }
+
+  if (['ml', 'milliliter', 'milliliters'].includes(u)) {
+    return `${qty} ml`;
+  }
+
+  if (['m', 'meter', 'meters'].includes(u)) {
+    const cm = Math.round(qty * 100);
+    if (cm < 100) {
+      return `${cm} cm (${qty} m)`;
+    } else {
+      return `${qty} m (${cm} cm)`;
+    }
+  }
+
+  return `${qty} ${unitStr}`;
 }
 
 export default function BillingPOS() {
   const { businessProfile } = useAuth();
   const currency = businessProfile.currencySymbol || '₹';
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [categories, setCategories] = useState<Category[]>(() => {
+    const saved = localStorage.getItem('universal_categories');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    return [];
+  });
+
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
+    const saved = localStorage.getItem('universal_items');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
+    }
+    return [];
+  });
+
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    try {
+      const saved = localStorage.getItem('universal_customers');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [
+      { id: 'cust-1', name: 'Ramesh Kumar', mobile: '9876543210', email: 'ramesh@gmail.com', pendingBalance: 0 },
+      { id: 'cust-2', name: 'Priya Sharma', mobile: '9123456789', email: 'priya@gmail.com', pendingBalance: 0 },
+    ];
+  });
 
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -91,10 +179,13 @@ export default function BillingPOS() {
   const [newCustEmail, setNewCustEmail] = useState('');
   const [newCustAddress, setNewCustAddress] = useState('');
 
-  // Billing discounts & payment
+  // Billing discounts, bill type & payment
+  const [billType, setBillType] = useState<'GST' | 'NON_GST'>('GST');
   const [billDiscountType, setBillDiscountType] = useState<'FIXED' | 'PERCENT'>('FIXED');
   const [billDiscountValue, setBillDiscountValue] = useState<number>(0);
-  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'UPI' | 'CARD' | 'CREDIT'>('CASH');
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'UPI' | 'CARD' | 'CREDIT' | 'SPLIT'>('CASH');
+  const [splitPaidAmount, setSplitPaidAmount] = useState<string>('');
+  const [splitPaidMethod, setSplitPaidMethod] = useState<'CASH' | 'UPI' | 'CARD'>('CASH');
   const [cashTendered, setCashTendered] = useState<string>('');
 
   // Held Bills
@@ -117,39 +208,73 @@ export default function BillingPOS() {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Always fetch real live data from Backend API (clearing any old stale dummy cache)
+  // Load live data from LocalStorage & Backend API
   const refreshData = () => {
-    // Categories
+    // 1. Read from LocalStorage immediately
+    try {
+      const savedCats = localStorage.getItem('universal_categories');
+      if (savedCats) {
+        const parsed = JSON.parse(savedCats);
+        if (Array.isArray(parsed)) setCategories(parsed);
+      }
+      const savedItems = localStorage.getItem('universal_items');
+      if (savedItems) {
+        const parsed = JSON.parse(savedItems);
+        if (Array.isArray(parsed)) setMenuItems(parsed);
+      }
+      const savedCusts = localStorage.getItem('universal_customers');
+      if (savedCusts) {
+        const parsed = JSON.parse(savedCusts);
+        if (Array.isArray(parsed) && parsed.length > 0) setCustomers(parsed);
+      }
+    } catch {}
+
+    // 2. Fetch from Backend API and merge
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setCategories(data);
-          localStorage.setItem('universal_categories', JSON.stringify(data));
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories(prev => {
+            const ids = new Set(prev.map(p => p.id));
+            const merged = [...prev];
+            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
+            localStorage.setItem('universal_categories', JSON.stringify(merged));
+            return merged;
+          });
         }
       })
-      .catch(() => setCategories([]));
+      .catch(() => {});
 
-    // Items
     fetch('/api/menu-items')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setMenuItems(data);
-          localStorage.setItem('universal_items', JSON.stringify(data));
+        if (Array.isArray(data) && data.length > 0) {
+          setMenuItems(prev => {
+            const ids = new Set(prev.map(p => p.id));
+            const merged = [...prev];
+            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
+            localStorage.setItem('universal_items', JSON.stringify(merged));
+            return merged;
+          });
         }
       })
-      .catch(() => setMenuItems([]));
+      .catch(() => {});
 
     // Customers
     fetch('/api/customers')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setCustomers(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setCustomers(prev => {
+            const ids = new Set(prev.map(p => p.id));
+            const merged = [...prev];
+            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
+            localStorage.setItem('universal_customers', JSON.stringify(merged));
+            return merged;
+          });
         }
       })
-      .catch(() => setCustomers([]));
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -162,43 +287,119 @@ export default function BillingPOS() {
     localStorage.setItem('universal_held_bills', JSON.stringify(heldBills));
   }, [heldBills]);
 
-  // Filtered Catalog
+  // Comprehensive Filtered Catalog
   const filteredItems = useMemo(() => {
-    return menuItems.filter(item => {
-      if (item.isAvailable === false) return false;
-      const matchCat = selectedCategory === 'ALL' || item.categoryId === selectedCategory;
-      const q = searchQuery.toLowerCase().trim();
-      const matchSearch =
-        !q ||
-        item.name.toLowerCase().includes(q) ||
-        (item.sku && item.sku.toLowerCase().includes(q)) ||
-        (item.barcode && item.barcode.toLowerCase().includes(q));
+    const q = searchQuery.toLowerCase().trim();
+    const searchTerms = q ? q.split(/\s+/).filter(Boolean) : [];
 
-      return matchCat && matchSearch;
+    return menuItems.filter(item => {
+      // Show disabled items only if search explicitly typed, otherwise filter available items
+      if (item.isAvailable === false && searchTerms.length === 0) return false;
+
+      // 1. Category Matching:
+      // Search query searches across ALL categories; otherwise filter by selectedCategory chip
+      let matchCat = selectedCategory === 'ALL' || searchTerms.length > 0;
+      if (!matchCat && selectedCategory) {
+        const selectedCatObj = categories.find(c => c.id === selectedCategory);
+        const selectedCatName = selectedCatObj ? selectedCatObj.name.toLowerCase() : selectedCategory.toLowerCase();
+
+        matchCat =
+          item.categoryId === selectedCategory ||
+          (item.categoryName && item.categoryName.toLowerCase() === selectedCatName) ||
+          (item.categoryName && item.categoryName.toLowerCase() === selectedCategory.toLowerCase());
+      }
+
+      if (!matchCat) return false;
+
+      // 2. Search Query Matching
+      if (searchTerms.length === 0) return true;
+
+      const searchableText = [
+        item.name,
+        item.categoryName,
+        item.description,
+        item.sku,
+        item.barcode,
+        item.hsnCode,
+        item.unit
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      return searchTerms.every(term => searchableText.includes(term));
     });
-  }, [menuItems, selectedCategory, searchQuery]);
+  }, [menuItems, categories, selectedCategory, searchQuery]);
+
+  // Weight & Volume Custom Quantity Modal
+  const [weightModalItem, setWeightModalItem] = useState<{ item: MenuItem; cartItemId?: string } | null>(null);
+  const [subUnitVal, setSubUnitVal] = useState<string>('250');
 
   // Barcode / Enter Submit
   const handleBarcodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
-    const matched = menuItems.find(
+    const exactMatched = menuItems.find(
       it => it.barcode === searchQuery.trim() || it.sku === searchQuery.trim() || it.name.toLowerCase() === searchQuery.toLowerCase().trim()
     );
-    if (matched) {
-      addToCart(matched);
+    const targetItem = exactMatched || (filteredItems.length === 1 ? filteredItems[0] : null);
+
+    if (targetItem) {
+      if ((targetItem.currentStock ?? 0) <= 0) {
+        alert(`⚠️ "${targetItem.name}" is Out of Stock! Cannot add to bill.`);
+        return;
+      }
+      handleProductCardClick(targetItem);
       setSearchQuery('');
     }
   };
 
+  // Click Product Card from Catalog Grid
+  const handleProductCardClick = (item: MenuItem) => {
+    const stock = item.currentStock ?? 0;
+    if (stock <= 0) {
+      alert(`⚠️ "${item.name}" is Out of Stock (0 remaining)! Cannot add to bill.`);
+      return;
+    }
+
+    const unitType = getUnitType(item.unit);
+    if (unitType !== 'PIECE') {
+      const u = (item.unit || '').toLowerCase().trim();
+      const isSub = u === 'g' || u === 'ml' || u === 'cm';
+      const existingInCart = cart.find(c => c.menuItem.id === item.id);
+      const curVal = existingInCart
+        ? (isSub ? String(existingInCart.quantity) : String(Math.round(existingInCart.quantity * 1000)))
+        : '250';
+
+      setWeightModalItem({ item, cartItemId: existingInCart?.id });
+      setSubUnitVal(curVal || '250');
+      return;
+    }
+
+    addToCart(item, 1);
+  };
+
   // Add Item to Cart
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: MenuItem, customQty?: number) => {
+    const stock = item.currentStock ?? 0;
+    const existingInCart = cart.find(c => c.menuItem.id === item.id);
+    const currentQty = existingInCart ? existingInCart.quantity : 0;
+    const qtyToAdd = customQty !== undefined ? customQty : 1;
+
+    if (stock <= 0) {
+      alert(`⚠️ "${item.name}" is Out of Stock (0 remaining)! Cannot add to bill.`);
+      return;
+    }
+
+    if (currentQty + qtyToAdd > stock) {
+      alert(`⚠️ Cannot add more of "${item.name}". Only ${stock} left in stock!`);
+      return;
+    }
+
     setCart(prev => {
       const existingIndex = prev.findIndex(c => c.menuItem.id === item.id);
       if (existingIndex > -1) {
         const updated = [...prev];
-        updated[existingIndex].quantity += 1;
+        const newQty = customQty !== undefined ? customQty : updated[existingIndex].quantity + 1;
+        updated[existingIndex].quantity = Number(newQty.toFixed(3));
         return updated;
       } else {
         return [
@@ -206,7 +407,7 @@ export default function BillingPOS() {
           {
             id: `cart-${Date.now()}-${item.id}`,
             menuItem: item,
-            quantity: 1,
+            quantity: Number(qtyToAdd.toFixed(3)),
             price: item.price,
             discount: 0,
             notes: '',
@@ -218,6 +419,39 @@ export default function BillingPOS() {
 
   // Update Cart Item Quantity
   const updateQuantity = (cartItemId: string, delta: number) => {
+    const targetItem = cart.find(item => item.id === cartItemId);
+    if (!targetItem) return;
+
+    const uType = getUnitType(targetItem.menuItem.unit);
+
+    if (uType !== 'PIECE') {
+      // Step delta by 0.25 (250g or 250ml) for weight/volume items
+      const step = (targetItem.menuItem.unit?.toLowerCase().trim() === 'g' || targetItem.menuItem.unit?.toLowerCase().trim() === 'ml') ? 100 : 0.25;
+      const stepDelta = delta > 0 ? step : -step;
+      const stock = targetItem.menuItem.currentStock ?? 0;
+      const newQty = Number((targetItem.quantity + stepDelta).toFixed(3));
+
+      if (newQty > stock) {
+        alert(`⚠️ Stock limit reached! Only ${stock} units available for "${targetItem.menuItem.name}".`);
+        return;
+      }
+
+      if (newQty <= 0) {
+        removeFromCart(cartItemId);
+        return;
+      }
+
+      setCart(prev => prev.map(item => item.id === cartItemId ? { ...item, quantity: newQty } : item));
+      return;
+    }
+
+    // Standard piece quantity update (+1 / -1)
+    const stock = targetItem.menuItem.currentStock ?? 0;
+    if (delta > 0 && targetItem.quantity + delta > stock) {
+      alert(`⚠️ Stock limit reached! Only ${stock} units available for "${targetItem.menuItem.name}".`);
+      return;
+    }
+
     setCart(prev =>
       prev
         .map(item => {
@@ -234,6 +468,21 @@ export default function BillingPOS() {
   // Remove Item from Cart
   const removeFromCart = (cartItemId: string) => {
     setCart(prev => prev.filter(item => item.id !== cartItemId));
+  };
+
+  // Delete Product from Catalog
+  const handleDeleteProduct = (itemId: string, itemName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm(`Are you sure you want to delete "${itemName}" from your catalog?`)) {
+      const updated = menuItems.filter(m => m.id !== itemId);
+      setMenuItems(updated);
+      localStorage.setItem('universal_items', JSON.stringify(updated));
+      setCart(prev => prev.filter(c => c.menuItem.id !== itemId));
+
+      try {
+        fetch(`/api/menu-items/${itemId}`, { method: 'DELETE' });
+      } catch {}
+    }
   };
 
   // Clear Cart
@@ -287,21 +536,35 @@ export default function BillingPOS() {
   }, [subtotal, billDiscountType, billDiscountValue]);
 
   const taxAmount = useMemo(() => {
+    if (billType === 'NON_GST') return 0;
     return cart.reduce((sum, item) => {
       const itemNet = (item.price * item.quantity) - ((item.discount || 0) * item.quantity);
       const rate = item.menuItem.gst || businessProfile.defaultTaxRate || 5;
       return sum + (itemNet * rate) / 100;
     }, 0);
-  }, [cart, businessProfile.defaultTaxRate]);
+  }, [cart, billType, businessProfile.defaultTaxRate]);
 
   const grandTotal = useMemo(() => {
     return Math.max(0, subtotal - discountAmount + taxAmount);
   }, [subtotal, discountAmount, taxAmount]);
 
+  const computedPaidAmount = useMemo(() => {
+    if (paymentMethod === 'SPLIT') {
+      const val = parseFloat(splitPaidAmount) || 0;
+      return Math.min(val, grandTotal);
+    }
+    if (paymentMethod === 'CREDIT') return 0;
+    return grandTotal;
+  }, [paymentMethod, splitPaidAmount, grandTotal]);
+
+  const computedBalanceDue = useMemo(() => {
+    return Math.max(0, grandTotal - computedPaidAmount);
+  }, [grandTotal, computedPaidAmount]);
+
   const changeDue = useMemo(() => {
     const tendered = parseFloat(cashTendered) || 0;
-    return tendered > grandTotal ? tendered - grandTotal : 0;
-  }, [cashTendered, grandTotal]);
+    return (paymentMethod === 'CASH' && tendered > grandTotal) ? tendered - grandTotal : 0;
+  }, [paymentMethod, cashTendered, grandTotal]);
 
   // Customer Filtering
   const filteredCustomers = useMemo(() => {
@@ -322,15 +585,22 @@ export default function BillingPOS() {
       mobile: newCustMobile.trim(),
       email: newCustEmail.trim() || undefined,
       address: newCustAddress.trim() || undefined,
+      pendingBalance: 0,
     };
 
-    setCustomers(prev => [newCust, ...prev]);
+    setCustomers(prev => {
+      const updated = [newCust, ...prev.filter(c => c.id !== newCust.id && c.mobile !== newCust.mobile)];
+      localStorage.setItem('universal_customers', JSON.stringify(updated));
+      return updated;
+    });
+
     setSelectedCustomer(newCust);
     setIsAddCustomerModalOpen(false);
     setNewCustName('');
     setNewCustMobile('');
     setNewCustEmail('');
     setNewCustAddress('');
+    window.dispatchEvent(new Event('storage'));
 
     try {
       fetch('/api/customers', {
@@ -395,18 +665,29 @@ export default function BillingPOS() {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
-    const invoiceNo = `${businessProfile.invoicePrefix || 'INV/2026/'}${Date.now().toString().slice(-4)}`;
+    if (computedBalanceDue > 0 && !selectedCustomer) {
+      alert(`⚠️ Pending balance of ₹${computedBalanceDue.toFixed(2)} must be saved to a Customer's account. Please select or add a Customer above!`);
+      return;
+    }
+
+    const prefix = billType === 'GST' 
+      ? (businessProfile.invoicePrefix || 'INV/GST/2026/') 
+      : 'BILL/NON-GST/';
+    const invoiceNo = `${prefix}${Date.now().toString().slice(-4)}`;
 
     const orderPrintData: OrderPrintData = {
       orderNumber: invoiceNo,
-      orderType: 'TAX_INVOICE',
+      orderType: billType === 'GST' ? 'TAX_INVOICE' : 'NON_GST_BILL',
       createdAt: new Date(),
       status: 'COMPLETED',
-      paymentMethod: paymentMethod,
+      paymentMethod: paymentMethod === 'SPLIT' ? `SPLIT (${splitPaidMethod} + CREDIT)` : paymentMethod,
       subtotal: subtotal,
       tax: taxAmount,
       discount: discountAmount,
       total: grandTotal,
+      paidAmount: computedPaidAmount,
+      balanceAmount: computedBalanceDue,
+      splitPaidMethod: paymentMethod === 'SPLIT' ? splitPaidMethod : undefined,
       customer: selectedCustomer
         ? {
             name: selectedCustomer.name,
@@ -419,7 +700,8 @@ export default function BillingPOS() {
         price: item.price,
         menuItem: {
           name: item.menuItem.name,
-          gst: item.menuItem.gst,
+          unit: item.menuItem.unit,
+          gst: billType === 'GST' ? item.menuItem.gst : 0,
           hsnCode: item.menuItem.hsnCode,
         },
       })),
@@ -437,6 +719,49 @@ export default function BillingPOS() {
       localStorage.setItem('universal_items', JSON.stringify(updated));
       return updated;
     });
+
+    const newOrderObj = {
+      id: `ord-${Date.now()}`,
+      orderNumber: invoiceNo,
+      billType: billType, // 'GST' | 'NON_GST'
+      isGst: billType === 'GST',
+      status: 'COMPLETED',
+      orderType: billType === 'GST' ? 'TAX_INVOICE' : 'NON_GST_BILL',
+      customerId: selectedCustomer?.id,
+      customerName: selectedCustomer?.name || 'Walk-in Customer',
+      customerMobile: selectedCustomer?.mobile || '',
+      subtotal: subtotal,
+      tax: taxAmount,
+      discount: discountAmount,
+      total: grandTotal,
+      paidAmount: computedPaidAmount,
+      balanceAmount: computedBalanceDue,
+      paymentMethod: paymentMethod === 'SPLIT' ? `SPLIT (${splitPaidMethod} + CREDIT)` : paymentMethod,
+      splitPaidMethod: paymentMethod === 'SPLIT' ? splitPaidMethod : undefined,
+      createdAt: new Date().toISOString(),
+      items: cart.map(c => ({
+        menuItemId: c.menuItem.id,
+        name: c.menuItem.name,
+        quantity: c.quantity,
+        price: c.price,
+        discount: c.discount,
+        gst: billType === 'GST' ? (c.menuItem.gst || 5) : 0,
+      })),
+    };
+
+    // Save separately to GST vs Non-GST localStorage columns & combined universal_orders
+    try {
+      if (billType === 'GST') {
+        const gstBills = JSON.parse(localStorage.getItem('universal_gst_bills') || '[]');
+        localStorage.setItem('universal_gst_bills', JSON.stringify([newOrderObj, ...gstBills]));
+      } else {
+        const nonGstBills = JSON.parse(localStorage.getItem('universal_nongst_bills') || '[]');
+        localStorage.setItem('universal_nongst_bills', JSON.stringify([newOrderObj, ...nonGstBills]));
+      }
+
+      const allOrders = JSON.parse(localStorage.getItem('universal_orders') || '[]');
+      localStorage.setItem('universal_orders', JSON.stringify([newOrderObj, ...allOrders]));
+    } catch {}
 
     // Trigger Real Notification
     try {
@@ -458,23 +783,7 @@ export default function BillingPOS() {
       fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orderNumber: invoiceNo,
-          status: 'COMPLETED',
-          orderType: 'COUNTER_SALE',
-          customerId: selectedCustomer?.id,
-          subtotal: subtotal,
-          tax: taxAmount,
-          discount: discountAmount,
-          total: grandTotal,
-          paymentMethod: paymentMethod,
-          items: cart.map(c => ({
-            menuItemId: c.menuItem.id,
-            quantity: c.quantity,
-            price: c.price,
-            discount: c.discount,
-          })),
-        }),
+        body: JSON.stringify(newOrderObj),
       });
     } catch (e) {}
 
@@ -492,38 +801,29 @@ export default function BillingPOS() {
   return (
     <div className="h-full flex flex-col lg:flex-row gap-3 overflow-hidden">
       {/* LEFT: Item Catalog & Search Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#0F0F10] border border-[#1F1F21] rounded-2xl overflow-hidden p-3.5 space-y-3">
+      <div className="flex-1 flex flex-col min-w-0 bg-theme-surface border border-theme-secondary/20 rounded-2xl overflow-hidden p-3.5 space-y-3">
         {/* Search Input Bar + Add Product Button */}
         <form onSubmit={handleBarcodeSubmit} className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-theme-accent absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               ref={searchInputRef}
               type="text"
               placeholder="Search products by Name, Barcode, or SKU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-[#141416] border border-[#262629] rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059] transition-all"
+              className="w-full pl-10 pr-10 py-2.5 bg-theme-card border border-theme-secondary/30 rounded-xl text-xs text-theme-primary placeholder:text-theme-primary/50 focus:outline-none focus:border-theme-secondary transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-primary opacity-60 hover:opacity-100"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
-
-          <button
-            type="button"
-            onClick={() => setIsAddItemModalOpen(true)}
-            className="px-3.5 py-2.5 bg-[#1A1A1C] hover:bg-[#252528] text-[#C5A059] border border-[#262629] rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Product</span>
-          </button>
         </form>
 
         {/* Category Filter Chips */}
@@ -534,8 +834,8 @@ export default function BillingPOS() {
               className={cn(
                 "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0",
                 selectedCategory === 'ALL'
-                  ? "bg-[#C5A059] text-[#0A0A0B] border-[#C5A059] shadow-md shadow-[#C5A059]/20"
-                  : "bg-[#141416] text-gray-400 border-[#262629] hover:text-white"
+                  ? "btn-theme-secondary shadow-md border-transparent"
+                  : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
               )}
             >
               All Products ({menuItems.length})
@@ -549,14 +849,14 @@ export default function BillingPOS() {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={cn(
-                    "px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0 flex items-center gap-1.5",
+                    "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0 flex items-center gap-1.5",
                     isSelected
-                      ? "bg-[#C5A059] text-[#0A0A0B] border-[#C5A059] shadow-md shadow-[#C5A059]/20"
-                      : "bg-[#141416] text-gray-400 border-[#262629] hover:text-white"
+                      ? "btn-theme-secondary shadow-md border-transparent"
+                      : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
                   )}
                 >
                   <span>{cat.name}</span>
-                  <span className={cn("text-[10px] px-1.5 py-0.2 rounded-full", isSelected ? "bg-[#0A0A0B]/20 text-[#0A0A0B]" : "bg-[#202024] text-gray-400")}>
+                  <span className={cn("text-[10px] px-1.5 py-0.2 rounded-full", isSelected ? "bg-black/20 text-current" : "bg-white/10 text-theme-primary")}>
                     {count}
                   </span>
                 </button>
@@ -564,6 +864,7 @@ export default function BillingPOS() {
             })}
           </div>
         )}
+
 
         {/* Products Grid */}
         <div className="flex-1 overflow-y-auto no-scrollbar pr-1">
@@ -577,38 +878,42 @@ export default function BillingPOS() {
                 return (
                   <div
                     key={item.id}
-                    onClick={() => addToCart(item)}
+                    onClick={() => handleProductCardClick(item)}
                     className={cn(
-                      "relative flex flex-col justify-between p-3 rounded-xl border transition-all cursor-pointer select-none group",
-                      inCart
-                        ? "bg-[#1C1A14] border-[#C5A059] shadow-md shadow-[#C5A059]/10"
-                        : "bg-[#141416] border-[#222225] hover:border-[#C5A059]/50 hover:bg-[#18181B]"
+                      "relative flex flex-col justify-between p-3 rounded-xl border transition-all select-none group",
+                      isOut
+                        ? "opacity-60 cursor-not-allowed bg-theme-surface border-red-500/30 text-theme-primary"
+                        : inCart
+                          ? "bg-theme-secondary/15 border-theme-secondary shadow-md shadow-theme-secondary/10 cursor-pointer"
+                          : "bg-theme-card border-theme-secondary/20 hover:border-theme-secondary hover:bg-theme-secondary/10 cursor-pointer"
                     )}
                   >
                     {/* Cart Count Badge */}
                     {inCart && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#C5A059] text-[#0A0A0B] font-bold text-xs flex items-center justify-center shadow-lg animate-in zoom-in">
+                      <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full btn-theme-secondary font-bold text-xs flex items-center justify-center shadow-lg animate-in zoom-in">
                         {inCart.quantity}
                       </div>
                     )}
 
                     <div>
-                      <h4 className="font-bold text-white text-xs leading-snug line-clamp-2 group-hover:text-[#C5A059] transition-colors">
-                        {item.name}
-                      </h4>
-                      <div className="flex items-center gap-1 text-[10px] text-gray-500 font-mono mt-1">
+                      <div className="flex items-start justify-between gap-1">
+                        <h4 className="font-bold text-theme-primary text-xs leading-snug line-clamp-2 group-hover:text-theme-accent transition-colors">
+                          {item.name}
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] text-theme-primary opacity-60 font-mono mt-1">
                         <span>{item.unit || 'Pcs'}</span>
                         {item.gst > 0 && <span>• {item.gst}% GST</span>}
                       </div>
                     </div>
 
-                    <div className="mt-3 pt-2 border-t border-[#222225] flex items-center justify-between">
-                      <span className="font-mono font-bold text-white text-sm">
+                    <div className="mt-3 pt-2 border-t border-theme-secondary/20 flex items-center justify-between">
+                      <span className="font-mono font-bold text-theme-primary text-sm">
                         {currency}{item.price.toFixed(2)}
                       </span>
                       <span className={cn(
                         "text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded",
-                        isOut ? "text-red-400 bg-red-500/10" : "text-gray-400 bg-[#1F1F22]"
+                        isOut ? "text-red-500 bg-red-500/15" : "text-theme-primary bg-theme-surface border border-theme-secondary/20"
                       )}>
                         {isOut ? 'Out' : `${stock} left`}
                       </span>
@@ -618,41 +923,50 @@ export default function BillingPOS() {
               })}
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-gray-500 space-y-3">
-              <ShoppingCart className="w-10 h-10 text-gray-700 opacity-60" />
-              <p className="text-sm font-semibold text-gray-400">No Products in Catalog</p>
-              <p className="text-xs text-gray-600 max-w-sm text-center">
-                Your product catalog is empty. Click below to add your custom business products and start billing!
-              </p>
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setIsAddItemModalOpen(true)}
-                  className="px-4 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add Product Now</span>
-                </button>
-                <Link
-                  to="/items"
-                  className="px-4 py-2 bg-[#1A1A1C] hover:bg-[#252528] text-gray-300 hover:text-white border border-[#2D2D30] font-bold text-xs rounded-xl"
-                >
-                  Manage Categories & Catalog →
-                </Link>
-              </div>
+            <div className="h-64 flex flex-col items-center justify-center text-theme-primary opacity-70 space-y-3">
+              <ShoppingCart className="w-10 h-10 text-theme-accent opacity-50" />
+              {menuItems.length === 0 ? (
+                <>
+                  <p className="text-sm font-semibold text-theme-primary">No Products in Catalog</p>
+                  <p className="text-xs text-theme-primary opacity-60 max-w-sm text-center">
+                    Your product catalog is empty. Click below to add your custom business products and start billing!
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Link
+                      to="/inventory"
+                      className="px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl"
+                    >
+                      Manage Categories & Catalog →
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-bold text-theme-primary">No products match "{searchQuery}"</p>
+                  <p className="text-xs text-theme-primary opacity-60 max-w-sm text-center">
+                    Try checking for typos or clear the search to view all catalog products.
+                  </p>
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl shadow-md"
+                  >
+                    Clear Search
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
       </div>
 
       {/* RIGHT: Billing Register & Cart Panel */}
-      <div className="w-full lg:w-[420px] xl:w-[450px] flex flex-col bg-[#0F0F10] border border-[#1F1F21] rounded-2xl overflow-hidden shadow-2xl flex-shrink-0">
+      <div className="w-full lg:w-[420px] xl:w-[450px] flex flex-col bg-theme-surface border border-theme-secondary/20 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0">
         {/* Cart Top Bar: Customer Selector & Held Bills */}
-        <div className="p-3.5 border-b border-[#1F1F21] space-y-2.5 bg-[#131315]">
+        <div className="p-3.5 border-b border-theme-secondary/20 space-y-2.5 bg-theme-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-[#C5A059]" />
-              <span className="text-xs font-bold uppercase tracking-wider text-white">Current Sale</span>
+              <Receipt className="w-4 h-4 text-theme-accent" />
+              <span className="text-xs font-bold uppercase tracking-wider text-theme-primary">Current Sale</span>
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -770,7 +1084,7 @@ export default function BillingPOS() {
                 <div className="flex-1 min-w-0">
                   <h5 className="font-bold text-white text-xs truncate">{item.menuItem.name}</h5>
                   <div className="text-[10px] text-gray-400 font-mono mt-0.5">
-                    {currency}{item.price.toFixed(2)} × {item.quantity} {item.menuItem.unit || ''}
+                    {currency}{item.price.toFixed(2)} × {formatQuantityWithSubunit(item.quantity, item.menuItem.unit)}
                   </div>
                 </div>
 
@@ -780,15 +1094,31 @@ export default function BillingPOS() {
                     <button
                       onClick={() => updateQuantity(item.id, -1)}
                       className="p-1 hover:bg-[#252528] text-gray-400 hover:text-white rounded"
+                      title="Reduce quantity"
                     >
                       <Minus className="w-3 h-3" />
                     </button>
-                    <span className="font-mono font-bold text-xs text-white px-2 min-w-[20px] text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const uType = getUnitType(item.menuItem.unit);
+                        if (uType !== 'PIECE') {
+                          const u = (item.menuItem.unit || '').toLowerCase().trim();
+                          const isSub = u === 'g' || u === 'ml' || u === 'cm';
+                          const curVal = isSub ? String(item.quantity) : String(Math.round(item.quantity * 1000));
+                          setWeightModalItem({ item: item.menuItem, cartItemId: item.id });
+                          setSubUnitVal(curVal || '250');
+                        }
+                      }}
+                      className="font-mono font-bold text-xs text-white px-2 min-w-[20px] text-center hover:text-[#C5A059] transition-colors cursor-pointer"
+                      title="Click to edit custom weight/volume (grams / ml)"
+                    >
                       {item.quantity}
-                    </span>
+                    </button>
                     <button
                       onClick={() => updateQuantity(item.id, 1)}
                       className="p-1 hover:bg-[#252528] text-gray-400 hover:text-white rounded"
+                      title="Increase quantity"
                     >
                       <Plus className="w-3 h-3" />
                     </button>
@@ -822,6 +1152,37 @@ export default function BillingPOS() {
 
         {/* Cart Bottom: Calculations & Checkout */}
         <div className="p-3.5 border-t border-[#1F1F21] bg-[#131315] space-y-3">
+          {/* Bill Type Selector (GST vs Non-GST) - Theme Adaptive */}
+          <div className="flex items-center justify-between p-2 bg-theme-surface border border-theme-secondary/30 rounded-xl mb-2">
+            <span className="text-xs font-bold text-theme-primary">Bill Type:</span>
+            <div className="flex items-center gap-1 bg-theme-card p-1 rounded-lg border border-theme-secondary/30">
+              <button
+                type="button"
+                onClick={() => setBillType('GST')}
+                className={cn(
+                  "px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5",
+                  billType === 'GST'
+                    ? "btn-theme-secondary shadow font-extrabold"
+                    : "text-theme-primary opacity-75 hover:opacity-100 hover:bg-theme-secondary/15"
+                )}
+              >
+                <span>📄 GST Bill</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillType('NON_GST')}
+                className={cn(
+                  "px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5",
+                  billType === 'NON_GST'
+                    ? "bg-amber-500 text-black shadow font-extrabold"
+                    : "text-theme-primary opacity-75 hover:opacity-100 hover:bg-theme-secondary/15"
+                )}
+              >
+                <span>📝 Non-GST Bill</span>
+              </button>
+            </div>
+          </div>
+
           {/* Bill Summary Calculations */}
           <div className="space-y-1.5 text-xs text-gray-400 border-b border-[#1F1F21] pb-2.5">
             <div className="flex justify-between">
@@ -864,8 +1225,12 @@ export default function BillingPOS() {
             </div>
 
             <div className="flex justify-between">
-              <span>Estimated Tax / GST</span>
-              <span className="font-mono text-white">{currency}{taxAmount.toFixed(2)}</span>
+              <span className={billType === 'NON_GST' ? 'line-through text-gray-600' : ''}>
+                Estimated Tax / GST {billType === 'NON_GST' && '(Exempt)'}
+              </span>
+              <span className={cn("font-mono font-bold", billType === 'NON_GST' ? "text-amber-500 font-normal" : "text-white")}>
+                {currency}{taxAmount.toFixed(2)}
+              </span>
             </div>
 
             {/* Grand Total Highlight */}
@@ -879,12 +1244,13 @@ export default function BillingPOS() {
 
           {/* Payment Method Selector */}
           <div className="space-y-1.5">
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-5 gap-1">
               {[
                 { id: 'CASH', label: 'Cash', icon: Banknote },
                 { id: 'UPI', label: 'UPI / QR', icon: QrCode },
                 { id: 'CARD', label: 'Card', icon: CreditCard },
                 { id: 'CREDIT', label: 'Credit', icon: User },
+                { id: 'SPLIT', label: 'Split', icon: ArrowRightLeft },
               ].map(m => {
                 const Icon = m.icon;
                 const isSelected = paymentMethod === m.id;
@@ -894,13 +1260,12 @@ export default function BillingPOS() {
                     type="button"
                     onClick={() => {
                       setPaymentMethod(m.id as any);
-                      if (m.id === 'UPI') setIsUpiModalOpen(true);
                     }}
                     className={cn(
-                      "py-2 px-1 rounded-xl text-[11px] font-bold border transition-all flex flex-col items-center gap-1",
+                      "py-2 px-1 rounded-xl text-[10px] font-bold border transition-all flex flex-col items-center gap-1",
                       isSelected
-                        ? "bg-[#C5A059] text-[#0A0A0B] border-[#C5A059] shadow-md shadow-[#C5A059]/20"
-                        : "bg-[#1A1A1C] text-gray-400 border-[#262629] hover:text-white hover:border-[#333338]"
+                        ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
+                        : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -910,23 +1275,81 @@ export default function BillingPOS() {
               })}
             </div>
 
+            {/* Split / Partial Payment Box */}
+            {paymentMethod === 'SPLIT' && grandTotal > 0 && (
+              <div className="bg-theme-surface p-3 rounded-2xl border border-theme-secondary/30 space-y-2.5 shadow-md">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-theme-primary flex items-center gap-1.5">
+                    <ArrowRightLeft className="w-3.5 h-3.5 text-amber-400" /> Split / Partial Payment
+                  </span>
+                  <span className="text-[10px] text-theme-primary opacity-60">
+                    Bill Total: <strong className="font-mono text-theme-accent">₹{grandTotal.toFixed(2)}</strong>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Paid Amount (₹)</label>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder={(grandTotal / 2).toFixed(0)}
+                      value={splitPaidAmount}
+                      onChange={e => setSplitPaidAmount(e.target.value)}
+                      className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2 text-xs font-mono font-bold text-theme-primary outline-none focus:border-theme-secondary mt-0.5"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Paid Via</label>
+                    <select
+                      value={splitPaidMethod}
+                      onChange={e => setSplitPaidMethod(e.target.value as any)}
+                      className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2 text-xs font-bold text-theme-primary outline-none focus:border-theme-secondary mt-0.5"
+                    >
+                      <option value="CASH">💵 Cash</option>
+                      <option value="UPI">📲 UPI / QR</option>
+                      <option value="CARD">💳 Card</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="bg-theme-card p-2.5 rounded-xl border border-theme-secondary/20 flex items-center justify-between text-xs font-mono">
+                  <div>
+                    <span className="text-theme-primary opacity-70 text-[10px]">Paid ({splitPaidMethod}): </span>
+                    <span className="font-bold text-emerald-400">₹{computedPaidAmount.toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-theme-primary opacity-70 text-[10px]">Balance Due: </span>
+                    <span className="font-bold text-red-400">₹{computedBalanceDue.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {computedBalanceDue > 0 && !selectedCustomer && (
+                  <div className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg flex items-center gap-1 font-medium">
+                    <span>⚠️ Unpaid balance of ₹{computedBalanceDue.toFixed(2)} will be saved to Customer Credit. Please select a customer above.</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Cash Tendered Calculator */}
             {paymentMethod === 'CASH' && grandTotal > 0 && (
-              <div className="bg-[#1A1A1C] p-2 rounded-xl border border-[#2D2D30] flex items-center justify-between text-xs">
+              <div className="bg-theme-surface p-2 rounded-xl border border-theme-secondary/30 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-gray-400">Cash Received:</span>
+                  <span className="opacity-80">Cash Received:</span>
                   <input
                     type="number"
                     placeholder={grandTotal.toFixed(2)}
                     value={cashTendered}
                     onChange={(e) => setCashTendered(e.target.value)}
-                    className="w-24 bg-[#141416] border border-[#2D2D30] rounded px-2 py-1 text-white font-mono text-xs outline-none focus:border-[#C5A059]"
+                    className="w-24 bg-theme-primary border border-theme-secondary/30 rounded px-2 py-1 text-theme-primary font-mono text-xs outline-none focus:border-theme-secondary"
                   />
                 </div>
                 {changeDue > 0 && (
                   <div className="text-right">
-                    <span className="text-[10px] text-gray-400">Change: </span>
-                    <span className="font-mono font-bold text-green-400 text-xs">
+                    <span className="text-[10px] opacity-80">Change: </span>
+                    <span className="font-mono font-bold text-green-500 text-xs">
                       {currency}{changeDue.toFixed(2)}
                     </span>
                   </div>
@@ -940,15 +1363,16 @@ export default function BillingPOS() {
             onClick={handleCheckout}
             disabled={cart.length === 0}
             className={cn(
-              "w-full py-3.5 rounded-xl font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg transition-all",
+              "w-full py-3.5 rounded-xl font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg transition-all border",
               cart.length > 0
-                ? "bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] hover:brightness-110 shadow-[#C5A059]/25 cursor-pointer"
-                : "bg-[#1E1E22] text-gray-500 cursor-not-allowed border border-[#262629]"
+                ? "btn-theme-secondary shadow-md border-transparent cursor-pointer"
+                : "bg-theme-surface text-theme-primary opacity-50 cursor-not-allowed border-theme-secondary/20"
             )}
           >
             <Printer className="w-4 h-4" />
             <span>Complete Sale & Print Bill ({currency}{grandTotal.toFixed(2)})</span>
           </button>
+
         </div>
       </div>
 
@@ -1042,16 +1466,19 @@ export default function BillingPOS() {
                   <select
                     value={newItemUnit}
                     onChange={(e) => setNewItemUnit(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059] font-medium"
                   >
-                    <option value="Pcs">Pcs</option>
-                    <option value="Unit">Unit</option>
-                    <option value="Kg">Kg</option>
-                    <option value="g">g</option>
-                    <option value="Ltr">Ltr</option>
-                    <option value="Box">Box</option>
-                    <option value="Packet">Packet</option>
-                    <option value="Service">Service</option>
+                    <option value="">Select Unit</option>
+                    {COMMON_UNITS.map(grp => (
+                      <optgroup key={grp.group} label={`── ${grp.group} ──`}>
+                        {grp.units.map(u => (
+                          <option key={u} value={u}>{u}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                    {newItemUnit && !COMMON_UNITS.some(g => g.units.includes(newItemUnit)) && (
+                      <option value={newItemUnit}>{newItemUnit} (Custom)</option>
+                    )}
                   </select>
                 </div>
               </div>
@@ -1196,51 +1623,153 @@ export default function BillingPOS() {
         </div>
       )}
 
-      {/* UPI / QR Code Payment Modal */}
-      {isUpiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#141416] border border-[#2D2D30] rounded-2xl w-full max-w-sm p-6 shadow-2xl space-y-4 text-center">
-            <div className="flex items-center justify-between border-b border-[#222225] pb-3 text-left">
-              <div className="flex items-center gap-2">
-                <QrCode className="w-5 h-5 text-[#C5A059]" />
-                <h3 className="font-bold text-white text-sm">UPI Instant Payment</h3>
+      {/* Weight / Volume Sub-unit Custom Quantity Modal */}
+      {weightModalItem && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-theme-surface border border-theme-secondary/30 p-6 rounded-2xl max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-theme-secondary/20 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-theme-primary">{weightModalItem.item.name}</h3>
+                <p className="text-xs text-theme-primary opacity-60">
+                  Rate: <span className="font-mono font-bold text-theme-accent">₹{weightModalItem.item.price.toFixed(2)}</span> per {weightModalItem.item.unit || 'Kg'}
+                </p>
               </div>
-              <button onClick={() => setIsUpiModalOpen(false)} className="text-gray-400 hover:text-white">
-                <X className="w-4 h-4" />
+              <button onClick={() => setWeightModalItem(null)} className="text-theme-primary opacity-60 hover:opacity-100 font-bold text-sm">✕</button>
+            </div>
+
+            {/* Quick Presets */}
+            <div>
+              <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase tracking-wider">Quick Presets</label>
+              <div className="grid grid-cols-4 gap-2 mt-1.5">
+                {getUnitType(weightModalItem.item.unit) === 'WEIGHT' ? (
+                  [
+                    { label: '50 g', val: 50 },
+                    { label: '100 g', val: 100 },
+                    { label: '250 g', val: 250 },
+                    { label: '500 g', val: 500 },
+                    { label: '750 g', val: 750 },
+                    { label: '1 Kg', val: 1000 },
+                    { label: '1.5 Kg', val: 1500 },
+                    { label: '2 Kg', val: 2000 },
+                  ].map(preset => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setSubUnitVal(String(preset.val))}
+                      className={cn(
+                        "py-2 rounded-xl text-xs font-mono font-bold border transition-all",
+                        Number(subUnitVal) === preset.val
+                          ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
+                          : "bg-theme-card text-theme-primary border-theme-secondary/30 hover:border-theme-secondary"
+                      )}
+                    >
+                      {preset.label}
+                    </button>
+                  ))
+                ) : (
+                  [
+                    { label: '50 ml', val: 50 },
+                    { label: '100 ml', val: 100 },
+                    { label: '250 ml', val: 250 },
+                    { label: '500 ml', val: 500 },
+                    { label: '750 ml', val: 750 },
+                    { label: '1 Liter', val: 1000 },
+                    { label: '1.5 L', val: 1500 },
+                    { label: '2 Liters', val: 2000 },
+                  ].map(preset => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setSubUnitVal(String(preset.val))}
+                      className={cn(
+                        "py-2 rounded-xl text-xs font-mono font-bold border transition-all",
+                        Number(subUnitVal) === preset.val
+                          ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
+                          : "bg-theme-card text-theme-primary border-theme-secondary/30 hover:border-theme-secondary"
+                      )}
+                    >
+                      {preset.label}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Custom Input */}
+            <div>
+              <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase tracking-wider">
+                Custom Quantity ({getUnitType(weightModalItem.item.unit) === 'WEIGHT' ? 'Grams' : 'Milliliters (ml)'})
+              </label>
+              <div className="relative mt-1">
+                <input
+                  type="number"
+                  step="any"
+                  autoFocus
+                  value={subUnitVal}
+                  onChange={e => setSubUnitVal(e.target.value)}
+                  placeholder="e.g. 250, 500, 750"
+                  className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-3 text-lg font-mono font-bold text-theme-primary outline-none focus:border-theme-secondary"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-theme-primary opacity-60">
+                  {getUnitType(weightModalItem.item.unit) === 'WEIGHT' ? 'Grams' : 'ml'}
+                </span>
+              </div>
+            </div>
+
+            {/* Calculated Price Live Preview */}
+            {(() => {
+              const numGrams = Number(subUnitVal) || 0;
+              const u = (weightModalItem.item.unit || '').toLowerCase().trim();
+              const isSub = u === 'g' || u === 'ml' || u === 'cm';
+              const convertedQty = isSub ? numGrams : numGrams / 1000;
+              const totalPrice = weightModalItem.item.price * convertedQty;
+              return (
+                <div className="bg-theme-card p-3 rounded-xl border border-theme-secondary/30 flex items-center justify-between text-xs font-mono">
+                  <div>
+                    <span className="text-theme-primary opacity-70">Quantity: </span>
+                    <span className="font-bold text-theme-primary">{formatQuantityWithSubunit(convertedQty, weightModalItem.item.unit)}</span>
+                  </div>
+                  <div>
+                    <span className="text-theme-primary opacity-70">Total: </span>
+                    <span className="font-bold text-theme-accent text-sm">₹{totalPrice.toFixed(2)}</span>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Submit Action Buttons */}
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const numGrams = Number(subUnitVal) || 0;
+                  if (numGrams <= 0) {
+                    alert('Please enter a valid quantity.');
+                    return;
+                  }
+                  const u = (weightModalItem.item.unit || '').toLowerCase().trim();
+                  const isSub = u === 'g' || u === 'ml' || u === 'cm';
+                  const calculatedQty = isSub ? numGrams : Number((numGrams / 1000).toFixed(3));
+
+                  if (weightModalItem.cartItemId) {
+                    setCart(prev => prev.map(c => c.id === weightModalItem.cartItemId ? { ...c, quantity: calculatedQty } : c));
+                  } else {
+                    addToCart(weightModalItem.item, calculatedQty);
+                  }
+                  setWeightModalItem(null);
+                }}
+                className="flex-1 btn-theme-secondary font-bold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg"
+              >
+                Confirm Quantity
+              </button>
+              <button
+                type="button"
+                onClick={() => setWeightModalItem(null)}
+                className="px-5 py-3 bg-theme-card text-theme-primary opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100"
+              >
+                Cancel
               </button>
             </div>
-
-            <div className="p-4 bg-white rounded-2xl inline-block shadow-inner">
-              {/* Dynamic QR SVG */}
-              <div className="w-40 h-40 flex items-center justify-center border-4 border-black p-2">
-                <div className="text-center">
-                  <QrCode className="w-28 h-28 mx-auto text-black" />
-                  <span className="text-[10px] font-bold font-mono text-black">SCAN & PAY {currency}{grandTotal.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-xs text-gray-300">
-              <div>Merchant: <span className="font-bold text-white">{businessProfile.businessName}</span></div>
-              <div className="text-gray-400 text-[11px] mt-0.5">UPI ID: <span className="font-mono text-[#C5A059]">pay@{businessProfile.phone?.replace(/[^0-9]/g, '') || '9876543210'}</span></div>
-            </div>
-
-            <div>
-              <input
-                type="text"
-                placeholder="UPI UTR / Txn ID (Optional)"
-                value={upiTxnRef}
-                onChange={(e) => setUpiTxnRef(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white text-center font-mono outline-none focus:border-[#C5A059]"
-              />
-            </div>
-
-            <button
-              onClick={() => setIsUpiModalOpen(false)}
-              className="w-full py-2.5 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-xl hover:bg-[#b08d4a]"
-            >
-              Confirm UPI Received
-            </button>
           </div>
         </div>
       )}

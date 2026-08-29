@@ -64,8 +64,8 @@ export default function App() {
               >
                 <Route index element={<Dashboard />} />
                 <Route path="billing"    element={<BillingPOS />} />
-                <Route path="items"      element={<MenuManagement />} />
-                <Route path="menu"       element={<MenuManagement />} />
+                <Route path="items"      element={<Inventory />} />
+                <Route path="menu"       element={<Inventory />} />
                 <Route path="inventory"  element={<Inventory />} />
                 <Route path="reports"    element={<Reports />} />
                 <Route path="customers"  element={<Customers />} />

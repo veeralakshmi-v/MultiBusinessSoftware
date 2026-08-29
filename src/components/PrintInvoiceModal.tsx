@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Printer, Download, X, Copy, Check, QrCode, Utensils, Receipt, FileText, Building2, Sparkles, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { cn } from '../lib/utils';
+import { formatQuantityWithSubunit } from '../pages/BillingPOS';
 
 export interface OrderPrintData {
   id?: string;
@@ -15,6 +17,9 @@ export interface OrderPrintData {
   deliveryCharge?: number;
   discount?: number;
   total: number;
+  paidAmount?: number;
+  balanceAmount?: number;
+  splitPaidMethod?: string;
   table?: { name: string } | null;
   customer?: { name: string; mobile?: string; gstNumber?: string; address?: string } | null;
   customerNotes?: string | null;
@@ -29,6 +34,7 @@ export interface OrderPrintData {
     notes?: string | null;
     menuItem: {
       name: string;
+      unit?: string | null;
       hsnCode?: string | null;
       gst?: number;
       kitchenSection?: string | null;
@@ -68,12 +74,13 @@ export default function PrintInvoiceModal({
     taxLicenseLabel: "GSTIN",
     termsText: businessProfile.termsText || "Goods once sold will not be taken back without original bill.",
     thankYouNote: businessProfile.thankYouNote || "Thank you for your business! Visit again soon 😊",
-    showQrCode: true,
+    showQrCode: false,
     showLogo: true,
   };
 
   const defaultPaper = (businessProfile.paperSize === 'A4' ? 'A4' : (businessProfile.paperSize === '58MM' ? '58MM' : '80MM')) as '80MM' | '58MM' | 'A4' | 'KOT';
   const [printFormat, setPrintFormat] = useState<'80MM' | '58MM' | 'A4' | 'KOT'>(defaultPaper);
+  const [showQrScanner, setShowQrScanner] = useState<boolean>(false);
   const [copied, setCopied] = useState(false);
 
   const settings = {
@@ -185,6 +192,20 @@ export default function PrintInvoiceModal({
               </button>
             </div>
 
+            {/* QR Scanner Toggle */}
+            <button
+              onClick={() => setShowQrScanner(!showQrScanner)}
+              className={cn(
+                "px-2.5 py-1 rounded-xl text-xs font-bold transition-all border flex items-center gap-1",
+                showQrScanner
+                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                  : "bg-[#1A1A1C] text-gray-400 border-[#2D2D30] hover:text-white"
+              )}
+              title="Toggle QR Code Scanner on Receipt"
+            >
+              <span>{showQrScanner ? '📱 QR Code: ON' : '🚫 QR Code: OFF'}</span>
+            </button>
+
             <button
               onClick={handleCopySummary}
               className="px-3 py-1.5 bg-[#1A1A1C] border border-[#2D2D30] hover:border-gray-500 text-gray-300 hover:text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors"
@@ -277,7 +298,7 @@ export default function PrintInvoiceModal({
                             <div className="text-[8px] text-gray-500 font-mono">S/N: {serial}</div>
                           )}
                         </td>
-                        <td className="py-1 text-center">{item.quantity}</td>
+                        <td className="py-1 text-center font-mono">{formatQuantityWithSubunit(item.quantity, item.menuItem.unit)}</td>
                         <td className="py-1 text-right font-bold">
                           ₹{((item.price - (item.discount || 0)) * item.quantity).toFixed(2)}
                         </td>
@@ -319,10 +340,22 @@ export default function PrintInvoiceModal({
                   <span>GRAND TOTAL:</span>
                   <span>₹{order.total.toFixed(2)}</span>
                 </div>
+                {order.paidAmount !== undefined && order.paidAmount < order.total && (
+                  <>
+                    <div className="flex justify-between font-normal text-[#C5A059] pt-0.5">
+                      <span>Paid Amount ({order.splitPaidMethod || order.paymentMethod}):</span>
+                      <span>₹{order.paidAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-red-600">
+                      <span>Balance Amount Due:</span>
+                      <span>₹{(order.balanceAmount ?? (order.total - order.paidAmount)).toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* UPI QR Code Preview */}
-              {layout.showQrCode && (
+              {/* UPI QR Code Preview - Hidden by default */}
+              {showQrScanner && (
                 <div className="flex flex-col items-center justify-center border-b border-dashed border-gray-400 pb-3 mb-3">
                   <img src={upiQrUrl} alt="UPI QR" className="w-24 h-24" />
                   <span className="text-[9px] text-gray-600 mt-1 font-bold">Scan & Pay ₹{order.total.toFixed(2)}</span>
@@ -436,6 +469,18 @@ export default function PrintInvoiceModal({
                     <span>GRAND TOTAL:</span>
                     <span>₹{order.total.toFixed(2)}</span>
                   </div>
+                  {order.paidAmount !== undefined && order.paidAmount < order.total && (
+                    <>
+                      <div className="flex justify-between text-xs text-[#C5A059] font-bold">
+                        <span>Paid Amount ({order.splitPaidMethod || order.paymentMethod}):</span>
+                        <span>₹{order.paidAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-red-600 font-extrabold">
+                        <span>Balance Amount Due:</span>
+                        <span>₹{(order.balanceAmount ?? (order.total - order.paidAmount)).toFixed(2)}</span>
+                      </div>
+                    </>
+                  )}
                   <div className="text-[10px] text-gray-500 pt-1">Amount in words: <em>{numberToWords(order.total)}</em></div>
                 </div>
               </div>

@@ -36,6 +36,7 @@ export default function Reports() {
   const currency = businessProfile.currencySymbol || '₹';
 
   const [activeTab, setActiveTab] = useState<'SUMMARY' | 'INVOICES' | 'ITEMS' | 'CATEGORIES'>('SUMMARY');
+  const [billTypeFilter, setBillTypeFilter] = useState<'ALL' | 'GST' | 'NON_GST'>('ALL');
   const [dateRangePreset, setDateRangePreset] = useState<string>('THIS_MONTH');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -80,17 +81,28 @@ export default function Reports() {
   // Fetch Orders
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
+    let loaded: Order[] = [];
+
+    try {
+      const savedAll = localStorage.getItem('universal_orders');
+      if (savedAll) {
+        const parsed = JSON.parse(savedAll);
+        if (Array.isArray(parsed) && parsed.length > 0) loaded = parsed;
+      }
+    } catch {}
+
     try {
       const res = await fetch('/api/orders');
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data)) {
-          setOrders(data);
+        if (Array.isArray(data) && data.length > 0) {
+          const ids = new Set(loaded.map(o => o.id));
+          data.forEach(d => { if (!ids.has(d.id)) loaded.push(d); });
         }
       }
     } catch (e) {
-      console.error('Failed to load orders for reports', e);
     } finally {
+      setOrders(loaded);
       setIsLoading(false);
     }
   }, []);
@@ -99,11 +111,17 @@ export default function Reports() {
     fetchOrders();
   }, [fetchOrders]);
 
-  // Filtered Orders according to Date Range and Search Query
+  // Filtered Orders according to Date Range, Bill Type, and Search Query
   const filteredOrders = useMemo(() => {
     return orders.filter(o => {
       const orderDate = (o.createdAt || '').slice(0, 10);
       const matchDate = (!startDate || orderDate >= startDate) && (!endDate || orderDate <= endDate);
+
+      const isGstBill = (o.tax && o.tax > 0) || (o as any).isGst || (o as any).billType === 'GST';
+      const matchBillType =
+        billTypeFilter === 'ALL' ||
+        (billTypeFilter === 'GST' && isGstBill) ||
+        (billTypeFilter === 'NON_GST' && !isGstBill);
 
       const q = searchQuery.toLowerCase().trim();
       const matchSearch =
@@ -113,9 +131,9 @@ export default function Reports() {
         (o.customerMobile && o.customerMobile.includes(q)) ||
         (o.paymentMethod && o.paymentMethod.toLowerCase().includes(q));
 
-      return matchDate && matchSearch;
+      return matchDate && matchBillType && matchSearch;
     });
-  }, [orders, startDate, endDate, searchQuery]);
+  }, [orders, startDate, endDate, searchQuery, billTypeFilter]);
 
   // Summary Metrics
   const summaryMetrics = useMemo(() => {
@@ -123,8 +141,30 @@ export default function Reports() {
     const totalTax = filteredOrders.reduce((sum, o) => sum + (o.tax || 0), 0);
     const totalDiscount = filteredOrders.reduce((sum, o) => sum + (o.discount || 0), 0);
     const totalSubtotal = filteredOrders.reduce((sum, o) => sum + (o.subtotal || o.total), 0);
+
+    const totalPaid = filteredOrders.reduce((sum, o) => {
+      const p = (o as any).paidAmount !== undefined 
+        ? (o as any).paidAmount 
+        : ((o.paymentMethod || '').toUpperCase() === 'CREDIT' ? 0 : (o.total || 0));
+      return sum + p;
+    }, 0);
+
+    const totalPending = filteredOrders.reduce((sum, o) => {
+      const b = (o as any).balanceAmount !== undefined 
+        ? (o as any).balanceAmount 
+        : ((o.paymentMethod || '').toUpperCase() === 'CREDIT' ? (o.total || 0) : 0);
+      return sum + b;
+    }, 0);
+
     const count = filteredOrders.length;
     const avgTicket = count > 0 ? totalGross / count : 0;
+
+    const gstOrders = filteredOrders.filter(o => (o.tax && o.tax > 0) || (o as any).isGst || (o as any).billType === 'GST');
+    const nonGstOrders = filteredOrders.filter(o => (!o.tax || o.tax === 0) && ((o as any).billType === 'NON_GST' || !(o as any).isGst));
+
+    const gstGross = gstOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const gstTax = gstOrders.reduce((sum, o) => sum + (o.tax || 0), 0);
+    const nonGstGross = nonGstOrders.reduce((sum, o) => sum + (o.total || 0), 0);
 
     // Payment breakdown
     const paymentMap: Record<string, { total: number; count: number }> = {
@@ -136,19 +176,40 @@ export default function Reports() {
 
     filteredOrders.forEach(o => {
       const pm = (o.paymentMethod || 'CASH').toUpperCase();
-      if (!paymentMap[pm]) paymentMap[pm] = { total: 0, count: 0 };
-      paymentMap[pm].total += o.total || 0;
-      paymentMap[pm].count += 1;
+      if (pm.startsWith('SPLIT')) {
+        const splitMethod = ((o as any).splitPaidMethod || 'CASH').toUpperCase();
+        const paid = (o as any).paidAmount || 0;
+        const bal = (o as any).balanceAmount || 0;
+
+        if (!paymentMap[splitMethod]) paymentMap[splitMethod] = { total: 0, count: 0 };
+        paymentMap[splitMethod].total += paid;
+        paymentMap[splitMethod].count += 1;
+
+        if (!paymentMap['CREDIT']) paymentMap['CREDIT'] = { total: 0, count: 0 };
+        paymentMap['CREDIT'].total += bal;
+        paymentMap['CREDIT'].count += 1;
+      } else {
+        if (!paymentMap[pm]) paymentMap[pm] = { total: 0, count: 0 };
+        paymentMap[pm].total += o.total || 0;
+        paymentMap[pm].count += 1;
+      }
     });
 
     return {
       totalGross,
+      totalPaid,
+      totalPending,
       totalTax,
       totalDiscount,
       totalSubtotal,
       count,
       avgTicket,
       paymentMap,
+      gstOrdersCount: gstOrders.length,
+      gstGross,
+      gstTax,
+      nonGstOrdersCount: nonGstOrders.length,
+      nonGstGross,
     };
   }, [filteredOrders]);
 
@@ -348,38 +409,63 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-[#131315] border border-[#1F1F21] p-4 rounded-2xl shadow-md">
+      {/* KPI Summary Cards with Separate GST, Non-GST & Pending Due Columns */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-2xl shadow-md">
           <div className="text-[11px] text-gray-400 font-medium">Total Gross Sales</div>
-          <div className="text-2xl font-bold text-white mt-1 font-mono">
+          <div className="text-xl font-bold text-white mt-1 font-mono">
             {currency}{summaryMetrics.totalGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-[10px] text-gray-500 mt-0.5">{summaryMetrics.count} Total Invoices</div>
+          <div className="text-[10px] text-gray-500 mt-0.5">{summaryMetrics.count} Total Bills</div>
         </div>
 
-        <div className="bg-[#131315] border border-[#1F1F21] p-4 rounded-2xl shadow-md">
-          <div className="text-[11px] text-gray-400 font-medium">Tax Collected</div>
-          <div className="text-2xl font-bold text-[#C5A059] mt-1 font-mono">
-            {currency}{summaryMetrics.totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        {/* Amount Paid Collected */}
+        <div className="bg-[#131315] border border-emerald-500/30 p-3.5 rounded-2xl shadow-md">
+          <div className="text-[11px] text-emerald-400 font-medium">Paid Collected</div>
+          <div className="text-xl font-bold text-emerald-400 mt-1 font-mono">
+            {currency}{summaryMetrics.totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </div>
-          <div className="text-[10px] text-gray-500 mt-0.5">GST / VAT amount</div>
+          <div className="text-[10px] text-emerald-500/80 mt-0.5">Net cash / online in hand</div>
         </div>
 
-        <div className="bg-[#131315] border border-[#1F1F21] p-4 rounded-2xl shadow-md">
-          <div className="text-[11px] text-gray-400 font-medium">Total Discounts</div>
-          <div className="text-2xl font-bold text-amber-400 mt-1 font-mono">
-            {currency}{summaryMetrics.totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        {/* Pending Due Sales */}
+        <div className="bg-[#131315] border border-red-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 px-2 py-0.5 bg-red-500/20 text-red-400 text-[9px] font-bold rounded-bl-lg">
+            ⏳ Pending Due
           </div>
-          <div className="text-[10px] text-gray-500 mt-0.5">Bill & item discounts</div>
+          <div className="text-[11px] text-red-400 font-semibold">Outstanding Due</div>
+          <div className="text-xl font-bold text-red-400 mt-1 font-mono">
+            {currency}{summaryMetrics.totalPending.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          </div>
+          <div className="text-[10px] text-red-500/80 mt-0.5">Customer credit balance</div>
         </div>
 
-        <div className="bg-[#131315] border border-[#1F1F21] p-4 rounded-2xl shadow-md">
-          <div className="text-[11px] text-gray-400 font-medium">Avg Ticket Size</div>
-          <div className="text-2xl font-bold text-purple-400 mt-1 font-mono">
-            {currency}{summaryMetrics.avgTicket.toFixed(2)}
+        {/* GST Bills Summary Column */}
+        <div className="bg-[#131315] border border-emerald-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[9px] font-bold rounded-bl-lg">
+            📄 GST Column
           </div>
-          <div className="text-[10px] text-gray-500 mt-0.5">Average spend per bill</div>
+          <div className="text-[11px] text-emerald-400 font-semibold">GST Sales ({summaryMetrics.gstOrdersCount})</div>
+          <div className="text-xl font-bold text-emerald-400 mt-1 font-mono">
+            {currency}{summaryMetrics.gstGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          </div>
+          <div className="text-[10px] text-emerald-500/80 mt-0.5 font-mono">
+            Tax: {currency}{summaryMetrics.gstTax.toFixed(2)}
+          </div>
+        </div>
+
+        {/* Non-GST Bills Summary Column */}
+        <div className="bg-[#131315] border border-amber-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[9px] font-bold rounded-bl-lg">
+            📝 Non-GST Column
+          </div>
+          <div className="text-[11px] text-amber-400 font-semibold">Non-GST ({summaryMetrics.nonGstOrdersCount})</div>
+          <div className="text-xl font-bold text-amber-400 mt-1 font-mono">
+            {currency}{summaryMetrics.nonGstGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          </div>
+          <div className="text-[10px] text-amber-500/80 mt-0.5 font-mono">
+            Tax Exempt (0% GST)
+          </div>
         </div>
       </div>
 
@@ -459,11 +545,47 @@ export default function Reports() {
         </div>
       )}
 
-      {/* TAB 2: DETAILED INVOICES LEDGER */}
+      {/* TAB 2: DETAILED INVOICES LEDGER WITH GST vs NON-GST COLUMNS */}
       {activeTab === 'INVOICES' && (
-        <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl overflow-hidden shadow-xl">
-          <div className="p-4 border-b border-[#1F1F21] flex items-center justify-between">
-            <span className="font-bold text-white text-xs">All Bills & Invoices ({filteredOrders.length})</span>
+        <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl overflow-hidden shadow-xl space-y-3">
+          <div className="p-4 border-b border-[#1F1F21] flex flex-wrap items-center justify-between gap-3">
+            {/* GST vs Non-GST Column Filter */}
+            <div className="flex items-center gap-1.5 bg-[#161618] p-1 rounded-xl border border-[#262629]">
+              <button
+                onClick={() => setBillTypeFilter('ALL')}
+                className={cn(
+                  "px-3 py-1 text-xs font-bold rounded-lg transition-all",
+                  billTypeFilter === 'ALL'
+                    ? "bg-[#C5A059] text-[#0A0A0B] shadow"
+                    : "text-gray-400 hover:text-white"
+                )}
+              >
+                All Bills ({orders.length})
+              </button>
+              <button
+                onClick={() => setBillTypeFilter('GST')}
+                className={cn(
+                  "px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1",
+                  billTypeFilter === 'GST'
+                    ? "bg-emerald-500 text-black shadow font-extrabold"
+                    : "text-emerald-400 hover:text-emerald-300"
+                )}
+              >
+                📄 GST Bills ({summaryMetrics.gstOrdersCount})
+              </button>
+              <button
+                onClick={() => setBillTypeFilter('NON_GST')}
+                className={cn(
+                  "px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1",
+                  billTypeFilter === 'NON_GST'
+                    ? "bg-amber-500 text-black shadow font-extrabold"
+                    : "text-amber-400 hover:text-amber-300"
+                )}
+              >
+                📝 Non-GST Bills ({summaryMetrics.nonGstOrdersCount})
+              </button>
+            </div>
+
             <div className="relative w-64">
               <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -476,60 +598,95 @@ export default function Reports() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left text-xs min-w-[900px]">
               <thead className="bg-[#161618] text-gray-400 font-bold uppercase text-[10px] border-b border-[#1F1F21]">
                 <tr>
-                  <th className="p-3.5">Invoice No</th>
-                  <th className="p-3.5">Date & Time</th>
-                  <th className="p-3.5">Customer</th>
-                  <th className="p-3.5">Payment</th>
-                  <th className="p-3.5 text-right">Subtotal</th>
-                  <th className="p-3.5 text-right">Tax</th>
-                  <th className="p-3.5 text-right">Discount</th>
-                  <th className="p-3.5 text-right">Grand Total</th>
-                  <th className="p-3.5 text-right">Action</th>
+                  <th className="p-3.5 whitespace-nowrap">Bill Type</th>
+                  <th className="p-3.5 whitespace-nowrap">Invoice No</th>
+                  <th className="p-3.5 whitespace-nowrap">Date & Time</th>
+                  <th className="p-3.5 whitespace-nowrap">Customer</th>
+                  <th className="p-3.5 whitespace-nowrap">Payment</th>
+                  <th className="p-3.5 whitespace-nowrap text-right">Subtotal</th>
+                  <th className="p-3.5 whitespace-nowrap text-right">GST / Tax</th>
+                  <th className="p-3.5 whitespace-nowrap text-right">Discount</th>
+                  <th className="p-3.5 whitespace-nowrap text-right">Grand Total</th>
+                  <th className="p-3.5 whitespace-nowrap text-right">Paid</th>
+                  <th className="p-3.5 whitespace-nowrap text-right">Pending Due</th>
+                  <th className="p-3.5 whitespace-nowrap text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1F1F21]">
-                {filteredOrders.map(order => (
-                  <tr key={order.id} className="hover:bg-[#18181A] transition-colors">
-                    <td className="p-3.5 font-mono font-bold text-white">{order.orderNumber}</td>
-                    <td className="p-3.5 text-gray-400 font-mono">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : '—'}
-                    </td>
-                    <td className="p-3.5">
-                      <div className="font-bold text-white">{order.customerName || 'Walk-in Customer'}</div>
-                      {order.customerMobile && <div className="text-[10px] text-gray-500 font-mono">{order.customerMobile}</div>}
-                    </td>
-                    <td className="p-3.5">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-[#1A1A1C] border border-[#2D2D30] text-gray-300">
-                        {order.paymentMethod || 'CASH'}
-                      </span>
-                    </td>
-                    <td className="p-3.5 text-right font-mono text-gray-400">
-                      {currency}{(order.subtotal || order.total).toFixed(2)}
-                    </td>
-                    <td className="p-3.5 text-right font-mono text-gray-400">
-                      {currency}{(order.tax || 0).toFixed(2)}
-                    </td>
-                    <td className="p-3.5 text-right font-mono text-amber-400">
-                      -{currency}{(order.discount || 0).toFixed(2)}
-                    </td>
-                    <td className="p-3.5 text-right font-mono font-bold text-white text-sm">
-                      {currency}{order.total.toFixed(2)}
-                    </td>
-                    <td className="p-3.5 text-right">
-                      <button
-                        onClick={() => handlePrintOrder(order)}
-                        className="px-2.5 py-1 bg-[#1A1A1C] hover:bg-[#252528] text-[#C5A059] border border-[#2D2D30] rounded-lg text-[10px] font-bold inline-flex items-center gap-1"
-                      >
-                        <Printer className="w-3 h-3" />
-                        <span>Print</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredOrders.map(order => {
+                  const isGst = (order.tax && order.tax > 0) || (order as any).isGst || (order as any).billType === 'GST';
+                  const paidVal = (order as any).paidAmount !== undefined 
+                    ? (order as any).paidAmount 
+                    : ((order.paymentMethod || '').toUpperCase() === 'CREDIT' ? 0 : order.total);
+                  const pendingVal = (order as any).balanceAmount !== undefined 
+                    ? (order as any).balanceAmount 
+                    : ((order.paymentMethod || '').toUpperCase() === 'CREDIT' ? order.total : 0);
+
+                  return (
+                    <tr key={order.id} className="hover:bg-[#18181A] transition-colors">
+                      <td className="p-3.5 whitespace-nowrap">
+                        <span className={cn(
+                          "px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase border whitespace-nowrap",
+                          isGst
+                            ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                            : "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                        )}>
+                          {isGst ? '📄 GST' : '📝 Non-GST'}
+                        </span>
+                      </td>
+                      <td className="p-3.5 font-mono font-bold text-white whitespace-nowrap">{order.orderNumber}</td>
+                      <td className="p-3.5 text-gray-400 font-mono whitespace-nowrap">
+                        {order.createdAt ? new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : '—'}
+                      </td>
+                      <td className="p-3.5 whitespace-nowrap">
+                        <div className="font-bold text-white">{order.customerName || 'Walk-in Customer'}</div>
+                        {order.customerMobile && <div className="text-[10px] text-gray-500 font-mono">{order.customerMobile}</div>}
+                      </td>
+                      <td className="p-3.5 whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 whitespace-nowrap inline-block">
+                          {order.paymentMethod || 'CASH'}
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-right font-mono text-gray-400 whitespace-nowrap">
+                        {currency}{(order.subtotal || order.total).toFixed(2)}
+                      </td>
+                      <td className={cn("p-3.5 text-right font-mono font-bold whitespace-nowrap", isGst ? "text-emerald-400" : "text-gray-600 line-through")}>
+                        {currency}{(order.tax || 0).toFixed(2)}
+                      </td>
+                      <td className="p-3.5 text-right font-mono text-amber-400 whitespace-nowrap">
+                        -{currency}{(order.discount || 0).toFixed(2)}
+                      </td>
+                      <td className="p-3.5 text-right font-mono font-bold text-white text-sm whitespace-nowrap">
+                        {currency}{order.total.toFixed(2)}
+                      </td>
+                      <td className="p-3.5 text-right font-mono font-bold text-emerald-400 text-xs whitespace-nowrap">
+                        {currency}{paidVal.toFixed(2)}
+                      </td>
+                      <td className="p-3.5 text-right font-mono font-bold text-xs whitespace-nowrap">
+                        {pendingVal > 0 ? (
+                          <span className="text-red-400 font-extrabold px-1.5 py-0.5 rounded bg-red-500/10 border border-red-500/20 whitespace-nowrap">
+                            {currency}{pendingVal.toFixed(2)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-500 font-normal whitespace-nowrap">₹0.00</span>
+                        )}
+                      </td>
+                      <td className="p-3.5 text-right">
+                        <button
+                          onClick={() => handlePrintOrder(order)}
+                          className="px-2.5 py-1 bg-[#1A1A1C] hover:bg-[#252528] text-[#C5A059] border border-[#2D2D30] rounded-lg text-[10px] font-bold inline-flex items-center gap-1"
+                        >
+                          <Printer className="w-3 h-3" />
+                          <span>Print</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
 

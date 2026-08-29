@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Search, Gift, Clock, Heart, Plus, Edit2, MessageSquare, Phone } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -9,7 +9,36 @@ export default function Customers() {
   const [showForm, setShowForm] = useState(false);
 
   const fetchCustomers = () => {
-    fetch(`/api/customers?search=${search}`).then(r => r.json()).then(setCustomers);
+    let list: any[] = [];
+    try {
+      const saved = localStorage.getItem('universal_customers');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) list = parsed;
+      }
+    } catch {}
+
+    fetch(`/api/customers?search=${search}`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const ids = new Set(list.map(l => l.id));
+          data.forEach((d: any) => { if (!ids.has(d.id)) list.push(d); });
+          localStorage.setItem('universal_customers', JSON.stringify(list));
+        }
+        const q = search.toLowerCase().trim();
+        const filtered = q
+          ? list.filter(c => c.name?.toLowerCase().includes(q) || c.mobile?.includes(q))
+          : list;
+        setCustomers(filtered);
+      })
+      .catch(() => {
+        const q = search.toLowerCase().trim();
+        const filtered = q
+          ? list.filter(c => c.name?.toLowerCase().includes(q) || c.mobile?.includes(q))
+          : list;
+        setCustomers(filtered);
+      });
   };
 
   useEffect(() => {
@@ -48,19 +77,29 @@ export default function Customers() {
             </div>
           </div>
           <div className="overflow-y-auto p-2 space-y-1">
-            {customers.map(c => (
-              <button
-                key={c.id}
-                onClick={() => fetchCustomerDetails(c.id)}
-                className={cn(
-                  "w-full text-left p-3 rounded-lg transition-all",
-                  selectedCustomer?.id === c.id ? "bg-[#C5A059]/10 text-[#C5A059]" : "text-gray-300 hover:bg-[#1A1A1C]"
-                )}
-              >
-                <div className="font-bold">{c.name}</div>
-                <div className="text-sm opacity-70">{c.mobile}</div>
-              </button>
-            ))}
+            {customers.map(c => {
+              const cBalance = c.pendingBalance !== undefined ? c.pendingBalance : 0;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => fetchCustomerDetails(c.id)}
+                  className={cn(
+                    "w-full text-left p-3 rounded-lg transition-all flex items-center justify-between",
+                    selectedCustomer?.id === c.id ? "bg-[#C5A059]/10 text-[#C5A059]" : "text-gray-300 hover:bg-[#1A1A1C]"
+                  )}
+                >
+                  <div>
+                    <div className="font-bold">{c.name}</div>
+                    <div className="text-xs opacity-70 font-mono">{c.mobile}</div>
+                  </div>
+                  {cBalance > 0 && (
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-red-500/20 text-red-400 border border-red-500/30">
+                      Due: ₹{cBalance.toFixed(2)}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -86,6 +125,77 @@ export default function Customers() {
 
 function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => void }) {
   const [notifyMsg, setNotifyMsg] = useState('');
+  const [isSettleModalOpen, setIsSettleModalOpen] = useState(false);
+  const [settleAmount, setSettleAmount] = useState<string>('');
+  const [settleMethod, setSettleMethod] = useState<'CASH' | 'UPI' | 'CARD'>('CASH');
+
+  // Customer Orders live lookup
+  const customerOrders = useMemo(() => {
+    let loaded: any[] = [];
+    try {
+      const saved = localStorage.getItem('universal_orders');
+      if (saved) loaded = JSON.parse(saved);
+      const savedGst = localStorage.getItem('universal_gst_bills');
+      if (savedGst) {
+        const parsed = JSON.parse(savedGst);
+        const ids = new Set(loaded.map(o => o.id));
+        parsed.forEach((o: any) => { if (!ids.has(o.id)) loaded.push(o); });
+      }
+      const savedNonGst = localStorage.getItem('universal_nongst_bills');
+      if (savedNonGst) {
+        const parsed = JSON.parse(savedNonGst);
+        const ids = new Set(loaded.map(o => o.id));
+        parsed.forEach((o: any) => { if (!ids.has(o.id)) loaded.push(o); });
+      }
+    } catch {}
+
+    const filtered = loaded.filter((o: any) => {
+      if (o.customerId && o.customerId === customer.id) return true;
+      if (o.customerMobile && customer.mobile && o.customerMobile === customer.mobile) return true;
+      if (o.customerName && customer.name && o.customerName.toLowerCase() === customer.name.toLowerCase()) return true;
+      return false;
+    });
+
+    if (filtered.length > 0) return filtered;
+    return customer.orders || [];
+  }, [customer]);
+
+  // Compute Total Pending Balance
+  const totalPendingBalance = useMemo(() => {
+    if (customer.pendingBalance !== undefined && customer.pendingBalance > 0) {
+      return customer.pendingBalance;
+    }
+    return customerOrders.reduce((sum: number, o: any) => {
+      const bal = o.balanceAmount !== undefined ? o.balanceAmount : ((o.paymentMethod || '').toUpperCase() === 'CREDIT' ? o.total : 0);
+      return sum + bal;
+    }, 0);
+  }, [customer, customerOrders]);
+
+  const handleConfirmSettle = (e: React.FormEvent) => {
+    e.preventDefault();
+    const paidVal = parseFloat(settleAmount) || 0;
+    if (paidVal <= 0) return;
+
+    const newBal = Math.max(0, totalPendingBalance - paidVal);
+
+    try {
+      const saved = localStorage.getItem('universal_customers');
+      let list: any[] = [];
+      if (saved) list = JSON.parse(saved);
+      const updated = list.map((c: any) => {
+        if (c.id === customer.id || c.mobile === customer.mobile) {
+          return { ...c, pendingBalance: newBal };
+        }
+        return c;
+      });
+      localStorage.setItem('universal_customers', JSON.stringify(updated));
+    } catch {}
+
+    window.dispatchEvent(new Event('storage'));
+    setIsSettleModalOpen(false);
+    setSettleAmount('');
+    refresh();
+  };
 
   const sendNotification = async (channel: string) => {
     if(!notifyMsg) return;
@@ -99,7 +209,8 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
 
   return (
     <div className="space-y-6">
-      <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl flex justify-between items-start">
+      {/* Profile & Credit Due Header */}
+      <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl flex flex-wrap justify-between items-start gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white">{customer.name}</h2>
           <div className="text-gray-400 mt-1 space-y-1 text-sm">
@@ -110,35 +221,83 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
             {customer.anniversary && <div>💍 Anniversary: {new Date(customer.anniversary).toLocaleDateString()}</div>}
           </div>
         </div>
-        <div className="text-center bg-[#1A1A1C] border border-[#2D2D30] p-4 rounded-xl">
-          <Gift className="w-8 h-8 text-[#C5A059] mx-auto mb-2" />
-          <div className="text-2xl font-bold text-white">{customer.loyaltyPoints}</div>
-          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Points</div>
+
+        <div className="flex items-center gap-3">
+          {/* Outstanding Pending Balance Card */}
+          <div className={cn(
+            "text-center border p-4 rounded-xl shadow-lg transition-all",
+            totalPendingBalance > 0 
+              ? "bg-red-500/10 border-red-500/30 text-red-400" 
+              : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+          )}>
+            <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">Pending Credit Due</div>
+            <div className="text-2xl font-black font-mono mt-1">₹{totalPendingBalance.toFixed(2)}</div>
+            {totalPendingBalance > 0 && (
+              <button
+                onClick={() => {
+                  setSettleAmount(totalPendingBalance.toFixed(2));
+                  setIsSettleModalOpen(true);
+                }}
+                className="mt-2 px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600 shadow transition-all"
+              >
+                💳 Clear / Settle Due
+              </button>
+            )}
+          </div>
+
+          {/* Loyalty Points */}
+          <div className="text-center bg-[#1A1A1C] border border-[#2D2D30] p-4 rounded-xl min-w-[100px]">
+            <Gift className="w-6 h-6 text-[#C5A059] mx-auto mb-1" />
+            <div className="text-xl font-bold text-white">{customer.loyaltyPoints || 0}</div>
+            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Points</div>
+          </div>
         </div>
       </div>
 
+      {/* Orders & Favorites */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
-          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Clock className="w-5 h-5 text-blue-500"/> Order History</h3>
-          <div className="space-y-3 max-h-60 overflow-y-auto">
-            {customer.orders?.length === 0 && <div className="text-gray-500 text-sm">No past orders.</div>}
-            {customer.orders?.map((o: any) => (
-              <div key={o.id} className="bg-[#0A0A0B] p-3 rounded-lg border border-[#2D2D30]">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-white">{o.orderNumber}</span>
-                  <span className="text-sm font-bold text-[#C5A059]">₹{o.total.toFixed(2)}</span>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-blue-500"/> Order History ({customerOrders.length})</span>
+          </h3>
+          <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+            {customerOrders.length === 0 && <div className="text-gray-500 text-sm">No past orders found.</div>}
+            {customerOrders.map((o: any) => {
+              const paid = o.paidAmount !== undefined ? o.paidAmount : ((o.paymentMethod || '').toUpperCase() === 'CREDIT' ? 0 : o.total);
+              const pending = o.balanceAmount !== undefined ? o.balanceAmount : ((o.paymentMethod || '').toUpperCase() === 'CREDIT' ? o.total : 0);
+
+              return (
+                <div key={o.id} className="bg-[#0A0A0B] p-3.5 rounded-xl border border-[#2D2D30] space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-white text-xs">{o.orderNumber || 'INV-LOCAL'}</span>
+                    <span className="text-xs font-bold text-[#C5A059] font-mono">Bill Total: ₹{o.total?.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px] font-mono border-t border-[#1F1F21] pt-1.5">
+                    <span className="text-emerald-400 font-bold">Paid: ₹{paid.toFixed(2)}</span>
+                    {pending > 0 ? (
+                      <span className="text-red-400 font-extrabold bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded">
+                        Pending Due: ₹{pending.toFixed(2)}
+                      </span>
+                    ) : (
+                      <span className="text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                        Full Paid
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-gray-500 flex justify-between pt-0.5">
+                    <span>{o.createdAt ? new Date(o.createdAt).toLocaleDateString() : 'Today'}</span>
+                    <span className="font-mono">{o.paymentMethod || 'CASH'}</span>
+                  </div>
                 </div>
-                <div className="text-xs text-gray-500">{new Date(o.createdAt).toLocaleDateString()}</div>
-                <div className="text-xs text-gray-400 mt-1 line-clamp-1">{o.items?.map((i: any) => i.menuItem?.name).join(', ')}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Heart className="w-5 h-5 text-red-500"/> Favorite Orders</h3>
           <div className="flex flex-wrap gap-2">
-            {customer.favoriteItems?.length === 0 && <div className="text-gray-500 text-sm">No favorites yet.</div>}
+            {(!customer.favoriteItems || customer.favoriteItems.length === 0) && <div className="text-gray-500 text-sm">No favorites recorded yet.</div>}
             {customer.favoriteItems?.map((f: any) => (
               <span key={f.id} className="bg-[#0A0A0B] border border-[#2D2D30] text-gray-300 px-3 py-1.5 rounded-full text-sm font-bold">
                 {f.name}
@@ -147,6 +306,67 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
           </div>
         </div>
       </div>
+
+      {/* Settle Due Modal */}
+      {isSettleModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#131315] border border-[#2D2D30] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              💳 Settle Due Balance for {customer.name}
+            </h3>
+            <p className="text-xs text-gray-400">Record payment received to reduce customer's pending credit balance.</p>
+
+            <form onSubmit={handleConfirmSettle} className="space-y-4">
+              <div className="bg-[#0A0A0B] p-3 rounded-xl border border-[#2D2D30] flex justify-between items-center text-xs">
+                <span className="text-gray-400">Total Pending Due:</span>
+                <span className="font-mono font-bold text-red-400 text-sm">₹{totalPendingBalance.toFixed(2)}</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-300 mb-1">Amount Paid Now (₹) *</label>
+                <input
+                  type="number"
+                  step="any"
+                  required
+                  max={totalPendingBalance}
+                  value={settleAmount}
+                  onChange={e => setSettleAmount(e.target.value)}
+                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-sm text-white font-mono font-bold outline-none focus:border-[#C5A059]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-300 mb-1">Payment Method</label>
+                <select
+                  value={settleMethod}
+                  onChange={e => setSettleMethod(e.target.value as any)}
+                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-[#C5A059]"
+                >
+                  <option value="CASH">💵 Cash</option>
+                  <option value="UPI">📲 UPI / QR</option>
+                  <option value="CARD">💳 Card</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSettleModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-emerald-500 text-black font-bold text-xs rounded-xl hover:bg-emerald-400"
+                >
+                  Confirm & Clear Due
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
         <h3 className="text-lg font-bold text-white mb-4">Quick Engage</h3>
@@ -175,10 +395,36 @@ function CustomerFormModal({ onClose, onSave }: { onClose: () => void, onSave: (
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    await fetch('/api/customers', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(form)
-    });
+    if (!form.name.trim() || !form.mobile.trim()) return;
+
+    const newCust = {
+      id: `cust-${Date.now()}`,
+      name: form.name.trim(),
+      mobile: form.mobile.trim(),
+      address: form.address.trim() || undefined,
+      gstNumber: form.gstNumber.trim() || undefined,
+      birthday: form.birthday || undefined,
+      anniversary: form.anniversary || undefined,
+      pendingBalance: 0,
+      loyaltyPoints: 0,
+    };
+
+    try {
+      const saved = localStorage.getItem('universal_customers');
+      let list: any[] = [];
+      if (saved) list = JSON.parse(saved);
+      const updated = [newCust, ...list.filter(c => c.id !== newCust.id && c.mobile !== newCust.mobile)];
+      localStorage.setItem('universal_customers', JSON.stringify(updated));
+    } catch {}
+
+    window.dispatchEvent(new Event('storage'));
+
+    try {
+      await fetch('/api/customers', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(newCust)
+      });
+    } catch {}
     onSave();
   };
 

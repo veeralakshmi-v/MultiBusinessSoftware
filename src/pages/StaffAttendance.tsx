@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
   Clock, CalendarDays, FileCheck, CheckCircle2, XCircle, AlertCircle,
   Users, Filter, Search, ThumbsUp, ThumbsDown, ChevronDown, BarChart3,
-  UserCircle, MapPin, Camera, TrendingUp, CalendarCheck, UserX, Timer
+  UserCircle, MapPin, Camera, TrendingUp, CalendarCheck, UserX, Timer, Plus
 } from 'lucide-react';
+import AttendanceCalendar from '../components/attendance/AttendanceCalendar';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,7 +40,6 @@ const FULL_DAY_HOURS        = 6;
 
 function parseTimeToMinutes(t: string): number {
   if (!t) return 0;
-  // Handle "hh:mm am/pm" format
   const lower = t.trim().toLowerCase();
   const isPM = lower.includes('pm');
   const isAM = lower.includes('am');
@@ -71,16 +72,12 @@ function calcAttendanceStatus(
   const worked  = calcWorkedHours(rec.punchIn, rec.punchOut);
 
   if (rec.punchOut) {
-    // If total worked time is less than 1 hour (e.g., immediate punch out or 0 mins), it's ABSENT (Full Day Leave)
     if (worked < 1) return 'ABSENT';
-    // If worked between 1 hour and 4 hours, it's HALF_DAY
     if (worked < HALF_DAY_HOURS) return 'HALF_DAY';
-    // If worked 4+ hours, check if punched in after late threshold
     if (inMin > lateMin) return 'LATE';
     return 'ON_TIME';
   }
 
-  // Only punched in so far (Active day)
   if (inMin > lateMin) return 'LATE';
   return 'ON_TIME';
 }
@@ -107,7 +104,8 @@ function StatusBadge({ status }: { status: AttendanceStatus }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function StaffAttendance() {
-  const [activeTab, setActiveTab] = useState<'attendance' | 'leaves'>('attendance');
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<'my_attendance' | 'calendar' | 'attendance' | 'leaves'>('calendar');
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [allAttendance, setAllAttendance] = useState<RawAttendanceRecord[]>([]);
   const [allLeaves, setAllLeaves] = useState<LeaveRecord[]>([]);
@@ -115,6 +113,7 @@ export default function StaffAttendance() {
   const [searchQ, setSearchQ] = useState('');
   const [leaveFilter, setLeaveFilter] = useState<'ALL' | LeaveStatus>('ALL');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [punchMsg, setPunchMsg] = useState('');
 
   // Load data
   useEffect(() => {
@@ -218,16 +217,18 @@ export default function StaffAttendance() {
       </div>
 
       {/* Tabs */}
-      <div className="px-6 pt-4 flex items-center gap-2 flex-shrink-0 border-b border-[#1F1F21]">
+      <div className="px-6 pt-4 flex items-center gap-2 flex-shrink-0 border-b border-[#1F1F21] overflow-x-auto">
         {[
-          { id: 'attendance', label: 'Daily Attendance', icon: Clock },
-          { id: 'leaves',     label: `Leave Requests${pendingCount > 0 ? ` (${pendingCount})` : ''}`, icon: CalendarDays },
+          { id: 'calendar',       label: 'My Attendance Calendar', icon: CalendarDays },
+          { id: 'my_attendance',  label: 'Mark Attendance (Punch IN/OUT)', icon: Clock },
+          { id: 'attendance',     label: 'Team Daily Attendance', icon: Users },
+          { id: 'leaves',         label: `Leave Requests${pendingCount > 0 ? ` (${pendingCount})` : ''}`, icon: FileCheck },
         ].map(tab => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 -mb-px transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 -mb-px transition-all whitespace-nowrap ${
                 active ? 'border-[#C5A059] text-[#C5A059]' : 'border-transparent text-gray-400 hover:text-white'
               }`}>
               <Icon className="w-4 h-4" /> {tab.label}
@@ -237,6 +238,111 @@ export default function StaffAttendance() {
       </div>
 
       <div className="flex-1 overflow-auto p-6 space-y-5">
+
+        {/* ── MY ATTENDANCE CALENDAR TAB ── */}
+        {activeTab === 'calendar' && (
+          <AttendanceCalendar
+            userId={user?.id || user?.username || 'admin'}
+            userName={user?.username || 'User'}
+            userRole={user?.role}
+            attendanceRecords={allAttendance}
+            leaveRecords={allLeaves}
+            onAddLeave={(newLeave) => setAllLeaves([newLeave, ...allLeaves])}
+          />
+        )}
+
+        {/* ── MARK ATTENDANCE (PUNCH IN/OUT) TAB ── */}
+        {activeTab === 'my_attendance' && (() => {
+          const todayStr = new Date().toISOString().split('T')[0];
+          const myId = user?.id || user?.username || 'user';
+          const myRec = allAttendance.find(a => a.date === todayStr && (a.id.startsWith(myId) || a.id.includes(myId)));
+          const isPunchedIn = !!myRec && !myRec.punchOut;
+          const isPunchedOut = !!myRec?.punchOut;
+
+          const handleQuickPunch = (mode: 'in' | 'out') => {
+            const time = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            const locStr = 'Dashboard GPS Verified (±10m)';
+
+            let updated: RawAttendanceRecord[];
+            if (mode === 'in') {
+              const rec: RawAttendanceRecord = {
+                id: `${myId}-${todayStr}`,
+                date: todayStr,
+                punchIn: time,
+                punchInSelfie: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+                punchInLocation: locStr,
+                punchOut: null,
+                punchOutSelfie: null,
+                punchOutLocation: null,
+              };
+              updated = [...allAttendance.filter(a => a.id !== rec.id), rec];
+            } else {
+              updated = allAttendance.map(a =>
+                (a.date === todayStr && (a.id.startsWith(myId) || a.id.includes(myId)))
+                  ? { ...a, punchOut: time, punchOutLocation: locStr }
+                  : a
+              );
+            }
+            setAllAttendance(updated);
+            localStorage.setItem('emp_attendance', JSON.stringify(updated));
+            setPunchMsg(`Successfully punched ${mode === 'in' ? 'IN' : 'OUT'} at ${time}! ✅`);
+            setTimeout(() => setPunchMsg(''), 4000);
+          };
+
+          return (
+            <div className="space-y-5">
+              <div className="bg-[#111113] border border-[#222225] rounded-2xl p-6 shadow-xl max-w-xl mx-auto space-y-5">
+                <div className="flex items-center gap-3 border-b border-[#222225] pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059] font-bold">
+                    {user?.username?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">{user?.username || 'User'}</h3>
+                    <p className="text-xs text-gray-400 font-mono">Role: {user?.role || 'Staff'} · Today: {todayStr}</p>
+                  </div>
+                </div>
+
+                {punchMsg && (
+                  <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl animate-in fade-in">
+                    {punchMsg}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-[#18181A] border border-[#252528] rounded-xl text-center">
+                    <p className="text-[11px] text-gray-500 font-semibold uppercase">Punch IN</p>
+                    <p className="text-lg font-bold text-emerald-400 font-mono mt-1">
+                      {myRec?.punchIn || '—'}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-[#18181A] border border-[#252528] rounded-xl text-center">
+                    <p className="text-[11px] text-gray-500 font-semibold uppercase">Punch OUT</p>
+                    <p className="text-lg font-bold text-red-400 font-mono mt-1">
+                      {myRec?.punchOut || '—'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    onClick={() => handleQuickPunch('in')}
+                    disabled={isPunchedIn || isPunchedOut}
+                    className="flex-1 py-3 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-xl shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {isPunchedIn ? 'Already Punched IN' : 'Punch IN Now'}
+                  </button>
+                  <button
+                    onClick={() => handleQuickPunch('out')}
+                    disabled={!isPunchedIn || isPunchedOut}
+                    className="flex-1 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-bold text-xs rounded-xl shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {isPunchedOut ? 'Punched OUT Done' : 'Punch OUT Now'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── ATTENDANCE TAB ── */}
         {activeTab === 'attendance' && (

@@ -4,7 +4,7 @@ import { ModuleId, EnabledModulesState, UserRole } from '../types/module';
 import { TemplateResolver } from '../lib/templates/templateResolver';
 import { ModuleEngine } from '../lib/modules/moduleEngine';
 
-export type Role = 'ADMIN' | 'MANAGER' | 'CASHIER' | 'KITCHEN_STAFF' | 'STAFF';
+export type Role = 'ADMIN' | 'MANAGER' | 'CASHIER' | 'STAFF' | string;
 
 export interface User {
   id: string;
@@ -12,6 +12,7 @@ export interface User {
   role: Role;
   businessId?: string;
   businessType?: BusinessType;
+  applicationAccess?: string;
 }
 
 export interface LandingSlide {

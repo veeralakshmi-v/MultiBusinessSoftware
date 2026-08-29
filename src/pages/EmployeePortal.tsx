@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   Clock, CalendarDays, FileCheck, LogOut, UserCircle, CheckCircle2,
   XCircle, AlertCircle, MapPin, ChevronDown, Plus, Loader2,
-  Camera, Navigation, RefreshCw, X, ShieldCheck
+  Camera, Navigation, RefreshCw, X, ShieldCheck, Receipt,
+  LayoutDashboard, Boxes, BarChart3, Users as UsersIcon, Settings as SettingsIcon, Layers
 } from 'lucide-react';
+import { ThemeEngine } from '../lib/theme/themeEngine';
+import AttendanceCalendar from '../components/attendance/AttendanceCalendar';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
 
 interface EmployeeSession {
   id: string; name: string; username: string;
   role: string; phone: string; email: string;
+  applicationAccess?: string;
 }
 
 interface LocationData {
@@ -242,8 +248,9 @@ function PunchModal({ mode, onConfirm, onClose }: PunchModalProps) {
 
 export default function EmployeePortal() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [session, setSession] = useState<EmployeeSession | null>(null);
-  const [activeTab, setActiveTab] = useState<'attendance' | 'apply' | 'history'>('attendance');
+  const [activeTab, setActiveTab] = useState<'attendance' | 'calendar' | 'apply' | 'history'>('attendance');
   const [showPunchModal, setShowPunchModal] = useState(false);
   const [punchMode, setPunchMode] = useState<'in' | 'out'>('in');
   const [punchSuccess, setPunchSuccess] = useState('');
@@ -262,10 +269,54 @@ export default function EmployeePortal() {
   const [leaveSuccess, setLeaveSuccess] = useState(false);
 
   useEffect(() => {
+    const applyCurrentTheme = () => {
+      ThemeEngine.applyTheme(ThemeEngine.getThemeConfig());
+    };
+    applyCurrentTheme();
+    window.addEventListener('theme_changed', applyCurrentTheme);
+    window.addEventListener('storage', applyCurrentTheme);
+
     const raw = localStorage.getItem('employee_session');
     if (!raw) { navigate('/employee-login'); return; }
     try { setSession(JSON.parse(raw)); } catch { navigate('/employee-login'); }
+
+    return () => {
+      window.removeEventListener('theme_changed', applyCurrentTheme);
+      window.removeEventListener('storage', applyCurrentTheme);
+    };
   }, []);
+
+  const rawAccess = session?.applicationAccess || '';
+  const isFullAccess = !rawAccess || rawAccess.includes('Full Access') || rawAccess.includes('ALL_MODULES');
+  const allowedList = isFullAccess
+    ? ['Dashboard', 'Billing POS', 'Categories & Items', 'Inventory', 'Sales Reports', 'Employee Details', 'Staff Attendance', 'Customers', 'Settings']
+    : rawAccess.split(',').map(s => s.trim());
+
+  const hasPosAccess = allowedList.includes('Billing POS');
+
+  const MODULE_ROUTES: { name: string; href: string; icon: any }[] = [
+    { name: 'Billing POS', href: '/dashboard/billing', icon: Receipt },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Categories & Items', href: '/dashboard/items', icon: Layers },
+    { name: 'Inventory', href: '/dashboard/inventory', icon: Boxes },
+    { name: 'Sales Reports', href: '/dashboard/reports', icon: BarChart3 },
+    { name: 'Customers', href: '/dashboard/customers', icon: UsersIcon },
+    { name: 'Employee Details', href: '/dashboard/employees', icon: UsersIcon },
+    { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon },
+  ];
+
+  const allowedAppModules = MODULE_ROUTES.filter(m => allowedList.includes(m.name));
+
+  const handleNavigateModule = (path: string) => {
+    if (!session) return;
+    login('demo-live-token-' + session.id, {
+      id: session.id,
+      username: session.username || session.phone,
+      role: session.role,
+      applicationAccess: session.applicationAccess || 'Full Access (All Modules & POS)',
+    });
+    navigate(path);
+  };
 
   const today = new Date().toISOString().split('T')[0];
   const now = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
@@ -373,8 +424,7 @@ export default function EmployeePortal() {
   const myLeaves = leaves.filter(l => !l.employeeId || l.employeeId === session.id || l.employeeName === session.name);
 
   return (
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden w-full bg-[#080809] text-white font-sans flex flex-col relative">
-      <div className="fixed top-0 right-0 w-[500px] h-[500px] rounded-full bg-cyan-500/6 blur-[140px] pointer-events-none translate-x-1/3 -translate-y-1/4" />
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden w-full bg-theme-primary text-theme-primary font-sans flex flex-col relative">
 
       {/* Punch Modal */}
       {showPunchModal && (
@@ -382,23 +432,33 @@ export default function EmployeePortal() {
       )}
 
       {/* Header */}
-      <header className="flex-shrink-0 px-5 md:px-8 py-3.5 flex items-center justify-between border-b border-white/[0.06] bg-black/30 backdrop-blur-2xl z-30 relative">
+      <header className="flex-shrink-0 px-5 md:px-8 py-3.5 flex items-center justify-between border-b border-theme-secondary/20 bg-theme-surface backdrop-blur-2xl z-30 relative">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/25 flex items-center justify-center">
-            <UserCircle className="w-5 h-5 text-cyan-400" />
+          <div className="w-9 h-9 rounded-xl btn-theme-secondary flex items-center justify-center border border-white/20 shadow-md">
+            <UserCircle className="w-5 h-5 text-current" />
           </div>
           <div>
-            <p className="text-sm font-bold text-white leading-tight">{session.name}</p>
-            <p className="text-[9px] font-mono text-cyan-400/70 uppercase tracking-wider">{session.role} · Employee Portal</p>
+            <p className="text-sm font-bold text-theme-primary leading-tight">{session.name}</p>
+            <p className="text-[9px] font-mono text-theme-accent uppercase tracking-wider">{session.role} · Employee Portal</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#131315] border border-white/[0.07]">
-            <Clock className="w-3 h-3 text-gray-500" />
-            <span className="text-[10px] font-mono text-gray-400">{now}</span>
+          {hasPosAccess && (
+            <button
+              onClick={() => handleNavigateModule('/dashboard/billing')}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition-all cursor-pointer"
+              title="Open Billing POS Interface"
+            >
+              <Receipt className="w-4 h-4" />
+              <span className="hidden sm:inline">Open Billing POS</span>
+            </button>
+          )}
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-theme-card border border-theme-secondary/20">
+            <Clock className="w-3 h-3 text-theme-accent" />
+            <span className="text-[10px] font-mono opacity-80">{now}</span>
           </div>
           <button onClick={handleLogout}
-            className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 text-red-400 text-xs font-semibold rounded-xl transition-all">
+            className="flex items-center gap-1.5 px-3 py-2 bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-400 text-xs font-semibold rounded-xl transition-all">
             <LogOut className="w-3.5 h-3.5" /> Logout
           </button>
         </div>
@@ -407,21 +467,53 @@ export default function EmployeePortal() {
       {/* Main */}
       <main className="flex-1 min-h-0 p-5 md:p-6 lg:p-8 flex flex-col gap-5 relative z-10 overflow-auto lg:overflow-hidden">
 
+        {/* Authorized Modules Quick Access Banner */}
+        {allowedAppModules.length > 0 && (
+          <div className="bg-theme-surface border border-theme-secondary/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl btn-theme-secondary flex items-center justify-center text-current font-bold border border-white/20 shadow-md">
+                <Receipt className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-theme-primary">Authorized Application Access</p>
+                <p className="text-[10px] text-theme-accent">You have permissions for {allowedAppModules.length} project module(s)</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {allowedAppModules.map(m => {
+                const Icon = m.icon;
+                return (
+                  <button
+                    key={m.name}
+                    onClick={() => handleNavigateModule(m.href)}
+                    className="flex items-center gap-2 px-3.5 py-2 btn-theme-secondary text-xs font-bold rounded-xl shadow-md transition-all hover:scale-105 cursor-pointer"
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>Open {m.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {[
             { id: 'attendance', label: 'Punch IN / OUT', icon: Clock },
-            { id: 'apply',     label: 'Apply Leave',    icon: CalendarDays },
-            { id: 'history',   label: 'Leave History',  icon: FileCheck },
+            { id: 'calendar',   label: 'Attendance Calendar', icon: CalendarDays },
+            { id: 'apply',      label: 'Apply Leave',    icon: Plus },
+            { id: 'history',    label: 'Leave History',  icon: FileCheck },
           ].map(tab => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
             return (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${
                   active
-                    ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300'
-                    : 'bg-[#0E0E10] border border-white/[0.07] text-gray-400 hover:text-white hover:border-white/20'
+                    ? 'btn-theme-secondary shadow-md border-transparent'
+                    : 'bg-theme-surface text-theme-primary border-theme-secondary/20 hover:bg-theme-secondary/20'
                 }`}>
                 <Icon className="w-4 h-4" />
                 <span className="hidden sm:inline">{tab.label}</span>
@@ -429,6 +521,21 @@ export default function EmployeePortal() {
             );
           })}
         </div>
+
+        {/* ── ATTENDANCE CALENDAR TAB ── */}
+        {activeTab === 'calendar' && (
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            <AttendanceCalendar
+              userId={session.id}
+              userName={session.name}
+              userRole={session.role}
+              attendanceRecords={attendance}
+              leaveRecords={leaves}
+              onAddLeave={(newLeave) => setLeaves([newLeave, ...leaves])}
+            />
+          </div>
+        )}
+
 
         {/* ── ATTENDANCE TAB ── */}
         {activeTab === 'attendance' && (
@@ -497,16 +604,17 @@ export default function EmployeePortal() {
               {!isPunchedOut && (
                 <button
                   onClick={() => openPunchModal(isPunchedIn ? 'out' : 'in')}
-                  className={`px-8 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center gap-2 transition-all transform hover:scale-[1.02] hover:-translate-y-0.5 ${
+                  className={`px-8 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center gap-2 transition-all transform hover:scale-[1.02] hover:-translate-y-0.5 border ${
                     isPunchedIn
-                      ? 'bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500/30'
-                      : 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30'
+                      ? 'bg-red-500/20 border-red-500/40 text-red-300 hover:bg-red-500/30'
+                      : 'btn-theme-secondary shadow-lg border-transparent'
                   }`}
                 >
-                  <Camera className="w-4 h-4" />
+                  <Camera className="w-4 h-4 text-current" />
                   {isPunchedIn ? 'Punch OUT with Selfie' : 'Punch IN with Selfie'}
                 </button>
               )}
+
 
               {isPunchedOut && (
                 <p className="text-xs text-gray-500 flex items-center gap-1.5">
