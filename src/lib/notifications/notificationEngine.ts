@@ -274,41 +274,7 @@ export class NotificationEngine {
     try {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (!raw) {
-        // Provide starter notifications
-        const initial: NotificationRecord[] = [
-          {
-            id: 'notif-init-1',
-            event: 'INVOICE_CREATED',
-            channel: 'IN_APP',
-            recipient: { name: 'VIP Guest' },
-            title: 'Invoice #INV-2026-01 Generated',
-            body: 'Successfully generated bill for ₹1,850.00.',
-            status: 'SENT',
-            createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-          },
-          {
-            id: 'notif-init-2',
-            event: 'LOW_STOCK',
-            channel: 'IN_APP',
-            recipient: { role: 'MANAGER' },
-            title: '🚨 Low Stock Alert: Paracetamol 500mg',
-            body: 'Paracetamol 500mg is down to 4 units. Reorder threshold reached.',
-            status: 'SENT',
-            createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-          },
-          {
-            id: 'notif-init-3',
-            event: 'CUSTOMER_CREATED',
-            channel: 'WHATSAPP',
-            recipient: { name: 'Dr. John Watson', mobile: '+919876543210' },
-            title: 'Welcome to LifeCare Pharmacy',
-            body: 'Dear Dr. John Watson, welcome to LifeCare Pharmacy! 100 points added.',
-            status: 'DELIVERED',
-            createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-          }
-        ];
-        this.saveNotificationRecords(initial);
-        return initial;
+        return [];
       }
       const parsed: NotificationRecord[] = JSON.parse(raw);
       return parsed.slice(0, limit);

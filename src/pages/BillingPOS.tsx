@@ -10,6 +10,7 @@ import {
 import { cn } from '../lib/utils';
 import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceModal';
 import { COMMON_UNITS } from './Inventory';
+import { NotificationEngine } from '../lib/notifications/notificationEngine';
 
 interface Category {
   id: string;
@@ -765,10 +766,9 @@ export default function BillingPOS() {
 
     // Trigger Real Notification
     try {
-      const { NotificationEngine } = require('../lib/notifications/notificationEngine');
       NotificationEngine.dispatch({
         event: 'INVOICE_CREATED',
-        recipient: { name: selectedCustomer?.name || 'Customer' },
+        recipient: { name: selectedCustomer?.name || 'Walk-in Customer' },
         data: {
           invoiceNumber: invoiceNo,
           amount: grandTotal.toFixed(2),
@@ -776,6 +776,20 @@ export default function BillingPOS() {
           businessName: businessProfile.businessName || 'My Business',
         },
       });
+
+      if (computedBalanceDue > 0 && selectedCustomer) {
+        NotificationEngine.dispatch({
+          event: 'PAYMENT_DUE',
+          recipient: { name: selectedCustomer.name },
+          data: {
+            invoiceNumber: invoiceNo,
+            amount: computedBalanceDue.toFixed(2),
+            dueDate: 'Immediate / Credit',
+            customerName: selectedCustomer.name,
+            businessName: businessProfile.businessName || 'My Business',
+          },
+        });
+      }
     } catch {}
 
     // Save Order to backend
