@@ -336,7 +336,7 @@ app.post('/api/settings', async (req, res) => {
   }
 });
 
-// 3.5 Users / Staff Management API
+// 3.5 Users / Staff & Employee Management API
 app.get('/api/users', async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -349,29 +349,79 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+app.get('/api/employees', async (req, res) => {
+  try {
+    const employees = await prisma.employee.findMany({
+      where: { businessId: DEMO_BUSINESS_ID },
+      orderBy: { createdAt: 'desc' }
+    });
+    return res.json(employees);
+  } catch (err) {
+    return res.json([]);
+  }
+});
+
 app.post('/api/users', async (req, res) => {
-  const { username, password, role } = req.body;
-  if (!username) return res.status(400).json({ error: 'Username is required' });
+  const { name, username, phone, password, pinCode, role, aadharNumber, address, email } = req.body;
+  const effectiveUsername = (phone || username || '').trim();
+  if (!effectiveUsername) return res.status(400).json({ error: 'Username or phone is required' });
+
   try {
     await prisma.business.upsert({
       where: { id: DEMO_BUSINESS_ID },
       update: {},
       create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
     });
+
+    // 1. Save to User table in Supabase
     const user = await prisma.user.upsert({
-      where: { username },
-      update: { role: role || 'CASHIER', password: password || '1234' },
+      where: { username: effectiveUsername },
+      update: { role: role || 'CASHIER', password: password || pinCode || '1234' },
       create: {
         businessId: DEMO_BUSINESS_ID,
-        username,
-        password: password || '1234',
+        username: effectiveUsername,
+        password: password || pinCode || '1234',
         role: role || 'CASHIER',
       }
     });
-    console.log(`✅ User stored in DB: ${user.username}`);
+
+    // 2. Save to Employee table in Supabase
+    const empCode = `EMP-${effectiveUsername}`;
+    const fullName = (name || effectiveUsername).trim();
+    const parts = fullName.split(' ');
+    const firstName = parts[0] || 'Employee';
+    const lastName = parts.slice(1).join(' ') || 'Staff';
+
+    await prisma.employee.upsert({
+      where: { employeeCode: empCode },
+      update: {
+        fullName,
+        phone: effectiveUsername,
+        email: email || undefined,
+        aadharNumber: aadharNumber || undefined,
+        address: address || undefined,
+        role: role || 'CASHIER',
+        status: 'ACTIVE',
+      },
+      create: {
+        businessId: DEMO_BUSINESS_ID,
+        employeeCode: empCode,
+        firstName,
+        lastName,
+        fullName,
+        phone: effectiveUsername,
+        email: email || undefined,
+        aadharNumber: aadharNumber || undefined,
+        address: address || undefined,
+        role: role || 'CASHIER',
+        status: 'ACTIVE',
+      }
+    });
+
+    console.log(`✅ User & Employee stored in Supabase PostgreSQL: ${effectiveUsername}`);
     return res.status(201).json(user);
   } catch (err) {
-    console.error('❌ Error saving user:', err);
+    console.error('❌ Error saving user & employee:', err);
     return res.status(500).json({ error: 'Failed to save user' });
   }
 });

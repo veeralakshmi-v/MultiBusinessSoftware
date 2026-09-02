@@ -114,6 +114,39 @@ export default function EmployeeDirectory() {
     localStorage.setItem('universal_staff_list', JSON.stringify(staffList));
   }, [staffList]);
 
+  // Fetch backend users/staff from API on mount
+  useEffect(() => {
+    fetch('/api/users')
+      .then(res => res.json())
+      .then((data: any[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setStaffList(prev => {
+            const existingUsernames = new Set(prev.map(p => p.username || p.phone));
+            const merged = [...prev];
+            data.forEach((u: any) => {
+              const uName = u.username || u.phone;
+              if (uName && !existingUsernames.has(uName)) {
+                merged.push({
+                  id: u.id,
+                  name: u.username,
+                  username: u.username,
+                  phone: u.username,
+                  email: u.email || '',
+                  role: u.role || 'CASHIER',
+                  category: 'Management/Admin',
+                  applicationAccess: 'Full Access (All Modules & POS)',
+                  status: 'ACTIVE',
+                  pinCode: u.password || '1234',
+                });
+              }
+            });
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const STANDARD_ROLES = ['CASHIER', 'MANAGER', 'ADMIN', 'STAFF'];
 
   // Open modal for adding new or editing selected
@@ -280,6 +313,28 @@ export default function EmployeeDirectory() {
       };
       setStaffList(prev => [...prev, newStaff]);
     }
+
+    // Persist employee to Supabase PostgreSQL database via API
+    fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: staffName.trim(),
+        username: effectiveUsername,
+        phone: staffPhone.trim(),
+        password: staffPin.trim() || '1234',
+        pinCode: staffPin.trim() || '1234',
+        role: computedRole,
+        aadharNumber: staffAadhar.trim(),
+        address: staffAddress.trim(),
+        email: staffEmail.trim(),
+      })
+    }).then(res => res.json())
+      .then(data => {
+        console.log('✅ Employee saved to Supabase:', data);
+      })
+      .catch(err => console.error('Error syncing staff to Supabase:', err));
+
     setIsModalOpen(false);
   };
 
@@ -290,6 +345,7 @@ export default function EmployeeDirectory() {
     }
     if (confirm(`Are you sure you want to delete ${name}?`)) {
       setStaffList(prev => prev.filter(s => s.id !== id));
+      fetch(`/api/users/${id}`, { method: 'DELETE' }).catch(() => {});
       if (selectedStaff?.id === id) setIsModalOpen(false);
     }
   };
