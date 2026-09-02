@@ -362,8 +362,9 @@ app.get('/api/employees', async (req, res) => {
 });
 
 app.post('/api/users', async (req, res) => {
-  const { name, username, phone, password, pinCode, role, aadharNumber, address, email } = req.body;
+  const { name, fullName, staffName, username, phone, password, pinCode, role, aadharNumber, address, email } = req.body;
   const effectiveUsername = (phone || username || '').trim();
+  const effectiveName = (name || fullName || staffName || effectiveUsername).trim();
   if (!effectiveUsername) return res.status(400).json({ error: 'Username or phone is required' });
 
   try {
@@ -387,15 +388,16 @@ app.post('/api/users', async (req, res) => {
 
     // 2. Save to Employee table in Supabase
     const empCode = `EMP-${effectiveUsername}`;
-    const fullName = (name || effectiveUsername).trim();
-    const parts = fullName.split(' ');
+    const parts = effectiveName.split(' ');
     const firstName = parts[0] || 'Employee';
     const lastName = parts.slice(1).join(' ') || 'Staff';
 
     await prisma.employee.upsert({
       where: { employeeCode: empCode },
       update: {
-        fullName,
+        fullName: effectiveName,
+        firstName,
+        lastName,
         phone: effectiveUsername,
         email: email || undefined,
         aadharNumber: aadharNumber || undefined,
@@ -408,7 +410,7 @@ app.post('/api/users', async (req, res) => {
         employeeCode: empCode,
         firstName,
         lastName,
-        fullName,
+        fullName: effectiveName,
         phone: effectiveUsername,
         email: email || undefined,
         aadharNumber: aadharNumber || undefined,
@@ -418,11 +420,64 @@ app.post('/api/users', async (req, res) => {
       }
     });
 
-    console.log(`✅ User & Employee stored in Supabase PostgreSQL: ${effectiveUsername}`);
+    console.log(`✅ User & Employee stored in Supabase PostgreSQL: ${effectiveName} (${effectiveUsername})`);
     return res.status(201).json(user);
   } catch (err) {
     console.error('❌ Error saving user & employee:', err);
-    return res.status(500).json({ error: 'Failed to save user' });
+    return res.status(500).json({ error: 'Failed to save user & employee' });
+  }
+});
+
+app.post('/api/employees', async (req, res) => {
+  const { name, fullName, staffName, username, phone, role, aadharNumber, address, email } = req.body;
+  const effectiveUsername = (phone || username || '').trim();
+  const effectiveName = (name || fullName || staffName || effectiveUsername).trim();
+
+  const empCode = `EMP-${effectiveUsername || Date.now()}`;
+  const parts = effectiveName.split(' ');
+  const firstName = parts[0] || 'Employee';
+  const lastName = parts.slice(1).join(' ') || 'Staff';
+
+  try {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+
+    const employee = await prisma.employee.upsert({
+      where: { employeeCode: empCode },
+      update: {
+        fullName: effectiveName,
+        firstName,
+        lastName,
+        phone: effectiveUsername || undefined,
+        email: email || undefined,
+        aadharNumber: aadharNumber || undefined,
+        address: address || undefined,
+        role: role || 'CASHIER',
+        status: 'ACTIVE',
+      },
+      create: {
+        businessId: DEMO_BUSINESS_ID,
+        employeeCode: empCode,
+        firstName,
+        lastName,
+        fullName: effectiveName,
+        phone: effectiveUsername || undefined,
+        email: email || undefined,
+        aadharNumber: aadharNumber || undefined,
+        address: address || undefined,
+        role: role || 'CASHIER',
+        status: 'ACTIVE',
+      }
+    });
+
+    console.log(`✅ Employee stored in Supabase Employee table: ${employee.fullName}`);
+    return res.status(201).json(employee);
+  } catch (err) {
+    console.error('❌ Error saving employee:', err);
+    return res.status(500).json({ error: 'Failed to save employee' });
   }
 });
 

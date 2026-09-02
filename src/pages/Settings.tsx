@@ -460,15 +460,28 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
 
     // Save to backend database API
     try {
+      const staffPayload = {
+        name: staffName.trim(),
+        username: effectiveUsername,
+        phone: staffPhone.trim(),
+        password: staffPin.trim() || '1234',
+        pinCode: staffPin.trim() || '1234',
+        role: computedRole,
+        aadharNumber: staffAadhar.trim(),
+        address: staffAddress.trim(),
+        email: staffEmail.trim(),
+      };
       fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: effectiveUsername,
-          password: staffPin.trim() || '1234',
-          role: computedRole,
-        }),
+        body: JSON.stringify(staffPayload),
       }).catch(err => console.error('Failed to sync user to API:', err));
+
+      fetch('/api/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(staffPayload),
+      }).catch(err => console.error('Failed to sync employee to API:', err));
     } catch (e) {}
 
     setIsStaffModalOpen(false);
