@@ -56,32 +56,35 @@ export default function DashboardLayout() {
 
     // Check custom applicationAccess permissions if set for the employee
     const appAccess = user?.applicationAccess;
-    if (appAccess) {
-      if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES')) {
+    if (appAccess && appAccess.trim().length > 0) {
+      if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules')) {
         return true;
       }
+      if (appAccess.includes('No Access')) {
+        return href === '/dashboard';
+      }
 
-      const routeMenuMap: Record<string, string> = {
-        '/dashboard': 'Dashboard',
-        '/dashboard/billing': 'Billing POS',
-        '/dashboard/items': 'Categories & Items',
-        '/dashboard/menu': 'Categories & Items',
-        '/dashboard/inventory': 'Inventory',
-        '/dashboard/reports': 'Sales Reports',
-        '/dashboard/employees': 'Employee Details',
-        '/dashboard/attendance': 'Staff Attendance',
-        '/dashboard/customers': 'Customers',
-        '/dashboard/settings': 'Settings',
-        '/dashboard/website': 'My Website',
+      const routeMenuMap: Record<string, string[]> = {
+        '/dashboard': ['Dashboard'],
+        '/dashboard/billing': ['Billing POS', 'POS'],
+        '/dashboard/items': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
+        '/dashboard/menu': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
+        '/dashboard/inventory': ['Inventory', 'Products & Inventory', 'Categories & Items'],
+        '/dashboard/reports': ['Sales Reports', 'Reports'],
+        '/dashboard/employees': ['Employee Details', 'Staff'],
+        '/dashboard/attendance': ['Staff Attendance', 'Attendance'],
+        '/dashboard/customers': ['Customers', 'CRM'],
+        '/dashboard/settings': ['Settings'],
+        '/dashboard/website': ['My Website'],
       };
 
-      const menuItem = routeMenuMap[href];
-      if (menuItem) {
-        const allowedItems = appAccess.split(',').map(s => s.trim());
-        if (allowedItems.includes(menuItem)) {
-          return true;
-        }
-      }
+      const allowedItems = appAccess.split(',').map(s => s.trim().toLowerCase());
+      const mappedNames = routeMenuMap[href] || [];
+      const isAllowed = mappedNames.some(name => allowedItems.includes(name.toLowerCase()));
+
+      // STRICT: When custom applicationAccess permissions are configured, ONLY allow explicitly selected modules.
+      // Do NOT fall through to generic role defaults (like MANAGER allowing all routes).
+      return isAllowed;
     }
 
     if (role === 'MANAGER') {
@@ -396,7 +399,7 @@ export default function DashboardLayout() {
             </Link>
 
             {/* Quick POS Shortcut */}
-            {location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
+            {isRouteAllowedForRole(user.role, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
               <Link
                 to="/dashboard/billing"
                 className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 btn-theme-secondary font-bold text-xs rounded-xl shadow-lg transition-all"
