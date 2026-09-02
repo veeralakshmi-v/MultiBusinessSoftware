@@ -580,6 +580,12 @@ export default function BillingPOS() {
       return updated;
     });
 
+    fetch('/api/customers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newCust),
+    }).catch(err => console.error('Error saving quick customer to Supabase:', err));
+
     setSelectedCustomer(newCust);
     setIsAddCustomerModalOpen(false);
     setNewCustName('');
@@ -747,6 +753,15 @@ export default function BillingPOS() {
 
       const allOrders = JSON.parse(localStorage.getItem('universal_orders') || '[]');
       localStorage.setItem('universal_orders', JSON.stringify([newOrderObj, ...allOrders]));
+
+      // Sync Order to Supabase PostgreSQL database
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrderObj),
+      }).then(res => res.json())
+        .then(data => console.log('✅ Order saved to Supabase:', data))
+        .catch(err => console.error('Error saving order to Supabase:', err));
     } catch {}
 
     // Trigger Real Notification

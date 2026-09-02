@@ -157,6 +157,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     window.dispatchEvent(new Event('settings_updated'));
   };
+  // Sync Business Profile settings from backend database API on mount
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data && (data.businessName || data.phone || data.email)) {
+          setBusinessProfile(prev => ({
+            ...prev,
+            businessName: data.businessName || prev.businessName,
+            legalName: data.legalName || prev.legalName,
+            address: data.address || prev.address,
+            phone: data.phone || prev.phone,
+            email: data.email || prev.email,
+            gstin: data.gstin || prev.gstin,
+            currencySymbol: data.currencySymbol || prev.currencySymbol,
+            currencyCode: data.currencyCode || prev.currencyCode,
+            invoicePrefix: data.invoicePrefix || prev.invoicePrefix,
+            taxMode: data.taxMode || prev.taxMode,
+            termsText: data.termsText || prev.termsText,
+            thankYouNote: data.thankYouNote || prev.thankYouNote,
+            logoUrl: data.logoUrl || prev.logoUrl,
+          }));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const activeTemplate = useMemo(() => {
     const base = TemplateResolver.getTemplate(businessType);
