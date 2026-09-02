@@ -8,7 +8,14 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const prisma = new PrismaClient();
+const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres.yqciwlvmoboszvxzodrl:Kousalya%402252@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require';
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: dbUrl,
+    },
+  },
+});
 
 // In-Memory Seed Data Fallbacks if DB is uninitialized
 const DEMO_BUSINESS_ID = 'biz-default-business';
