@@ -77,7 +77,7 @@ export default function MenuManagement() {
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setCategories(data);
           localStorage.setItem('universal_categories', JSON.stringify(data));
         }
@@ -87,7 +87,7 @@ export default function MenuManagement() {
     fetch('/api/menu-items')
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setItems(data);
           localStorage.setItem('universal_items', JSON.stringify(data));
         }

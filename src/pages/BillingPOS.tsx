@@ -230,18 +230,13 @@ export default function BillingPOS() {
       }
     } catch {}
 
-    // 2. Fetch from Backend API and merge
+    // 2. Fetch from Backend API and sync state
     fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          setCategories(prev => {
-            const ids = new Set(prev.map(p => p.id));
-            const merged = [...prev];
-            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
-            localStorage.setItem('universal_categories', JSON.stringify(merged));
-            return merged;
-          });
+          setCategories(data);
+          localStorage.setItem('universal_categories', JSON.stringify(data));
         }
       })
       .catch(() => {});
@@ -250,13 +245,8 @@ export default function BillingPOS() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          setMenuItems(prev => {
-            const ids = new Set(prev.map(p => p.id));
-            const merged = [...prev];
-            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
-            localStorage.setItem('universal_items', JSON.stringify(merged));
-            return merged;
-          });
+          setMenuItems(data);
+          localStorage.setItem('universal_items', JSON.stringify(data));
         }
       })
       .catch(() => {});
@@ -266,13 +256,8 @@ export default function BillingPOS() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          setCustomers(prev => {
-            const ids = new Set(prev.map(p => p.id));
-            const merged = [...prev];
-            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
-            localStorage.setItem('universal_customers', JSON.stringify(merged));
-            return merged;
-          });
+          setCustomers(data);
+          localStorage.setItem('universal_customers', JSON.stringify(data));
         }
       })
       .catch(() => {});

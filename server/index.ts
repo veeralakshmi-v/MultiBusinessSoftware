@@ -118,9 +118,120 @@ app.get('/api/auth/me', (req, res) => {
   });
 });
 
+// Automatic Initial Seed Helper to populate fresh database
+async function ensureInitialDbData() {
+  try {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+
+    const settingsCount = await prisma.businessProfileSettings.count();
+    if (settingsCount === 0) {
+      await prisma.businessProfileSettings.create({
+        data: {
+          businessId: DEMO_BUSINESS_ID,
+          businessName: 'My Business',
+          address: '124, Commercial Road, Chennai, TN - 600001',
+          phone: '+91 98765 43210',
+          email: 'contact@mybusiness.com',
+          currencyCode: 'INR',
+          currencySymbol: '₹',
+          invoicePrefix: 'INV/2026/',
+          orderPrefix: 'ORD-',
+          nextInvoiceNumber: 1001,
+          gstin: '33AAAAA0000A1Z5',
+          enableGst: true,
+          termsText: 'Goods once sold will not be taken back without original bill.',
+          thankYouNote: 'Thank you for your business! Visit again soon 😊',
+        }
+      });
+      console.log('🌱 Seeded initial BusinessProfileSettings into PostgreSQL');
+    }
+
+    const userCount = await prisma.user.count();
+    if (userCount === 0) {
+      await prisma.user.create({
+        data: {
+          businessId: DEMO_BUSINESS_ID,
+          username: 'admin',
+          password: 'admin123',
+          role: 'ADMIN',
+        }
+      });
+      console.log('🌱 Seeded initial Admin User into PostgreSQL');
+    }
+
+    let categoryCount = await prisma.category.count();
+    if (categoryCount === 0) {
+      const defaultCats = [
+        { name: 'General', slug: 'general' },
+        { name: 'Main Course', slug: 'main-course' },
+        { name: 'Beverages', slug: 'beverages' },
+        { name: 'Starters & Snacks', slug: 'starters-snacks' },
+        { name: 'Desserts', slug: 'desserts' },
+      ];
+      for (const cat of defaultCats) {
+        await prisma.category.upsert({
+          where: { name: cat.name },
+          update: {},
+          create: { businessId: DEMO_BUSINESS_ID, name: cat.name, slug: cat.slug }
+        });
+      }
+      console.log('🌱 Seeded initial Categories into PostgreSQL');
+    }
+
+    const itemCount = await prisma.menuItem.count();
+    if (itemCount === 0) {
+      const mainCat = await prisma.category.findFirst({ where: { name: 'Main Course' } });
+      const bevCat = await prisma.category.findFirst({ where: { name: 'Beverages' } });
+      const starterCat = await prisma.category.findFirst({ where: { name: 'Starters & Snacks' } });
+      const genCat = await prisma.category.findFirst({ where: { businessId: DEMO_BUSINESS_ID } });
+
+      const defaultItems = [
+        { name: 'Paneer Butter Masala', categoryId: mainCat?.id || genCat!.id, price: 220.0, gst: 5.0, dietary: 'VEG' },
+        { name: 'Chicken Biryani', categoryId: mainCat?.id || genCat!.id, price: 280.0, gst: 5.0, dietary: 'NON_VEG' },
+        { name: 'Masala Dosa', categoryId: starterCat?.id || genCat!.id, price: 90.0, gst: 5.0, dietary: 'VEG' },
+        { name: 'Fresh Lime Soda', categoryId: bevCat?.id || genCat!.id, price: 50.0, gst: 5.0, dietary: 'VEG' },
+      ];
+
+      for (const item of defaultItems) {
+        await prisma.menuItem.create({
+          data: {
+            businessId: DEMO_BUSINESS_ID,
+            name: item.name,
+            categoryId: item.categoryId,
+            price: item.price,
+            gst: item.gst,
+            dietary: item.dietary,
+            isAvailable: true,
+          }
+        });
+      }
+      console.log('🌱 Seeded initial MenuItems into PostgreSQL');
+    }
+
+    const custCount = await prisma.customer.count();
+    if (custCount === 0) {
+      await prisma.customer.create({
+        data: {
+          businessId: DEMO_BUSINESS_ID,
+          name: 'Walk-in Customer',
+          mobile: '9999999999',
+        }
+      });
+      console.log('🌱 Seeded initial Customer into PostgreSQL');
+    }
+  } catch (err) {
+    console.error('Initial DB seeding error:', err);
+  }
+}
+
 // 3. Settings API
 app.get('/api/settings', async (req, res) => {
   try {
+    await ensureInitialDbData();
     const settings = await prisma.businessProfileSettings.findFirst({
       where: { businessId: DEMO_BUSINESS_ID },
     });
@@ -271,6 +382,7 @@ app.delete('/api/users/:id', async (req, res) => {
 // 4. Dynamic Categories API
 app.get('/api/categories', async (req, res) => {
   try {
+    await ensureInitialDbData();
     const categories = await prisma.category.findMany({
       where: { businessId: DEMO_BUSINESS_ID },
       orderBy: { name: 'asc' },
@@ -338,6 +450,7 @@ app.delete('/api/categories/:id', async (req, res) => {
 // 5. Products / Menu Items API
 const getMenuItemsHandler = async (req: any, res: any) => {
   try {
+    await ensureInitialDbData();
     const items = await prisma.menuItem.findMany({
       include: { category: true },
       orderBy: { createdAt: 'desc' },
