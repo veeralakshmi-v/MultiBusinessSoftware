@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres.yqciwlvmoboszvxzodrl:Kousalya%402252@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require';
+const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres.yqciwlvmoboszvxzodrl:Kousalya%402252@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require&connection_limit=1';
 const prisma = new PrismaClient({
   datasources: {
     db: {
