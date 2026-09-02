@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "tsx scripts/dev-all.ts",
+    "vite": "vite",
     "server": "tsx server/index.ts",
     "dev:all": "tsx scripts/dev-all.ts",
-    "build": "tsc && vite build",
+    "build": "prisma generate --schema=prisma/schema.prisma && tsc && vite build",
     "preview": "vite preview",
     "test": "tsx --test tests/api.test.ts",
     "postinstall": "prisma generate --schema=prisma/schema.prisma",

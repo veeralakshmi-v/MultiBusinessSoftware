@@ -792,14 +792,16 @@ export default function BillingPOS() {
       }
     } catch {}
 
-    // Save Order to backend
+    // Save Order to backend database API
     try {
-      fetch('/api/orders', {
+      await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrderObj),
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error('Failed to post order to backend:', e);
+    }
 
     // Open Print Modal
     setActivePrintOrder(orderPrintData);

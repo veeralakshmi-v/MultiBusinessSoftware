@@ -126,6 +126,20 @@ app.get('/api/settings', async (req, res) => {
     });
     if (settings) {
       return res.json({
+        businessName: settings.businessName,
+        legalName: settings.legalName,
+        address: settings.address,
+        phone: settings.phone,
+        email: settings.email,
+        gstin: settings.gstin,
+        currencySymbol: settings.currencySymbol,
+        currencyCode: settings.currencyCode,
+        invoicePrefix: settings.invoicePrefix,
+        nextInvoiceNumber: settings.nextInvoiceNumber,
+        taxMode: settings.taxCalculationMode,
+        termsText: settings.termsText,
+        thankYouNote: settings.thankYouNote,
+        logoUrl: settings.logoUrl,
         profile: {
           name: settings.businessName,
           address: settings.address,
@@ -143,7 +157,7 @@ app.get('/api/settings', async (req, res) => {
       });
     }
   } catch (err) {
-    // Return mock
+    console.error('Error fetching settings:', err);
   }
   res.json(mockSettings);
 });
@@ -152,30 +166,106 @@ app.post('/api/settings', async (req, res) => {
   const body = req.body;
   mockSettings = { ...mockSettings, ...body };
   try {
-    await prisma.businessProfileSettings.upsert({
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: body.businessName || body.profile?.name || 'My Business', type: 'RETAIL' }
+    });
+
+    const settings = await prisma.businessProfileSettings.upsert({
       where: { businessId: DEMO_BUSINESS_ID },
       update: {
-        businessName: body.profile?.name || mockSettings.profile.name,
-        address: body.profile?.address || mockSettings.profile.address,
-        phone: body.profile?.phone || mockSettings.profile.phone,
-        email: body.profile?.email || mockSettings.profile.email,
-        gstin: body.gst?.gstin || mockSettings.gst.gstin,
-        enabledModules: JSON.stringify(body.moduleSettings || {}),
+        businessName: body.businessName || body.profile?.name || mockSettings.profile.name,
+        legalName: body.legalName,
+        address: body.address || body.profile?.address || mockSettings.profile.address,
+        phone: body.phone || body.profile?.phone || mockSettings.profile.phone,
+        email: body.email || body.profile?.email || mockSettings.profile.email,
+        gstin: body.gstin || body.gst?.gstin || mockSettings.gst.gstin,
+        currencySymbol: body.currencySymbol || '₹',
+        currencyCode: body.currencyCode || 'INR',
+        invoicePrefix: body.invoicePrefix || 'INV/2026/',
+        nextInvoiceNumber: body.nextInvoiceNumber ? parseInt(body.nextInvoiceNumber) : 1001,
+        taxCalculationMode: body.taxMode || 'EXCLUSIVE',
+        termsText: body.termsText,
+        thankYouNote: body.thankYouNote,
+        logoUrl: body.logoUrl || mockSettings.profile.logoUrl,
+        enabledModules: JSON.stringify(body.enabledModules || body.moduleSettings || {}),
       },
       create: {
         businessId: DEMO_BUSINESS_ID,
-        businessName: body.profile?.name || mockSettings.profile.name,
-        address: body.profile?.address || mockSettings.profile.address,
-        phone: body.profile?.phone || mockSettings.profile.phone,
-        email: body.profile?.email || mockSettings.profile.email,
-        gstin: body.gst?.gstin || mockSettings.gst.gstin,
-        enabledModules: JSON.stringify(body.moduleSettings || {}),
+        businessName: body.businessName || body.profile?.name || 'My Business',
+        legalName: body.legalName || '',
+        address: body.address || body.profile?.address || '',
+        phone: body.phone || body.profile?.phone || '',
+        email: body.email || body.profile?.email || '',
+        gstin: body.gstin || body.gst?.gstin || '',
+        currencySymbol: body.currencySymbol || '₹',
+        currencyCode: body.currencyCode || 'INR',
+        invoicePrefix: body.invoicePrefix || 'INV/2026/',
+        nextInvoiceNumber: body.nextInvoiceNumber ? parseInt(body.nextInvoiceNumber) : 1001,
+        taxCalculationMode: body.taxMode || 'EXCLUSIVE',
+        termsText: body.termsText || '',
+        thankYouNote: body.thankYouNote || '',
+        logoUrl: body.logoUrl || '',
+        enabledModules: JSON.stringify(body.enabledModules || body.moduleSettings || {}),
       },
     });
+    console.log(`✅ Settings stored in DB for: ${settings.businessName}`);
+    return res.json({ success: true, settings });
   } catch (err) {
-    // Saved in memory
+    console.error('❌ Error saving settings:', err);
+    return res.status(500).json({ error: 'Failed to save settings' });
   }
-  res.json({ success: true, settings: mockSettings });
+});
+
+// 3.5 Users / Staff Management API
+app.get('/api/users', async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: { businessId: DEMO_BUSINESS_ID },
+      orderBy: { createdAt: 'desc' }
+    });
+    return res.json(users);
+  } catch (err) {
+    return res.json([]);
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  const { username, password, role } = req.body;
+  if (!username) return res.status(400).json({ error: 'Username is required' });
+  try {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+    const user = await prisma.user.upsert({
+      where: { username },
+      update: { role: role || 'CASHIER', password: password || '1234' },
+      create: {
+        businessId: DEMO_BUSINESS_ID,
+        username,
+        password: password || '1234',
+        role: role || 'CASHIER',
+      }
+    });
+    console.log(`✅ User stored in DB: ${user.username}`);
+    return res.status(201).json(user);
+  } catch (err) {
+    console.error('❌ Error saving user:', err);
+    return res.status(500).json({ error: 'Failed to save user' });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.user.delete({ where: { id } });
+    return res.json({ success: true, id });
+  } catch (err) {
+    return res.json({ success: true, id });
+  }
 });
 
 // 4. Dynamic Categories API
@@ -196,27 +286,31 @@ app.post('/api/categories', async (req, res) => {
   if (!name) return res.status(400).json({ error: 'Category name is required' });
 
   try {
-    const category = await prisma.category.create({
-      data: {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+    const category = await prisma.category.upsert({
+      where: { name: name.trim() },
+      update: { slug: name.trim().toLowerCase().replace(/\s+/g, '-') },
+      create: {
         businessId: DEMO_BUSINESS_ID,
         name: name.trim(),
         slug: name.trim().toLowerCase().replace(/\s+/g, '-'),
       },
     });
+    console.log(`✅ Category stored in DB: ${category.name} (${category.id})`);
     return res.status(201).json(category);
   } catch (err) {
-    return res.json({
-      id: `cat-${Date.now()}`,
-      name: name.trim(),
-      description: description || '',
-      businessId: DEMO_BUSINESS_ID,
-    });
+    console.error('❌ Error saving category:', err);
+    return res.status(500).json({ error: 'Failed to save category' });
   }
 });
 
 app.put('/api/categories/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, description } = req.body;
+  const { name } = req.body;
   try {
     const updated = await prisma.category.update({
       where: { id },
@@ -227,7 +321,7 @@ app.put('/api/categories/:id', async (req, res) => {
     });
     return res.json(updated);
   } catch (err) {
-    return res.json({ id, name, description, success: true });
+    return res.status(500).json({ error: 'Failed to update category' });
   }
 });
 
@@ -248,17 +342,14 @@ const getMenuItemsHandler = async (req: any, res: any) => {
       include: { category: true },
       orderBy: { createdAt: 'desc' },
     });
-    if (items.length > 0) {
-      const parsedItems = items.map(item => ({
-        ...item,
-        attributes: typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : (item.attributes || {})
-      }));
-      return res.json(parsedItems);
-    }
+    const parsedItems = items.map(item => ({
+      ...item,
+      attributes: typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : (item.attributes || {})
+    }));
+    return res.json(parsedItems);
   } catch (err) {
-    // Fallthrough
+    return res.json([]);
   }
-  res.json([]);
 };
 
 app.get('/api/menu', getMenuItemsHandler);
@@ -266,28 +357,63 @@ app.get('/api/menu-items', getMenuItemsHandler);
 
 const createMenuItemHandler = async (req: any, res: any) => {
   const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, attributes } = req.body;
+  if (!name) return res.status(400).json({ error: 'Item name is required' });
+
   try {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+
+    let targetCatId = categoryId;
+    if (targetCatId) {
+      const existingCat = await prisma.category.findUnique({ where: { id: targetCatId } });
+      if (!existingCat) {
+        const foundByName = await prisma.category.findFirst({ where: { name: targetCatId } });
+        if (foundByName) {
+          targetCatId = foundByName.id;
+        } else {
+          const newCat = await prisma.category.create({
+            data: { businessId: DEMO_BUSINESS_ID, name: targetCatId, slug: targetCatId.toLowerCase().replace(/\s+/g, '-') }
+          });
+          targetCatId = newCat.id;
+        }
+      }
+    } else {
+      let defaultCat = await prisma.category.findFirst({ where: { businessId: DEMO_BUSINESS_ID } });
+      if (!defaultCat) {
+        defaultCat = await prisma.category.create({
+          data: { businessId: DEMO_BUSINESS_ID, name: 'General', slug: 'general' }
+        });
+      }
+      targetCatId = defaultCat.id;
+    }
+
     const item = await prisma.menuItem.create({
       data: {
         businessId: DEMO_BUSINESS_ID,
-        name,
-        categoryId,
-        price: parseFloat(price),
+        name: name.trim(),
+        categoryId: targetCatId,
+        price: parseFloat(price || 0),
         gst: parseFloat(gst || 5),
         hsnCode: hsnCode || '2106',
         kitchenSection: kitchenSection || 'Main Kitchen',
         dietary: dietary || 'VEG',
-        imageUrl,
+        imageUrl: imageUrl || '',
         attributes: typeof attributes === 'object' ? JSON.stringify(attributes) : (attributes || '{}'),
         isAvailable: true,
       },
+      include: { category: true }
     });
+    console.log(`✅ MenuItem stored in DB: ${item.name} (${item.id})`);
     return res.status(201).json({
       ...item,
       attributes: typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : item.attributes
     });
   } catch (err) {
-    res.status(400).json({ error: 'Failed to create menu item', details: String(err) });
+    console.error('❌ Error creating menu item:', err);
+    return res.status(500).json({ error: 'Failed to create menu item', details: String(err) });
   }
 };
 
@@ -298,12 +424,22 @@ app.put('/api/menu-items/:id', async (req, res) => {
   const { id } = req.params;
   const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, isAvailable, attributes } = req.body;
   try {
+    let targetCatId = categoryId;
+    if (targetCatId) {
+      const existingCat = await prisma.category.findUnique({ where: { id: targetCatId } });
+      if (!existingCat) {
+        const foundByName = await prisma.category.findFirst({ where: { name: targetCatId } });
+        if (foundByName) targetCatId = foundByName.id;
+        else targetCatId = undefined;
+      }
+    }
+
     const updated = await prisma.menuItem.update({
       where: { id },
       data: {
-        name,
-        categoryId,
-        price: price ? parseFloat(price) : undefined,
+        name: name?.trim(),
+        categoryId: targetCatId,
+        price: price !== undefined ? parseFloat(price) : undefined,
         gst: gst !== undefined ? parseFloat(gst) : undefined,
         hsnCode,
         kitchenSection,
@@ -312,13 +448,16 @@ app.put('/api/menu-items/:id', async (req, res) => {
         isAvailable,
         attributes: typeof attributes === 'object' ? JSON.stringify(attributes) : attributes,
       },
+      include: { category: true }
     });
+    console.log(`✅ MenuItem updated in DB: ${updated.name} (${updated.id})`);
     return res.json({
       ...updated,
       attributes: typeof updated.attributes === 'string' ? JSON.parse(updated.attributes || '{}') : updated.attributes
     });
   } catch (err) {
-    return res.json({ success: true, id, ...req.body });
+    console.error('❌ Error updating menu item:', err);
+    return res.status(500).json({ error: 'Failed to update menu item' });
   }
 });
 
@@ -326,6 +465,7 @@ app.delete('/api/menu-items/:id', async (req, res) => {
   const { id } = req.params;
   try {
     await prisma.menuItem.delete({ where: { id } });
+    console.log(`✅ MenuItem deleted from DB: ${id}`);
     return res.json({ success: true, id });
   } catch (err) {
     return res.json({ success: true, id });
@@ -338,11 +478,10 @@ app.get('/api/tables', async (req, res) => {
     const tables = await prisma.table.findMany({
       orderBy: { name: 'asc' },
     });
-    if (tables.length > 0) return res.json(tables);
+    return res.json(tables || []);
   } catch (err) {
-    // Fallback
+    return res.json([]);
   }
-  res.json([]);
 });
 
 app.put('/api/tables/:id/status', async (req, res) => {
@@ -355,7 +494,7 @@ app.put('/api/tables/:id/status', async (req, res) => {
     });
     return res.json(updated);
   } catch (err) {
-    res.json({ success: true, id, status });
+    return res.json({ success: true, id, status });
   }
 });
 
@@ -369,50 +508,100 @@ app.get('/api/orders', async (req, res) => {
         items: { include: { menuItem: true } },
       },
       orderBy: { createdAt: 'desc' },
-      take: 50,
+      take: 100,
     });
     return res.json(orders);
   } catch (err) {
-    res.json([]);
+    console.error('Error fetching orders:', err);
+    return res.json([]);
   }
 });
 
 app.post('/api/orders', async (req, res) => {
   const orderData = req.body;
   try {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+
+    const rawItems = orderData.items || [];
+    const validOrderItems: Array<{ menuItemId: string; quantity: number; price: number; discount: number }> = [];
+
+    for (const item of rawItems) {
+      let targetMenuItemId = item.menuItemId || item.id;
+      let existingItem = targetMenuItemId ? await prisma.menuItem.findUnique({ where: { id: targetMenuItemId } }) : null;
+
+      if (!existingItem && item.name) {
+        existingItem = await prisma.menuItem.findFirst({ where: { name: item.name } });
+      }
+
+      if (!existingItem) {
+        let defCat = await prisma.category.findFirst({ where: { businessId: DEMO_BUSINESS_ID } });
+        if (!defCat) {
+          defCat = await prisma.category.create({
+            data: { businessId: DEMO_BUSINESS_ID, name: 'General', slug: 'general' }
+          });
+        }
+        existingItem = await prisma.menuItem.create({
+          data: {
+            businessId: DEMO_BUSINESS_ID,
+            name: item.name || 'Custom Product',
+            categoryId: defCat.id,
+            price: parseFloat(item.price || 0),
+            gst: parseFloat(item.gst || 5),
+            isAvailable: true,
+          }
+        });
+      }
+
+      validOrderItems.push({
+        menuItemId: existingItem.id,
+        quantity: parseInt(item.quantity || 1),
+        price: parseFloat(item.price || 0),
+        discount: parseFloat(item.discount || 0),
+      });
+    }
+
+    let validTableId = orderData.tableId || null;
+    if (validTableId) {
+      const tableExists = await prisma.table.findUnique({ where: { id: validTableId } });
+      if (!tableExists) validTableId = null;
+    }
+
+    let validCustomerId = orderData.customerId || null;
+    if (validCustomerId) {
+      const customerExists = await prisma.customer.findUnique({ where: { id: validCustomerId } });
+      if (!customerExists) validCustomerId = null;
+    }
+
     const createdOrder = await prisma.order.create({
       data: {
         businessId: DEMO_BUSINESS_ID,
-        orderNumber: orderData.orderNumber || `ORD-${Date.now().toString().slice(-6)}`,
-        status: orderData.status || 'PENDING',
-        orderType: orderData.orderType || 'DINE_IN',
-        tableId: orderData.tableId || null,
-        customerId: orderData.customerId || null,
+        orderNumber: orderData.orderNumber || orderData.invoiceNo || `ORD-${Date.now().toString().slice(-6)}`,
+        status: orderData.status || 'COMPLETED',
+        orderType: orderData.orderType || 'TAX_INVOICE',
+        tableId: validTableId,
+        customerId: validCustomerId,
         customerNotes: orderData.customerNotes || '',
-        subtotal: parseFloat(orderData.subtotal || 0),
-        tax: parseFloat(orderData.tax || 0),
+        subtotal: parseFloat(orderData.subtotal || orderData.total || 0),
+        tax: parseFloat(orderData.tax || orderData.totalTax || 0),
         discount: parseFloat(orderData.discount || 0),
-        total: parseFloat(orderData.total || 0),
+        total: parseFloat(orderData.total || orderData.grandTotal || 0),
         paymentMethod: orderData.paymentMethod || 'CASH',
         items: {
-          create: (orderData.items || []).map((item: any) => ({
-            menuItemId: item.menuItemId || item.id,
-            quantity: parseInt(item.quantity || 1),
-            price: parseFloat(item.price || 0),
-          })),
+          create: validOrderItems,
         },
       },
       include: { items: { include: { menuItem: true } }, table: true, customer: true },
     });
+
+    console.log(`✅ Order stored in DB: ${createdOrder.orderNumber} (${createdOrder.id})`);
     return res.status(201).json(createdOrder);
-  } catch (err) {
-    res.json({
-      id: `ord-demo-${Date.now()}`,
-      orderNumber: orderData.orderNumber || `ORD-${Date.now().toString().slice(-4)}`,
-      status: 'PENDING',
-      ...orderData,
-      createdAt: new Date().toISOString(),
-    });
+  } catch (err: any) {
+    console.error('❌ Failed to store order in DB:', err);
+    return res.status(500).json({ error: 'Failed to save order to database', details: String(err) });
   }
 });
 
@@ -426,7 +615,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
     });
     return res.json(updated);
   } catch (err) {
-    res.json({ success: true, id, status });
+    return res.status(500).json({ error: 'Failed to update order status' });
   }
 });
 
@@ -442,7 +631,6 @@ app.get('/api/dashboard', async (req, res) => {
 
     const totalCustomers = await prisma.customer.count();
 
-    // 14-day trend calculation
     const trendDays: { date: string; count: number; revenue: number }[] = [];
     for (let i = 13; i >= 0; i--) {
       const d = new Date();
@@ -454,7 +642,6 @@ app.get('/api/dashboard', async (req, res) => {
       trendDays.push({ date: iso, count: dayOrders.length, revenue: rev });
     }
 
-    // Selected date orders
     const dateOrders = allOrders.filter(o => o.createdAt.toISOString().slice(0, 10) === dateParam).map(o => ({
       id: o.id,
       orderNumber: o.orderNumber,
@@ -503,7 +690,128 @@ app.get('/api/inventory', async (req, res) => {
     const items = await prisma.inventoryItem.findMany({ include: { supplier: true } });
     return res.json({ rawMaterials: raw, inventoryItems: items });
   } catch (err) {
-    res.json({ rawMaterials: [], inventoryItems: [] });
+    return res.json({ rawMaterials: [], inventoryItems: [] });
+  }
+});
+
+app.get('/api/inventory/materials', async (req, res) => {
+  try {
+    const raw = await prisma.rawMaterial.findMany({
+      where: { businessId: DEMO_BUSINESS_ID },
+      include: { supplier: true },
+      orderBy: { name: 'asc' }
+    });
+    return res.json(raw);
+  } catch (err) {
+    return res.json([]);
+  }
+});
+
+app.post('/api/inventory/materials', async (req, res) => {
+  const { name, unit, currentStock, minStockLevel, pricePerUnit, supplierId } = req.body;
+  if (!name) return res.status(400).json({ error: 'Material name is required' });
+
+  try {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+
+    const item = await prisma.rawMaterial.upsert({
+      where: { name: name.trim() },
+      update: {
+        unit: unit || 'Pcs',
+        currentStock: currentStock !== undefined ? parseFloat(currentStock) : undefined,
+        minStockLevel: minStockLevel !== undefined ? parseFloat(minStockLevel) : undefined,
+        pricePerUnit: pricePerUnit !== undefined ? parseFloat(pricePerUnit) : undefined,
+      },
+      create: {
+        businessId: DEMO_BUSINESS_ID,
+        name: name.trim(),
+        unit: unit || 'Pcs',
+        currentStock: parseFloat(currentStock || 0),
+        minStockLevel: parseFloat(minStockLevel || 5),
+        pricePerUnit: parseFloat(pricePerUnit || 0),
+      }
+    });
+    console.log(`✅ RawMaterial stored in DB: ${item.name}`);
+    return res.status(201).json(item);
+  } catch (err) {
+    console.error('❌ Failed to store raw material:', err);
+    return res.status(500).json({ error: 'Failed to create material' });
+  }
+});
+
+app.get('/api/inventory/suppliers', async (req, res) => {
+  try {
+    const suppliers = await prisma.supplier.findMany({
+      where: { businessId: DEMO_BUSINESS_ID },
+      orderBy: { name: 'asc' }
+    });
+    return res.json(suppliers);
+  } catch (err) {
+    return res.json([]);
+  }
+});
+
+app.post('/api/inventory/suppliers', async (req, res) => {
+  const { name, contact, phone, email, address } = req.body;
+  if (!name) return res.status(400).json({ error: 'Supplier name is required' });
+
+  try {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+
+    const supplier = await prisma.supplier.create({
+      data: {
+        businessId: DEMO_BUSINESS_ID,
+        name: name.trim(),
+        contact: contact || phone || '',
+        phone: phone || '',
+        email: email || '',
+        address: address || '',
+      }
+    });
+    console.log(`✅ Supplier stored in DB: ${supplier.name}`);
+    return res.status(201).json(supplier);
+  } catch (err) {
+    console.error('❌ Failed to store supplier:', err);
+    return res.status(500).json({ error: 'Failed to create supplier' });
+  }
+});
+
+app.get('/api/inventory/transactions', async (req, res) => {
+  try {
+    const txs = await prisma.inventoryTransaction.findMany({
+      include: { rawMaterial: true },
+      orderBy: { createdAt: 'desc' },
+      take: 50
+    });
+    return res.json(txs);
+  } catch (err) {
+    return res.json([]);
+  }
+});
+
+app.post('/api/inventory/transactions', async (req, res) => {
+  const { rawMaterialId, type, quantity, unitPrice, notes } = req.body;
+  try {
+    const tx = await prisma.inventoryTransaction.create({
+      data: {
+        rawMaterialId,
+        type: type || 'STOCK_IN',
+        quantity: parseFloat(quantity || 0),
+        unitPrice: parseFloat(unitPrice || 0),
+        notes: notes || '',
+      }
+    });
+    return res.status(201).json(tx);
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to create transaction' });
   }
 });
 
@@ -513,26 +821,47 @@ app.get('/api/customers', async (req, res) => {
     const customers = await prisma.customer.findMany({ orderBy: { name: 'asc' } });
     return res.json(customers);
   } catch (err) {
-    res.json([]);
+    return res.json([]);
   }
 });
 
 app.post('/api/customers', async (req, res) => {
   const { name, mobile, email, address, gstNumber } = req.body;
+  if (!name || !mobile) return res.status(400).json({ error: 'Customer name and mobile are required' });
   try {
-    const created = await prisma.customer.create({
-      data: {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+
+    const created = await prisma.customer.upsert({
+      where: { mobile: mobile.trim() },
+      update: { name: name.trim(), email: email || null, address: address || null, gstNumber: gstNumber || null },
+      create: {
         businessId: DEMO_BUSINESS_ID,
-        name,
-        mobile,
-        email,
-        address,
-        gstNumber,
+        name: name.trim(),
+        mobile: mobile.trim(),
+        email: email || null,
+        address: address || null,
+        gstNumber: gstNumber || null,
       },
     });
+    console.log(`✅ Customer stored in DB: ${created.name} (${created.mobile})`);
     return res.status(201).json(created);
   } catch (err) {
-    res.status(400).json({ error: 'Failed to create customer', details: String(err) });
+    console.error('❌ Failed to create customer:', err);
+    return res.status(400).json({ error: 'Failed to create customer', details: String(err) });
+  }
+});
+
+app.delete('/api/customers/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.customer.delete({ where: { id } });
+    return res.json({ success: true, id });
+  } catch (err) {
+    return res.json({ success: true, id });
   }
 });
 
@@ -542,7 +871,46 @@ app.get('/api/promotions', async (req, res) => {
     const promotions = await prisma.promotion.findMany({ where: { isActive: true } });
     return res.json(promotions);
   } catch (err) {
-    res.json([]);
+    return res.json([]);
+  }
+});
+
+app.post('/api/promotions', async (req, res) => {
+  const { name, code, type, discountValue, minOrderValue } = req.body;
+  if (!name) return res.status(400).json({ error: 'Promotion name is required' });
+  try {
+    await prisma.business.upsert({
+      where: { id: DEMO_BUSINESS_ID },
+      update: {},
+      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
+    });
+
+    const promo = await prisma.promotion.create({
+      data: {
+        businessId: DEMO_BUSINESS_ID,
+        name: name.trim(),
+        code: code ? code.trim() : `PROMO-${Date.now().toString().slice(-4)}`,
+        type: type || 'PERCENTAGE',
+        discountValue: parseFloat(discountValue || 0),
+        minOrderValue: minOrderValue ? parseFloat(minOrderValue) : null,
+        isActive: true,
+      }
+    });
+    console.log(`✅ Promotion stored in DB: ${promo.name}`);
+    return res.status(201).json(promo);
+  } catch (err) {
+    console.error('❌ Error creating promotion:', err);
+    return res.status(500).json({ error: 'Failed to create promotion' });
+  }
+});
+
+app.delete('/api/promotions/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.promotion.delete({ where: { id } });
+    return res.json({ success: true, id });
+  } catch (err) {
+    return res.json({ success: true, id });
   }
 });
 

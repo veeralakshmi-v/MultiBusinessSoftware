@@ -171,35 +171,43 @@ export default function MenuManagement() {
     e.preventDefault();
     if (!catName.trim()) return;
 
-    let updatedCats: Category[];
     if (editingCategory) {
       const updatedCat = { ...editingCategory, name: catName.trim(), description: catDesc.trim() };
-      updatedCats = categories.map(c => c.id === editingCategory.id ? updatedCat : c);
+      const updatedCats = categories.map(c => c.id === editingCategory.id ? updatedCat : c);
+      setCategories(updatedCats);
+      localStorage.setItem('universal_categories', JSON.stringify(updatedCats));
       try {
-        fetch(`/api/categories/${editingCategory.id}`, {
+        await fetch(`/api/categories/${editingCategory.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updatedCat),
         });
       } catch (e) {}
     } else {
-      const newCat: Category = {
+      let createdCat: Category = {
         id: `cat-${Date.now()}`,
         name: catName.trim(),
         description: catDesc.trim(),
       };
-      updatedCats = [...categories, newCat];
       try {
-        fetch('/api/categories', {
+        const res = await fetch('/api/categories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newCat),
+          body: JSON.stringify({ name: catName.trim(), description: catDesc.trim() }),
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.id) {
+            createdCat = { ...createdCat, id: data.id, name: data.name || createdCat.name };
+          }
+        }
       } catch (e) {}
+
+      const updatedCats = [...categories, createdCat];
+      setCategories(updatedCats);
+      localStorage.setItem('universal_categories', JSON.stringify(updatedCats));
     }
 
-    setCategories(updatedCats);
-    localStorage.setItem('universal_categories', JSON.stringify(updatedCats));
     window.dispatchEvent(new Event('storage'));
     setIsCategoryModalOpen(false);
   };
@@ -289,29 +297,38 @@ export default function MenuManagement() {
       isAvailable: itemAvailable,
     };
 
-    let updatedItems: MenuItem[];
     if (editingItem) {
-      updatedItems = items.map(i => i.id === editingItem.id ? itemData : i);
+      const updatedItems = items.map(i => i.id === editingItem.id ? itemData : i);
+      setItems(updatedItems);
+      localStorage.setItem('universal_items', JSON.stringify(updatedItems));
       try {
-        fetch(`/api/menu-items/${editingItem.id}`, {
+        await fetch(`/api/menu-items/${editingItem.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(itemData),
         });
       } catch (e) {}
     } else {
-      updatedItems = [itemData, ...items];
+      let createdItem = itemData;
       try {
-        fetch('/api/menu-items', {
+        const res = await fetch('/api/menu-items', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(itemData),
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.id) {
+            createdItem = { ...createdItem, id: data.id };
+          }
+        }
       } catch (e) {}
+
+      const updatedItems = [createdItem, ...items];
+      setItems(updatedItems);
+      localStorage.setItem('universal_items', JSON.stringify(updatedItems));
     }
 
-    setItems(updatedItems);
-    localStorage.setItem('universal_items', JSON.stringify(updatedItems));
     window.dispatchEvent(new Event('storage'));
     setIsItemModalOpen(false);
   };

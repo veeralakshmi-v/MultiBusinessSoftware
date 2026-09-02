@@ -143,6 +143,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (err) {
         console.error('Failed to persist business profile to localStorage:', err);
       }
+
+      // Persist to backend database API
+      try {
+        fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated),
+        }).catch(err => console.error('Failed to save settings to API:', err));
+      } catch (e) {}
+
       return updated;
     });
     window.dispatchEvent(new Event('settings_updated'));
@@ -257,6 +267,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     };
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.businessName) {
+            setBusinessProfile(prev => ({
+              ...prev,
+              businessName: data.businessName || prev.businessName,
+              legalName: data.legalName || prev.legalName,
+              address: data.address || prev.address,
+              phone: data.phone || prev.phone,
+              email: data.email || prev.email,
+              gstin: data.gstin || prev.gstin,
+              currencySymbol: data.currencySymbol || prev.currencySymbol,
+              currencyCode: data.currencyCode || prev.currencyCode,
+              invoicePrefix: data.invoicePrefix || prev.invoicePrefix,
+              nextInvoiceNumber: data.nextInvoiceNumber || prev.nextInvoiceNumber,
+              taxMode: data.taxMode || prev.taxMode,
+              termsText: data.termsText || prev.termsText,
+              thankYouNote: data.thankYouNote || prev.thankYouNote,
+              logoUrl: data.logoUrl || prev.logoUrl,
+            }));
+          }
+        }
+      } catch (err) {}
+    };
+
+    fetchSettings();
     fetchUser();
   }, [token]);
 

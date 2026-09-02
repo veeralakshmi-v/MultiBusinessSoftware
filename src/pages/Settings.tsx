@@ -457,6 +457,20 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       };
       setStaffList(prev => [...prev, newStaff]);
     }
+
+    // Save to backend database API
+    try {
+      fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: effectiveUsername,
+          password: staffPin.trim() || '1234',
+          role: computedRole,
+        }),
+      }).catch(err => console.error('Failed to sync user to API:', err));
+    } catch (e) {}
+
     setIsStaffModalOpen(false);
   };
 
@@ -467,6 +481,9 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
     }
     if (confirm('Delete this staff account?')) {
       setStaffList(prev => prev.filter(s => s.id !== id));
+      try {
+        fetch(`/api/users/${id}`, { method: 'DELETE' }).catch(() => {});
+      } catch (e) {}
     }
   };
 
