@@ -519,10 +519,10 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
 
       {/* Add Product Form */}
       {showForm && (
-        <div className="bg-theme-surface border border-theme-secondary/30 p-5 rounded-2xl shadow-xl">
+        <div className="bg-theme-surface border border-theme-secondary/30 p-4 sm:p-5 rounded-2xl shadow-xl">
           <h3 className="text-sm font-bold text-theme-primary mb-4">Add New Product</h3>
-          <form onSubmit={handleSubmit} className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="col-span-2">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="col-span-1 sm:col-span-2">
               <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Product Name</label>
               <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1" placeholder="e.g. Garam Masala 100g" />
             </div>
@@ -595,9 +595,9 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
-            <div className="col-span-4 flex gap-3 mt-2">
-              <button type="submit" className="px-6 py-2 btn-theme-secondary font-bold text-xs rounded-xl uppercase shadow-md">Save Item</button>
-              <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-theme-card text-theme-primary opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100">Cancel</button>
+            <div className="col-span-1 sm:col-span-2 md:col-span-4 flex flex-wrap gap-3 mt-2">
+              <button type="submit" className="flex-1 sm:flex-none px-6 py-2.5 btn-theme-secondary font-bold text-xs rounded-xl uppercase shadow-md">Save Item</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 sm:flex-none px-6 py-2.5 bg-theme-card text-theme-primary opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100">Cancel</button>
             </div>
           </form>
         </div>
