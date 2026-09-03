@@ -328,35 +328,35 @@ export default function Reports() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#131315] border border-[#1F1F21] p-5 rounded-2xl shadow-lg">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-[#131315] border border-[#1F1F21] p-4 sm:p-5 rounded-2xl shadow-lg">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-[#C5A059]" />
-            <h1 className="text-xl font-bold text-white tracking-tight">Sales & Revenue Reports</h1>
+            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-[#C5A059] flex-shrink-0" />
+            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">Sales & Revenue Reports</h1>
           </div>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-400 mt-1 truncate">
             Complete business sales analytics, invoice register, and item & category performance breakdown.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
           <button
             onClick={fetchOrders}
-            className="p-2 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl hover:border-[#C5A059] text-gray-400 hover:text-[#C5A059] transition-colors"
+            className="p-2 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl hover:border-[#C5A059] text-gray-400 hover:text-[#C5A059] transition-colors flex-shrink-0"
             title="Refresh Report Data"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleExportCSV}
-            className="px-4 py-2 bg-[#1A1A1C] hover:bg-[#252528] text-white border border-[#2D2D30] rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+            className="px-3 sm:px-4 py-2 bg-[#1A1A1C] hover:bg-[#252528] text-white border border-[#2D2D30] rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
           >
             <Download className="w-4 h-4 text-[#C5A059]" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => window.print()}
-            className="px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:brightness-110 transition-all flex items-center gap-2"
+            className="px-3 sm:px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:brightness-110 transition-all flex items-center gap-1.5"
           >
             <Printer className="w-4 h-4" />
             <span>Print Report</span>
@@ -365,9 +365,9 @@ export default function Reports() {
       </div>
 
       {/* Date Range & Search Filter Bar */}
-      <div className="bg-[#131315] border border-[#1F1F21] p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-[#131315] border border-[#1F1F21] p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Date Presets */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-pan-x pb-1 sm:pb-0">
           {[
             { id: 'TODAY', label: 'Today' },
             { id: 'YESTERDAY', label: 'Yesterday' },
@@ -379,9 +379,9 @@ export default function Reports() {
               key={p.id}
               onClick={() => setDateRangePreset(p.id)}
               className={cn(
-                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap",
+                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0",
                 dateRangePreset === p.id
-                  ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20"
+                  ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20 font-extrabold"
                   : "bg-[#1A1A1C] text-gray-400 hover:text-white border border-[#262629]"
               )}
             >
@@ -391,26 +391,30 @@ export default function Reports() {
         </div>
 
         {/* Date Inputs */}
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-gray-400">From:</span>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => { setStartDate(e.target.value); setDateRangePreset('CUSTOM'); }}
-            className="bg-[#1A1A1C] border border-[#2D2D30] text-white px-2.5 py-1.5 rounded-xl outline-none focus:border-[#C5A059] font-mono text-xs"
-          />
-          <span className="text-gray-400">To:</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => { setEndDate(e.target.value); setDateRangePreset('CUSTOM'); }}
-            className="bg-[#1A1A1C] border border-[#2D2D30] text-white px-2.5 py-1.5 rounded-xl outline-none focus:border-[#C5A059] font-mono text-xs"
-          />
+        <div className="flex items-center gap-2 text-xs w-full sm:w-auto justify-between">
+          <div className="flex items-center gap-1">
+            <span className="text-gray-400 text-xs">From:</span>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => { setStartDate(e.target.value); setDateRangePreset('CUSTOM'); }}
+              className="bg-[#1A1A1C] border border-[#2D2D30] text-white px-2 py-1.5 rounded-xl outline-none focus:border-[#C5A059] font-mono text-xs w-28 sm:w-auto"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-gray-400 text-xs">To:</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => { setEndDate(e.target.value); setDateRangePreset('CUSTOM'); }}
+              className="bg-[#1A1A1C] border border-[#2D2D30] text-white px-2 py-1.5 rounded-xl outline-none focus:border-[#C5A059] font-mono text-xs w-28 sm:w-auto"
+            />
+          </div>
         </div>
       </div>
 
-      {/* KPI Summary Cards with Separate GST, Non-GST & Pending Due Columns */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-5 gap-3">
         <div className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-2xl shadow-md">
           <div className="text-[11px] text-gray-400 font-medium">Total Gross Sales</div>
           <div className="text-xl font-bold text-white mt-1 font-mono">

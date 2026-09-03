@@ -523,13 +523,13 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       </div>
 
       {/* Tabs Row */}
-      <div className="flex items-center gap-2 border-b border-[#1F1F21] pb-2 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1.5 border-b border-[#1F1F21] pb-2 overflow-x-auto no-scrollbar touch-pan-x">
         <button
           onClick={() => setActiveTab('profile')}
           className={cn(
-            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
+            "px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0",
             activeTab === 'profile'
-              ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20"
+              ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20 font-extrabold"
               : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
           )}
         >

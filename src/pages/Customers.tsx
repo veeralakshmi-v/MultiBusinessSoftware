@@ -51,28 +51,28 @@ export default function Customers() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-white">Customers & Loyalty</h1>
-          <p className="text-gray-400 text-sm mt-1">Manage profiles, order history, and rewards</p>
+          <h1 className="text-xl sm:text-2xl font-serif font-bold text-white">Customers & Loyalty CRM</h1>
+          <p className="text-gray-400 text-xs sm:text-sm mt-0.5">Manage customer profiles, order history, credit balance, and rewards</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="bg-[#C5A059] text-[#0A0A0B] px-4 py-2 rounded-lg font-bold flex items-center gap-2">
-          <Plus className="w-5 h-5"/> New Customer
+        <button onClick={() => setShowForm(true)} className="w-full sm:w-auto justify-center bg-[#C5A059] text-[#0A0A0B] px-4 py-2 rounded-xl font-bold flex items-center gap-2 text-xs shadow-md">
+          <Plus className="w-4 h-4"/> New Customer
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 bg-[#131315] border border-[#2D2D30] rounded-xl overflow-hidden flex flex-col max-h-[700px]">
-          <div className="p-4 border-b border-[#2D2D30] bg-[#0A0A0B]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="lg:col-span-1 bg-[#131315] border border-[#2D2D30] rounded-2xl overflow-hidden flex flex-col max-h-[350px] sm:max-h-[700px]">
+          <div className="p-3 sm:p-4 border-b border-[#2D2D30] bg-[#0A0A0B]">
             <div className="relative">
-              <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-500" />
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-500" />
               <input
                 type="text"
                 placeholder="Search name or mobile..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-[#C5A059]"
               />
             </div>
           </div>

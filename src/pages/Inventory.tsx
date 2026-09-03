@@ -36,13 +36,13 @@ export default function Inventory() {
       </div>
 
       {/* Visible Pill Button Tab Switcher */}
-      <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-theme-surface border border-theme-secondary/30 rounded-2xl">
+      <div className="flex items-center gap-1.5 p-1.5 bg-theme-surface border border-theme-secondary/30 rounded-2xl overflow-x-auto no-scrollbar touch-pan-x">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={cn(
-              "px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5",
+              "px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0",
               activeTab === tab.id
                 ? "btn-theme-secondary shadow-md font-extrabold"
                 : "text-theme-primary opacity-75 hover:opacity-100 hover:bg-theme-secondary/15"
@@ -298,6 +298,23 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       if (i.id === itemId) {
         const cur = i.currentStock ?? 50;
         return { ...i, currentStock: Math.max(0, cur + delta) };
+      }
+      return i;
+    });
+    localStorage.setItem('universal_items', JSON.stringify(updated));
+    window.dispatchEvent(new Event('storage'));
+    fetchMats();
+  };
+
+  const handleSetStock = (itemId: string, newStock: number) => {
+    let existing: any[] = [];
+    try {
+      const saved = localStorage.getItem('universal_items');
+      if (saved) existing = JSON.parse(saved);
+    } catch {}
+    const updated = existing.map(i => {
+      if (i.id === itemId) {
+        return { ...i, currentStock: Math.max(0, newStock) };
       }
       return i;
     });
@@ -682,8 +699,83 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         </div>
       )}
 
-      {/* Comprehensive Products Table */}
-      <div className="bg-theme-surface border border-theme-secondary/20 rounded-2xl overflow-hidden shadow-xl">
+      {/* Mobile Card List View (<sm) */}
+      <div className="block sm:hidden space-y-3">
+        {filtered.length === 0 ? (
+          <div className="bg-theme-surface border border-theme-secondary/20 p-6 rounded-2xl text-center text-xs text-theme-primary opacity-60">
+            No products found matching your search or filters. Click "Add {stockNoun.split(' ')[0]}" above to create one.
+          </div>
+        ) : (
+          filtered.map(m => (
+            <div key={m.id} className="bg-theme-surface border border-theme-secondary/20 rounded-xl p-3.5 space-y-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h4 className="font-bold text-theme-primary text-sm leading-tight">{m.name}</h4>
+                  <span className="text-[10px] text-theme-primary opacity-60 block mt-0.5">{m.categoryName || 'General'}</span>
+                </div>
+                <span className="font-mono font-bold text-theme-accent text-sm flex-shrink-0">
+                  ₹{(m.pricePerUnit || m.price || 0).toFixed(2)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-theme-secondary/15">
+                <span className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-bold font-mono border",
+                  (m.currentStock ?? 0) <= (m.minStockLevel ?? 10)
+                    ? 'bg-red-500/15 text-red-400 border-red-500/30'
+                    : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                )}>
+                  {m.currentStock ?? 0} {m.unit || 'Pcs'} left
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <div className="inline-flex items-center gap-1 bg-theme-card px-1 py-0.5 rounded-xl border border-theme-secondary/30">
+                    <button
+                      onClick={() => handleAdjustStock(m.id, -1)}
+                      className="w-5 h-5 flex items-center justify-center font-extrabold text-xs text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                      title="Decrease Stock (-1)"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      min="0"
+                      value={m.currentStock ?? 0}
+                      onChange={(e) => handleSetStock(m.id, Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-11 text-center font-mono font-bold text-xs bg-transparent border-0 outline-none text-theme-primary focus:ring-1 focus:ring-theme-accent rounded"
+                    />
+                    <button
+                      onClick={() => handleAdjustStock(m.id, 1)}
+                      className="w-5 h-5 flex items-center justify-center font-extrabold text-xs text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"
+                      title="Increase Stock (+1)"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => handleEditClick(m)}
+                    className="p-1.5 text-theme-accent hover:bg-theme-secondary/20 rounded-lg"
+                    title="Edit Product"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteItem(m.id, m.name)}
+                    className="p-1.5 text-red-400 hover:bg-red-500/20 rounded-lg"
+                    title="Delete Product"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Comprehensive Products Table (>=sm) */}
+      <div className="hidden sm:block bg-theme-surface border border-theme-secondary/20 rounded-2xl overflow-hidden shadow-xl">
         <table className="w-full text-left text-sm text-theme-primary">
           <thead className="bg-theme-card text-theme-primary font-bold uppercase text-xs border-b border-theme-secondary/20">
             <tr>
@@ -743,20 +835,27 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <div className="inline-flex items-center gap-0.5 bg-theme-card p-0.5 rounded-lg border border-theme-secondary/30 mr-1">
+                    <div className="inline-flex items-center gap-1 bg-theme-card px-1.5 py-0.5 rounded-xl border border-theme-secondary/30 mr-1">
                       <button
-                        onClick={() => handleAdjustStock(m.id, -10)}
-                        className="px-1.5 py-0.5 text-[10px] font-bold text-red-400 hover:bg-red-500/20 rounded"
-                        title="Reduce 10 stock"
+                        onClick={() => handleAdjustStock(m.id, -1)}
+                        className="w-5 h-5 flex items-center justify-center font-extrabold text-xs text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                        title="Decrease Stock (-1)"
                       >
-                        -10
+                        -
                       </button>
+                      <input
+                        type="number"
+                        min="0"
+                        value={m.currentStock ?? 0}
+                        onChange={(e) => handleSetStock(m.id, Math.max(0, parseInt(e.target.value) || 0))}
+                        className="w-12 text-center font-mono font-bold text-xs bg-transparent border-0 outline-none text-theme-primary focus:ring-1 focus:ring-theme-accent rounded"
+                      />
                       <button
-                        onClick={() => handleAdjustStock(m.id, 10)}
-                        className="px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 hover:bg-emerald-500/20 rounded"
-                        title="Add 10 stock"
+                        onClick={() => handleAdjustStock(m.id, 1)}
+                        className="w-5 h-5 flex items-center justify-center font-extrabold text-xs text-emerald-400 hover:bg-emerald-500/20 rounded-lg transition-colors"
+                        title="Increase Stock (+1)"
                       >
-                        +10
+                        +
                       </button>
                     </div>
                     <button

@@ -206,6 +206,7 @@ export default function BillingPOS() {
   // Invoice Print Modal State
   const [activePrintOrder, setActivePrintOrder] = useState<OrderPrintData | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -975,14 +976,56 @@ export default function BillingPOS() {
         </div>
       </div>
 
-      {/* RIGHT: Billing Register & Cart Panel */}
-      <div className="w-full lg:w-[420px] xl:w-[450px] flex flex-col bg-theme-surface border border-theme-secondary/20 rounded-2xl overflow-hidden shadow-2xl flex-shrink-0">
+      {/* Floating Sticky Bottom Cart Action Bar for Mobile (<lg) */}
+      {cart.length > 0 && !isMobileCartOpen && (
+        <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-[#141416] border border-[#C5A059]/40 p-3 rounded-2xl shadow-2xl flex items-center justify-between backdrop-blur-md">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl btn-theme-secondary font-bold text-xs flex items-center justify-center shadow-md">
+              {cart.reduce((s, i) => s + i.quantity, 0)}
+            </div>
+            <div>
+              <div className="text-[10px] text-gray-400 font-bold uppercase">Total Bill</div>
+              <div className="text-sm font-bold text-white font-mono">{currency}{grandTotal.toFixed(2)}</div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsMobileCartOpen(true)}
+            className="px-4 py-2.5 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span>View Cart ({cart.length}) →</span>
+          </button>
+        </div>
+      )}
+
+      {/* Mobile Drawer Backdrop overlay */}
+      {isMobileCartOpen && (
+        <div 
+          onClick={() => setIsMobileCartOpen(false)} 
+          className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-45 animate-in fade-in" 
+        />
+      )}
+
+      {/* RIGHT: Billing Register & Cart Panel (Mobile Slide-up Drawer / Desktop Right Column) */}
+      <div className={cn(
+        "w-full lg:w-[420px] xl:w-[450px] flex flex-col bg-theme-surface border border-theme-secondary/20 overflow-hidden shadow-2xl flex-shrink-0 transition-all duration-300",
+        "fixed inset-x-0 bottom-0 z-50 h-[90vh] rounded-t-3xl border-t border-[#C5A059]/40 lg:static lg:h-auto lg:rounded-2xl lg:z-auto",
+        isMobileCartOpen ? "translate-y-0" : "translate-y-full lg:translate-y-0 hidden lg:flex"
+      )}>
         {/* Cart Top Bar: Customer Selector & Held Bills */}
         <div className="p-3.5 border-b border-theme-secondary/20 space-y-2.5 bg-theme-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsMobileCartOpen(false)}
+                className="lg:hidden p-1 rounded-lg text-gray-400 hover:text-white bg-[#1A1A1C] mr-1"
+                title="Close Cart Drawer"
+              >
+                <X className="w-4 h-4" />
+              </button>
               <Receipt className="w-4 h-4 text-theme-accent" />
-              <span className="text-xs font-bold uppercase tracking-wider text-theme-primary">Current Sale</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-theme-primary">Current Sale ({cart.length} items)</span>
             </div>
 
             <div className="flex items-center gap-1.5">

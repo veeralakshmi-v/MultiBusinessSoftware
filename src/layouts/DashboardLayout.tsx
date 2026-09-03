@@ -350,15 +350,15 @@ export default function DashboardLayout() {
       )}
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         {/* Top Navbar */}
-        <header className="h-16 bg-[#0F0F10] border-b border-[#1F1F21] flex items-center justify-between px-4 lg:px-8 z-10 flex-shrink-0">
-          <div className="flex items-center gap-2 sm:gap-4">
+        <header className="h-16 bg-[#0F0F10] border-b border-[#1F1F21] flex items-center justify-between px-3 sm:px-5 lg:px-8 z-10 flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
             {/* Mobile Hamburger & Logo */}
-            <div className="flex items-center md:hidden">
+            <div className="flex items-center md:hidden min-w-0">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 rounded-xl text-gray-300 hover:text-white bg-[#1A1A1C] border border-[#2D2D30] mr-2"
+                className="p-2 rounded-xl text-gray-300 hover:text-white bg-[#1A1A1C] border border-[#2D2D30] mr-2 flex-shrink-0"
                 title="Open Navigation Menu"
               >
                 <Menu className="w-5 h-5 text-[#C5A059]" />
@@ -366,7 +366,7 @@ export default function DashboardLayout() {
               <div className="w-8 h-8 btn-theme-secondary rounded-lg flex items-center justify-center font-bold text-lg mr-2 flex-shrink-0">
                 {brandTitle.charAt(0).toUpperCase()}
               </div>
-              <h1 className="font-serif font-bold text-sm tracking-tight text-white truncate max-w-[120px]">{brandTitle}</h1>
+              <h1 className="font-serif font-bold text-xs sm:text-sm tracking-tight text-white truncate max-w-[90px] xs:max-w-[140px] sm:max-w-xs">{brandTitle}</h1>
             </div>
 
             {/* Desktop Sidebar Toggle in Top Bar */}
@@ -379,33 +379,33 @@ export default function DashboardLayout() {
               <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">{isCollapsed ? "Expand" : "Collapse"}</span>
             </button>
 
-            <div className="hidden md:flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-400">
+            <div className="hidden lg:flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-400 truncate max-w-xs">
                 {brandTitle}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             {/* Quick Theme Customizer Button */}
             <Link
               to="/dashboard/settings"
               state={{ tab: 'theme' }}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1A1A1C] hover:bg-[#252528] text-gray-300 hover:text-white border border-[#2D2D30] text-xs font-bold rounded-xl transition-all"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-[#1A1A1C] hover:bg-[#252528] text-gray-300 hover:text-white border border-[#2D2D30] text-xs font-bold rounded-xl transition-all"
               title="Change Application Theme & Color Palette"
             >
               <Palette className="w-4 h-4 text-theme-secondary" />
-              <span className="hidden md:inline">Theme</span>
+              <span className="hidden sm:inline">Theme</span>
             </Link>
 
             {/* Quick POS Shortcut */}
             {isRouteAllowedForRole(user.role, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
               <Link
                 to="/dashboard/billing"
-                className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 btn-theme-secondary font-bold text-xs rounded-xl shadow-lg transition-all"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 btn-theme-secondary font-bold text-xs rounded-xl shadow-lg transition-all"
               >
                 <Receipt className="w-4 h-4" />
-                <span>Open POS</span>
+                <span className="hidden sm:inline">Open POS</span>
               </Link>
             )}
 
@@ -413,8 +413,8 @@ export default function DashboardLayout() {
             <NotificationCenter />
 
             {/* User Badge */}
-            <div className="flex items-center gap-3 px-3 py-1.5 bg-[#1A1A1C] rounded-xl border border-[#1F1F21]">
-              <div className="w-7 h-7 rounded-full bg-[#C5A059] flex items-center justify-center text-xs font-bold text-[#0A0A0B] shadow-md">
+            <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 bg-[#1A1A1C] rounded-xl border border-[#1F1F21]">
+              <div className="w-7 h-7 rounded-full bg-[#C5A059] flex items-center justify-center text-xs font-bold text-[#0A0A0B] shadow-md flex-shrink-0">
                 {user.username.substring(0, 2).toUpperCase()}
               </div>
               <div className="hidden sm:flex flex-col pr-1">
@@ -425,7 +425,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main className={cn("flex-1 bg-[#0A0A0B]", location.pathname === '/billing' ? "p-2 lg:p-3 overflow-hidden flex flex-col h-[calc(100vh-64px)]" : "p-3 sm:p-5 lg:p-8 overflow-y-auto")}>
+        <main className={cn("flex-1 bg-[#0A0A0B]", location.pathname === '/billing' ? "p-1.5 sm:p-3 overflow-hidden flex flex-col h-[calc(100vh-64px)]" : "p-2.5 sm:p-5 lg:p-8 overflow-y-auto")}>
           <div className={cn("w-full h-full flex flex-col flex-1 min-w-0", location.pathname === '/billing' ? "overflow-hidden" : "mx-auto max-w-7xl")}>
             {isCurrentRouteAllowed ? (
               <Outlet />

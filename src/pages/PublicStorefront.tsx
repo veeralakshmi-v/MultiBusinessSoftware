@@ -238,7 +238,7 @@ export default function PublicStorefront() {
         </div>
 
         {/* Product Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {filteredItems.map(item => (
             <div key={item.id} className="bg-[#131315] border border-[#1F1F21] hover:border-[#C5A059]/40 p-5 rounded-2xl space-y-4 flex flex-col justify-between transition-all group shadow-lg">
               <div className="space-y-2">
