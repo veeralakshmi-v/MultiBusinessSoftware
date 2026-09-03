@@ -558,16 +558,16 @@ export default function EmployeeDirectory() {
           <table className="w-full text-left text-xs">
             <thead className="bg-[#161618] text-gray-400 font-bold uppercase text-[10px] border-b border-[#1F1F21]">
               <tr>
-                <th className="p-3.5">Employee</th>
-                <th className="p-3.5">Category</th>
-                <th className="p-3.5">Role</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5">DOB</th>
-                <th className="p-3.5">DOJ</th>
-                <th className="p-3.5">DOR</th>
-                <th className="p-3.5 text-[#C5A059]">Aadhar No. *</th>
-                <th className="p-3.5">Contact No.</th>
-                <th className="p-3.5 text-right">Actions</th>
+                <th className="p-3.5 whitespace-nowrap">Employee</th>
+                <th className="p-3.5 whitespace-nowrap">Category</th>
+                <th className="p-3.5 whitespace-nowrap">Role</th>
+                <th className="p-3.5 whitespace-nowrap">Status</th>
+                <th className="p-3.5 whitespace-nowrap">DOB</th>
+                <th className="p-3.5 whitespace-nowrap">DOJ</th>
+                <th className="p-3.5 whitespace-nowrap">DOR</th>
+                <th className="p-3.5 text-[#C5A059] whitespace-nowrap">Aadhar No. *</th>
+                <th className="p-3.5 whitespace-nowrap">Contact No.</th>
+                <th className="p-3.5 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1F1F21]">
