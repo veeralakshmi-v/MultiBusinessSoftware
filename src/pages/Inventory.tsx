@@ -1104,31 +1104,31 @@ function TransactionsTab() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <div className="xl:col-span-2 bg-[#131315] border border-[#2D2D30] rounded-xl overflow-hidden">
-        <table className="w-full text-left text-sm text-gray-300">
-          <thead className="bg-[#0A0A0B] text-gray-400 font-bold uppercase text-xs">
+      <div className="xl:col-span-2 bg-[#131315] border border-[#2D2D30] rounded-2xl overflow-x-auto">
+        <table className="w-full text-left text-xs sm:text-sm text-gray-300">
+          <thead className="bg-[#0A0A0B] text-gray-400 font-bold uppercase text-[10px] sm:text-xs">
             <tr>
-              <th className="px-6 py-4">Date</th>
-              <th className="px-6 py-4">Material</th>
-              <th className="px-6 py-4">Type</th>
-              <th className="px-6 py-4">Qty</th>
-              <th className="px-6 py-4">Value</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Date</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Material</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Type</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Qty</th>
+              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Value</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#2D2D30]">
             {transactions.map(tx => (
               <tr key={tx.id} className="hover:bg-[#1A1A1C]">
-                <td className="px-6 py-4">{new Date(tx.createdAt).toLocaleDateString()}</td>
-                <td className="px-6 py-4 font-bold text-white">{tx.rawMaterial?.name}</td>
-                <td className="px-6 py-4">
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{new Date(tx.createdAt).toLocaleDateString()}</td>
+                <td className="px-3 sm:px-6 py-3 sm:py-4 font-bold text-white whitespace-nowrap">{tx.rawMaterial?.name}</td>
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                   <span className={cn(
-                    "px-2 py-1 rounded text-xs font-bold",
+                    "px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold",
                     tx.type === 'STOCK_IN' || tx.type === 'PURCHASE' ? 'bg-green-500/10 text-green-500' :
                     tx.type === 'WASTE' ? 'bg-red-500/10 text-red-500' : 'bg-orange-500/10 text-orange-500'
                   )}>{tx.type}</span>
                 </td>
-                <td className="px-6 py-4">{tx.quantity}</td>
-                <td className="px-6 py-4">₹{tx.totalValue.toFixed(2)}</td>
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-mono">{tx.quantity}</td>
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-mono">₹{tx.totalValue.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>

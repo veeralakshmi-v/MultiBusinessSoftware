@@ -298,46 +298,44 @@ export default function AttendanceCalendar({
       )}
 
       {/* Header & Controls */}
-      <div className="flex items-center justify-between gap-2 border-b border-theme-secondary/15 pb-2.5">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg btn-theme-secondary flex items-center justify-center font-bold">
-            <CalendarIcon className="w-3.5 h-3.5" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-theme-secondary/15 pb-2.5">
+        <div className="flex items-center justify-between w-full sm:w-auto gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-lg btn-theme-secondary flex items-center justify-center font-bold flex-shrink-0">
+              <CalendarIcon className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-xs sm:text-sm font-bold text-theme-primary leading-none truncate">
+                {monthNames[month]} {year}
+              </h2>
+              <p className="text-[10px] text-theme-accent mt-0.5 font-medium truncate">{userName}'s Calendar</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xs sm:text-sm font-bold text-theme-primary leading-none">
-              {monthNames[month]} {year}
-            </h2>
-            <p className="text-[10px] text-theme-accent mt-0.5 font-medium">{userName}'s Calendar</p>
+
+          <div className="flex items-center gap-1 sm:hidden flex-shrink-0">
+            <button
+              onClick={todayMonth}
+              className="px-2 py-1 bg-theme-card hover:bg-theme-secondary/15 border border-theme-secondary/20 text-theme-primary text-[10px] font-bold rounded-lg"
+            >
+              Today
+            </button>
+            <button
+              onClick={prevMonth}
+              className="p-1 bg-theme-card hover:bg-theme-secondary/15 border border-theme-secondary/20 text-theme-primary rounded-lg"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={nextMonth}
+              className="p-1 bg-theme-card hover:bg-theme-secondary/15 border border-theme-secondary/20 text-theme-primary rounded-lg"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
 
-        {/* Legend + Admin Action + Navigation */}
-        <div className="flex items-center gap-2">
-          <div className="hidden lg:flex items-center gap-2 text-[10px] font-bold mr-2 flex-wrap">
-            <span className="flex items-center gap-1 text-emerald-500">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Present
-            </span>
-            <span className="flex items-center gap-1 text-cyan-500">
-              <span className="w-2 h-2 rounded-full bg-cyan-500" /> Half Day (Cyan)
-            </span>
-            <span className="flex items-center gap-1 text-orange-500">
-              <span className="w-2 h-2 rounded-full bg-orange-500" /> Applied (Orange)
-            </span>
-            <span className="flex items-center gap-1 text-purple-500">
-              <span className="w-2 h-2 rounded-full bg-purple-500" /> Upcoming (Purple)
-            </span>
-            <span className="flex items-center gap-1 text-yellow-500">
-              <span className="w-2 h-2 rounded-full bg-yellow-500" /> Taken (Yellow)
-            </span>
-            <span className="flex items-center gap-1 text-slate-400">
-              <span className="w-2 h-2 rounded-full bg-slate-400" /> Rejected (Gray)
-            </span>
-            <span className="flex items-center gap-1 text-red-500">
-              <span className="w-2 h-2 rounded-full bg-red-500" /> Absent (Red)
-            </span>
-          </div>
-
-          {/* Admin / Manager Concern Leave Button */}
+        {/* Legend + Admin Action + Navigation (Desktop / Tablet) */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
           {isAdminOrManager && (
             <button
               onClick={() => {
@@ -352,24 +350,26 @@ export default function AttendanceCalendar({
             </button>
           )}
 
-          <button
-            onClick={todayMonth}
-            className="px-2 py-1 bg-theme-card hover:bg-theme-secondary/15 border border-theme-secondary/20 text-theme-primary text-[10px] font-bold rounded-lg transition-all"
-          >
-            Today
-          </button>
-          <button
-            onClick={prevMonth}
-            className="p-1 bg-theme-card hover:bg-theme-secondary/15 border border-theme-secondary/20 text-theme-primary rounded-lg transition-all"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={nextMonth}
-            className="p-1 bg-theme-card hover:bg-theme-secondary/15 border border-theme-secondary/20 text-theme-primary rounded-lg transition-all"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="hidden sm:flex items-center gap-1">
+            <button
+              onClick={todayMonth}
+              className="px-2 py-1 bg-theme-card hover:bg-theme-secondary/15 border border-theme-secondary/20 text-theme-primary text-[10px] font-bold rounded-lg"
+            >
+              Today
+            </button>
+            <button
+              onClick={prevMonth}
+              className="p-1 bg-theme-card hover:bg-theme-secondary/15 border border-theme-secondary/20 text-theme-primary rounded-lg"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={nextMonth}
+              className="p-1 bg-theme-card hover:bg-theme-secondary/15 border border-theme-secondary/20 text-theme-primary rounded-lg"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 

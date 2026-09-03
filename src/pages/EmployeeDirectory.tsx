@@ -363,21 +363,21 @@ export default function EmployeeDirectory() {
   });
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto">
+    <div className="p-3 sm:p-6 md:p-8 space-y-4 sm:space-y-6 max-w-[1600px] mx-auto min-w-0">
 
       {/* ── HEADER & CONTROLS ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#131315] border border-[#1F1F21] p-5 rounded-2xl shadow-xl">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C5A059]/20 to-[#C5A059]/5 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059] shadow-lg">
-            <Users className="w-6 h-6" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#131315] border border-[#1F1F21] p-3.5 sm:p-5 rounded-2xl shadow-xl">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#C5A059]/20 to-[#C5A059]/5 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059] shadow-lg flex-shrink-0">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-white font-serif tracking-wide">Employee Directory</h1>
-            <p className="text-xs text-gray-400">Total {staffList.length} staff accounts enrolled</p>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold text-white font-serif tracking-wide truncate">Employee Directory</h1>
+            <p className="text-[11px] sm:text-xs text-gray-400 truncate">Total {staffList.length} staff accounts enrolled</p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
           <div className="relative flex-1 sm:w-64">
             <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -385,13 +385,13 @@ export default function EmployeeDirectory() {
               placeholder="Search staff, username, Aadhar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl pl-9 pr-4 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+              className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl pl-9 pr-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
             />
           </div>
 
           <button
             onClick={() => handleOpenModal()}
-            className="px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#d4b06a] hover:to-[#b08d4a] text-[#080809] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-[#C5A059]/20 flex items-center gap-2 transition-all"
+            className="px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#d4b06a] hover:to-[#b08d4a] text-[#080809] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-[#C5A059]/20 flex items-center justify-center gap-2 transition-all flex-shrink-0"
           >
             <UserPlus className="w-4 h-4" />
             <span>Add Employee</span>
@@ -400,34 +400,32 @@ export default function EmployeeDirectory() {
       </div>
 
       {/* ── CATEGORY & ROLE FILTERS ── */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex flex-wrap items-center gap-3 overflow-x-auto pb-1 max-w-full">
-          <div className="flex items-center gap-2">
-            <span className="text-gray-500 font-semibold text-[11px] flex items-center gap-1">
-              <Filter className="w-3 h-3 text-[#C5A059]" /> Role:
-            </span>
-            {['ALL', 'ADMIN', 'MANAGER', 'CASHIER', 'STAFF'].map(r => (
-              <button
-                key={r}
-                onClick={() => setRoleFilter(r as any)}
-                className={cn(
-                  "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border",
-                  roleFilter === r
-                    ? "btn-theme-secondary shadow-md border-transparent"
-                    : "bg-theme-surface text-theme-primary hover:bg-theme-secondary/20 border-theme-secondary/30"
-                )}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs min-w-0">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar touch-pan-x pb-1 w-full sm:w-auto flex-shrink-0">
+          <span className="text-gray-500 font-semibold text-[11px] flex items-center gap-1 whitespace-nowrap flex-shrink-0">
+            <Filter className="w-3 h-3 text-[#C5A059]" /> Role:
+          </span>
+          {['ALL', 'ADMIN', 'MANAGER', 'CASHIER', 'STAFF'].map(r => (
+            <button
+              key={r}
+              onClick={() => setRoleFilter(r as any)}
+              className={cn(
+                "px-3 py-1 rounded-xl text-xs font-bold transition-all border whitespace-nowrap flex-shrink-0",
+                roleFilter === r
+                  ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
+                  : "bg-theme-surface text-theme-primary hover:bg-theme-secondary/20 border-theme-secondary/30"
+              )}
+            >
+              {r}
+            </button>
+          ))}
 
-          <div className="flex items-center gap-2 border-l border-white/10 pl-3">
-            <span className="text-gray-500 font-semibold text-[11px]">Dept:</span>
+          <div className="flex items-center gap-1.5 border-l border-white/10 pl-2 flex-shrink-0">
+            <span className="text-gray-500 font-semibold text-[11px] whitespace-nowrap">Dept:</span>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-2.5 py-1 text-xs text-white outline-none focus:border-[#C5A059]"
+              className="bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-2 py-1 text-xs text-white outline-none focus:border-[#C5A059]"
             >
               <option value="ALL">All Departments</option>
               <option value="Management/Admin">Management/Admin</option>
@@ -439,7 +437,7 @@ export default function EmployeeDirectory() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 justify-end">
           <button
             onClick={() => setViewMode('grid')}
             className={cn(
