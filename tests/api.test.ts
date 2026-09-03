@@ -1157,9 +1157,10 @@ describe('Universal Theme System Tests', () => {
       'ROYAL_EMERALD',
       'SAPPHIRE_BLUE',
       'AMETHYST_PURPLE',
-      'RUBY_ROSE',
-      'SUNSET_AMBER',
-      'SLATE_CYAN'
+      'LIGHT_SAPPHIRE',
+      'LIGHT_ROYAL_GOLD',
+      'LIGHT_EMERALD',
+      'LIGHT_AMETHYST'
     ] as const;
 
     const registeredIds = new Set(COLOR_PRESETS.map(c => c.id));

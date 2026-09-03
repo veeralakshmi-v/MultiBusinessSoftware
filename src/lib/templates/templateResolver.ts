@@ -1,5 +1,5 @@
-import { BusinessTemplate, BusinessType } from '../../types/template';
-import { ALL_BUSINESS_TEMPLATES, RESTAURANT_TEMPLATE } from './businessTemplates';
+import { BusinessTemplate, BusinessType } from '../../types/template.js';
+import { ALL_BUSINESS_TEMPLATES, RESTAURANT_TEMPLATE } from './businessTemplates.js';
 
 export class TemplateResolver {
   /**

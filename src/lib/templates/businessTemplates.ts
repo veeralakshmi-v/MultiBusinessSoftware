@@ -1,4 +1,4 @@
-import { BusinessTemplate } from '../../types/template';
+import { BusinessTemplate } from '../../types/template.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. RESTAURANT & DINING CAFE TEMPLATE

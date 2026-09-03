@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres.yqciwlvmoboszvxzodrl:Kousalya%402252@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require&connection_limit=1';
+const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres.yqciwlvmoboszvxzodrl:Kousalya%402252@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require&connect_timeout=15&pool_timeout=20&connection_limit=10';
 const prisma = new PrismaClient({
   datasources: {
     db: {
@@ -16,6 +16,22 @@ const prisma = new PrismaClient({
     },
   },
 });
+
+// Auto-reconnect helper for Desktop Application socket resilience
+async function checkAndReconnectDb() {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+  } catch (err) {
+    console.warn('⚠️ Supabase connection dropped. Attempting desktop reconnect...', err);
+    try {
+      await prisma.$disconnect();
+      await prisma.$connect();
+      console.log('✅ Reconnected to Supabase PostgreSQL successfully!');
+    } catch (reconnectErr) {
+      console.error('❌ Failed to reconnect to Supabase:', reconnectErr);
+    }
+  }
+}
 
 // In-Memory Seed Data Fallbacks if DB is uninitialized
 const DEMO_BUSINESS_ID = 'biz-default-business';
@@ -69,10 +85,31 @@ let mockSettings = {
   },
 };
 
-// 1. Health Check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), service: 'Multi-Business Billing API' });
+// 1. Health & Desktop DB Status API
+app.get('/api/health', async (req, res) => {
+  const startTime = Date.now();
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    const latencyMs = Date.now() - startTime;
+    res.json({
+      status: 'ok',
+      dbStatus: 'CONNECTED',
+      latencyMs,
+      provider: 'Supabase PostgreSQL',
+      timestamp: new Date().toISOString(),
+      service: 'Multi-Business Billing Desktop API'
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      status: 'degraded',
+      dbStatus: 'DISCONNECTED',
+      error: err.message || String(err),
+      timestamp: new Date().toISOString(),
+      service: 'Multi-Business Billing Desktop API'
+    });
+  }
 });
+
 
 // 2. Authentication
 app.post('/api/auth/login', async (req, res) => {
@@ -1140,8 +1177,8 @@ app.delete('/api/promotions/:id', async (req, res) => {
 });
 
 // 11. Business Template Engine API
-import { TemplateResolver } from '../src/lib/templates/templateResolver';
-import { ALL_BUSINESS_TEMPLATES } from '../src/lib/templates/businessTemplates';
+import { TemplateResolver } from '../src/lib/templates/templateResolver.js';
+import { ALL_BUSINESS_TEMPLATES } from '../src/lib/templates/businessTemplates.js';
 
 app.get('/api/templates', (req, res) => {
   const templates = TemplateResolver.getAllTemplates().map(t => ({
