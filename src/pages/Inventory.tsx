@@ -484,15 +484,15 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       )}
 
       {/* Top Search & Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="relative">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto min-w-0">
+          <div className="relative w-full sm:w-72 min-w-0">
             <Search className="w-4 h-4 text-theme-primary opacity-60 absolute left-3 top-2.5" />
             <input
               placeholder={`Search products by Name, Barcode, SKU, HSN...`}
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
-              className="bg-theme-surface border border-theme-secondary/30 focus:border-theme-secondary text-theme-primary text-xs pl-9 pr-3 py-2 rounded-xl outline-none w-72"
+              className="bg-theme-surface border border-theme-secondary/30 focus:border-theme-secondary text-theme-primary text-xs pl-9 pr-3 py-2 rounded-xl outline-none w-full"
             />
           </div>
 
@@ -500,7 +500,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
           <select
             value={stockFilter}
             onChange={(e) => setStockFilter(e.target.value as any)}
-            className="bg-theme-surface border border-theme-secondary/30 text-theme-primary text-xs px-3 py-2 rounded-xl outline-none"
+            className="bg-theme-surface border border-theme-secondary/30 text-theme-primary text-xs px-3 py-2 rounded-xl outline-none w-full sm:w-auto flex-shrink-0"
           >
             <option value="ALL">All Stock Levels</option>
             <option value="IN_STOCK">In Stock</option>
@@ -511,7 +511,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
 
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl shadow-md"
+          className="flex items-center justify-center gap-2 px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl shadow-md w-full sm:w-auto flex-shrink-0"
         >
           <Plus className="w-3.5 h-3.5" /> Add {stockNoun.split(' ')[0]}
         </button>
