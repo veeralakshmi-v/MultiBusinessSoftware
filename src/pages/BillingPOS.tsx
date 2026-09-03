@@ -246,8 +246,34 @@ export default function BillingPOS() {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          setMenuItems(data);
-          localStorage.setItem('universal_items', JSON.stringify(data));
+          let existing: any[] = [];
+          try {
+            const saved = localStorage.getItem('universal_items');
+            if (saved) existing = JSON.parse(saved);
+          } catch {}
+
+          const stockMap = new Map(existing.map((it: any) => [it.id, it.currentStock]));
+          const nameStockMap = new Map(existing.map((it: any) => [it.name?.toLowerCase(), it.currentStock]));
+          const availMap = new Map(existing.map((it: any) => [it.id, it.isAvailable]));
+
+          const merged = data.map((d: any) => {
+            const savedStock = stockMap.get(d.id) ?? nameStockMap.get(d.name?.toLowerCase());
+            const savedAvail = availMap.get(d.id);
+            return {
+              ...d,
+              currentStock: (savedStock !== undefined && savedStock !== null) ? savedStock : (d.currentStock ?? 50),
+              isAvailable: savedAvail !== undefined ? savedAvail : (d.isAvailable !== false),
+            };
+          });
+
+          // Keep custom items from localStorage
+          const apiIds = new Set(data.map((d: any) => d.id));
+          existing.forEach((ex: any) => {
+            if (!apiIds.has(ex.id)) merged.push(ex);
+          });
+
+          setMenuItems(merged);
+          localStorage.setItem('universal_items', JSON.stringify(merged));
         }
       })
       .catch(() => {});
@@ -330,7 +356,8 @@ export default function BillingPOS() {
     const targetItem = exactMatched || (filteredItems.length === 1 ? filteredItems[0] : null);
 
     if (targetItem) {
-      if ((targetItem.currentStock ?? 0) <= 0) {
+      const stock = (targetItem.currentStock !== undefined && targetItem.currentStock !== null) ? targetItem.currentStock : 50;
+      if (targetItem.isAvailable === false || stock <= 0) {
         alert(`⚠️ "${targetItem.name}" is Out of Stock! Cannot add to bill.`);
         return;
       }
@@ -341,8 +368,8 @@ export default function BillingPOS() {
 
   // Click Product Card from Catalog Grid
   const handleProductCardClick = (item: MenuItem) => {
-    const stock = item.currentStock ?? 0;
-    if (stock <= 0) {
+    const stock = (item.currentStock !== undefined && item.currentStock !== null) ? item.currentStock : 50;
+    if (item.isAvailable === false || stock <= 0) {
       alert(`⚠️ "${item.name}" is Out of Stock (0 remaining)! Cannot add to bill.`);
       return;
     }
@@ -889,8 +916,8 @@ export default function BillingPOS() {
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5">
               {filteredItems.map(item => {
                 const inCart = cart.find(c => c.menuItem.id === item.id);
-                const stock = item.currentStock ?? 0;
-                const isOut = stock <= 0;
+                const stock = (item.currentStock !== undefined && item.currentStock !== null) ? item.currentStock : 50;
+                const isOut = item.isAvailable === false || stock <= 0;
 
                 return (
                   <div
