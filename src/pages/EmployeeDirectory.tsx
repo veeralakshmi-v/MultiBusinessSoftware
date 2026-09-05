@@ -121,26 +121,44 @@ export default function EmployeeDirectory() {
       .then((data: any[]) => {
         if (Array.isArray(data) && data.length > 0) {
           setStaffList(prev => {
-            const existingUsernames = new Set(prev.map(p => p.username || p.phone));
-            const merged = [...prev];
-            data.forEach((u: any) => {
-              const uName = u.username || u.phone;
-              if (uName && !existingUsernames.has(uName)) {
-                merged.push({
-                  id: u.id,
-                  name: u.username,
-                  username: u.username,
-                  phone: u.username,
-                  email: u.email || '',
-                  role: u.role || 'CASHIER',
-                  category: 'Management/Admin',
-                  applicationAccess: 'Full Access (All Modules & POS)',
-                  status: 'ACTIVE',
-                  pinCode: u.password || '1234',
-                });
-              }
+            const map = new Map<string, StaffUser>();
+            prev.forEach(p => {
+              const key = p.username || p.phone || p.id;
+              if (key) map.set(key, p);
             });
-            return merged;
+
+            data.forEach((u: any) => {
+              const key = u.username || u.phone || u.id;
+              if (!key) return;
+              const existing = map.get(key);
+
+              const serverName = (u.fullName && u.fullName.trim()) || (u.name && u.name.trim());
+              const isServerNameValid = serverName && serverName !== u.username && serverName !== u.phone;
+              const isExistingNameValid = existing?.name && existing.name !== existing.username && existing.name !== existing.phone;
+
+              const displayName = isServerNameValid
+                ? serverName
+                : (isExistingNameValid ? existing!.name : (serverName || u.username));
+
+              map.set(key, {
+                id: u.id || existing?.id || `emp-${Date.now()}`,
+                name: displayName,
+                username: u.username || existing?.username || key,
+                phone: u.phone || existing?.phone || u.username || '',
+                email: u.email || existing?.email || '',
+                role: u.role || existing?.role || 'CASHIER',
+                category: existing?.category || 'Management/Admin',
+                applicationAccess: existing?.applicationAccess || 'Full Access (All Modules & POS)',
+                status: u.status || existing?.status || 'ACTIVE',
+                pinCode: u.password || existing?.pinCode || '1234',
+                aadharNumber: u.aadharNumber || existing?.aadharNumber || '',
+                address: u.address || existing?.address || '',
+                dob: u.dob || existing?.dob || '',
+                doj: u.doj || existing?.doj || '',
+                photoUrl: u.photoUrl || existing?.photoUrl,
+              });
+            });
+            return Array.from(map.values());
           });
         }
       })
@@ -320,6 +338,8 @@ export default function EmployeeDirectory() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: staffName.trim(),
+        fullName: staffName.trim(),
+        staffName: staffName.trim(),
         username: effectiveUsername,
         phone: staffPhone.trim(),
         password: staffPin.trim() || '1234',

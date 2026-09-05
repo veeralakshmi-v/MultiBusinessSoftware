@@ -380,7 +380,35 @@ app.get('/api/users', async (req, res) => {
       where: { businessId: DEMO_BUSINESS_ID },
       orderBy: { createdAt: 'desc' }
     });
-    return res.json(users);
+    const employees = await prisma.employee.findMany({
+      where: { businessId: DEMO_BUSINESS_ID }
+    });
+
+    const empMap = new Map<string, any>();
+    employees.forEach(e => {
+      if (e.phone) empMap.set(e.phone, e);
+      if (e.employeeCode) {
+        empMap.set(e.employeeCode, e);
+        empMap.set(e.employeeCode.replace('EMP-', ''), e);
+      }
+    });
+
+    const enriched = users.map(u => {
+      const emp = empMap.get(u.username) || empMap.get(`EMP-${u.username}`);
+      const displayName = emp?.fullName || (emp?.firstName ? `${emp.firstName} ${emp.lastName || ''}`.trim() : '') || u.username;
+      return {
+        ...u,
+        name: displayName,
+        fullName: displayName,
+        phone: emp?.phone || u.username,
+        email: emp?.email || '',
+        aadharNumber: emp?.aadharNumber || '',
+        address: emp?.address || '',
+        status: emp?.status || 'ACTIVE',
+      };
+    });
+
+    return res.json(enriched);
   } catch (err) {
     return res.json([]);
   }
@@ -429,7 +457,7 @@ app.post('/api/users', async (req, res) => {
     const firstName = parts[0] || 'Employee';
     const lastName = parts.slice(1).join(' ') || 'Staff';
 
-    await prisma.employee.upsert({
+    const emp = await prisma.employee.upsert({
       where: { employeeCode: empCode },
       update: {
         fullName: effectiveName,
@@ -458,7 +486,15 @@ app.post('/api/users', async (req, res) => {
     });
 
     console.log(`✅ User & Employee stored in Supabase PostgreSQL: ${effectiveName} (${effectiveUsername})`);
-    return res.status(201).json(user);
+    return res.status(201).json({
+      ...user,
+      name: effectiveName,
+      fullName: effectiveName,
+      phone: effectiveUsername,
+      email: emp.email || '',
+      aadharNumber: emp.aadharNumber || '',
+      address: emp.address || ''
+    });
   } catch (err) {
     console.error('❌ Error saving user & employee:', err);
     return res.status(500).json({ error: 'Failed to save user & employee' });
@@ -482,13 +518,13 @@ app.post('/api/employees', async (req, res) => {
       create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
     });
 
-    const employee = await prisma.employee.upsert({
+    const emp = await prisma.employee.upsert({
       where: { employeeCode: empCode },
       update: {
         fullName: effectiveName,
         firstName,
         lastName,
-        phone: effectiveUsername || undefined,
+        phone: effectiveUsername,
         email: email || undefined,
         aadharNumber: aadharNumber || undefined,
         address: address || undefined,
@@ -501,7 +537,7 @@ app.post('/api/employees', async (req, res) => {
         firstName,
         lastName,
         fullName: effectiveName,
-        phone: effectiveUsername || undefined,
+        phone: effectiveUsername,
         email: email || undefined,
         aadharNumber: aadharNumber || undefined,
         address: address || undefined,
@@ -510,11 +546,27 @@ app.post('/api/employees', async (req, res) => {
       }
     });
 
-    console.log(`✅ Employee stored in Supabase Employee table: ${employee.fullName}`);
-    return res.status(201).json(employee);
+    if (effectiveUsername) {
+      await prisma.user.upsert({
+        where: { username: effectiveUsername },
+        update: { role: role || 'CASHIER' },
+        create: {
+          businessId: DEMO_BUSINESS_ID,
+          username: effectiveUsername,
+          password: '1234',
+          role: role || 'CASHIER'
+        }
+      });
+    }
+
+    return res.status(201).json({
+      ...emp,
+      name: effectiveName,
+      fullName: effectiveName
+    });
   } catch (err) {
-    console.error('❌ Error saving employee:', err);
-    return res.status(500).json({ error: 'Failed to save employee' });
+    console.error('❌ Error creating employee:', err);
+    return res.status(500).json({ error: 'Failed to create employee' });
   }
 });
 
