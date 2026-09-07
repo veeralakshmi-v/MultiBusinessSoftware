@@ -7,7 +7,7 @@ import {
   Tag, Upload, Link as LinkIcon, Instagram, Facebook, Youtube, Twitter,
   Megaphone, Wrench, Grid, Compass, ArrowRight, X, ZoomIn, Star, Layers
 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, getCategoryName } from '../lib/utils';
 
 export interface ServiceItem {
   id: string;
@@ -1600,7 +1600,7 @@ function WebsitePreviewRender({ config, items, businessName, isMobileView }: { c
                       </span>
                     )}
                   </div>
-                  <div className="text-[10px] text-gray-400 mt-0.5">{item.category || item.categoryName || 'General'} • per {item.unit || 'Pcs'}</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">{getCategoryName(item.category || item.categoryName)} • per {item.unit || 'Pcs'}</div>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-[#1F1F21] gap-1 flex-wrap">

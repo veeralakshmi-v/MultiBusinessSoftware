@@ -6,7 +6,7 @@ import {
   ChevronLeft, ChevronRight, Layers, FileSpreadsheet, Plus, Sparkles, Trash2, Printer, SlidersHorizontal
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { cn } from '../lib/utils';
+import { cn, getCategoryName } from '../lib/utils';
 import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceModal';
 
 interface OrderItem {
@@ -221,7 +221,7 @@ export default function Reports() {
       if (Array.isArray(o.items) && o.items.length > 0) {
         o.items.forEach(it => {
           const itemName = it.name || (it as any).menuItem?.name || 'General Product';
-          const cat = (it as any).category || (it as any).menuItem?.category?.name || 'General';
+          const cat = getCategoryName((it as any).category || (it as any).categoryName || (it as any).menuItem?.category);
           if (!itemMap[itemName]) {
             itemMap[itemName] = { name: itemName, category: cat, qty: 0, total: 0 };
           }
@@ -240,7 +240,7 @@ export default function Reports() {
     const totalSales = summaryMetrics.totalGross || 1;
 
     itemWiseReport.forEach(it => {
-      const cat = it.category || 'General';
+      const cat = getCategoryName(it.category);
       if (!catMap[cat]) catMap[cat] = { category: cat, qty: 0, total: 0 };
       catMap[cat].qty += it.qty;
       catMap[cat].total += it.total;

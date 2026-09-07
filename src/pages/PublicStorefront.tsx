@@ -5,7 +5,7 @@ import {
   Megaphone, Tag, Wrench, Grid, ZoomIn, X, Star,
   Instagram, Facebook, Youtube, Twitter, ArrowRight
 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, getCategoryName } from '../lib/utils';
 import { WebsiteConfig, getThemeStyles, ServiceItem, GalleryItem, PromotionOffer } from './WebsiteBuilder';
 
 export default function PublicStorefront() {
@@ -141,10 +141,10 @@ export default function PublicStorefront() {
   // Filter only items explicitly published to website
   const websiteItems = items.filter(item => item.showInWebsite === true);
 
-  const categories = Array.from(new Set(websiteItems.map(i => i.category || i.categoryName || 'General'))).filter(Boolean);
+  const categories = Array.from(new Set(websiteItems.map(i => getCategoryName(i.category || i.categoryName || i.category)))).filter(Boolean);
 
   const filteredItems = websiteItems.filter(item => {
-    const catName = item.category || item.categoryName || 'General';
+    const catName = getCategoryName(item.category || item.categoryName);
     const matchesSearch = (item.name || '').toLowerCase().includes(search.toLowerCase()) ||
                           catName.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedCategory === 'ALL' || catName === selectedCategory;
@@ -383,7 +383,7 @@ export default function PublicStorefront() {
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-gray-500">{item.category || item.categoryName || 'General'} • per {item.unit || 'Pcs'}</div>
+                <div className="text-xs text-gray-500">{getCategoryName(item.category || item.categoryName)} • per {item.unit || 'Pcs'}</div>
               </div>
 
               <div className="flex items-center justify-between pt-3 border-t border-[#1F1F21]">
