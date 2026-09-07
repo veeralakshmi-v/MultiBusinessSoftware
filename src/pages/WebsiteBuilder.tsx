@@ -1455,11 +1455,46 @@ function WebsitePreviewRender({ config, items, businessName, isMobileView }: { c
 
   return (
     <div className="bg-[#0A0A0B] text-gray-100 font-sans rounded-xl overflow-hidden shadow-2xl border border-[#1F1F21]">
-      {/* Top Announcement Bar */}
+      {/* Top Announcement Bar (Marquee Ticker) */}
       {config.showAnnouncement && config.announcementText && (
-        <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-black px-4 py-1.5 text-center text-[11px] font-extrabold shadow-inner flex items-center justify-center gap-2">
-          <Megaphone className="w-3.5 h-3.5 flex-shrink-0" />
-          <span className="truncate">{config.announcementText}</span>
+        <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-black py-1.5 shadow-inner overflow-hidden select-none border-b border-amber-700/30">
+          <div className="flex w-max animate-marquee">
+            <div className="flex items-center gap-6 px-3 text-[10px] font-black tracking-wide uppercase">
+              <span className="inline-flex items-center gap-1.5">
+                <Megaphone className="w-3 h-3 flex-shrink-0 animate-bounce" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 flex-shrink-0" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Megaphone className="w-3 h-3 flex-shrink-0 animate-bounce" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+            </div>
+            {/* Duplicate for seamless loop */}
+            <div className="flex items-center gap-6 px-3 text-[10px] font-black tracking-wide uppercase" aria-hidden="true">
+              <span className="inline-flex items-center gap-1.5">
+                <Megaphone className="w-3 h-3 flex-shrink-0 animate-bounce" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 flex-shrink-0" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Megaphone className="w-3 h-3 flex-shrink-0 animate-bounce" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+            </div>
+          </div>
         </div>
       )}
 

@@ -153,11 +153,56 @@ export default function PublicStorefront() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0B] text-gray-100 font-sans selection:bg-[#C5A059] selection:text-black relative">
-      {/* 1. TOP ANNOUNCEMENT BAR */}
+      {/* 1. TOP ANNOUNCEMENT BAR (MARQUEE TICKER) */}
       {config.showAnnouncement && config.announcementText && (
-        <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-black px-4 py-2 text-center text-xs font-extrabold shadow-inner flex items-center justify-center gap-2 sticky top-0 z-50">
-          <Megaphone className="w-4 h-4 flex-shrink-0 animate-bounce" />
-          <span>{config.announcementText}</span>
+        <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-black py-2 shadow-inner sticky top-0 z-50 overflow-hidden select-none border-b border-amber-700/30">
+          <div className="flex w-max animate-marquee">
+            <div className="flex items-center gap-8 px-4 text-xs font-black tracking-wide uppercase">
+              <span className="inline-flex items-center gap-2">
+                <Megaphone className="w-4 h-4 flex-shrink-0 animate-bounce" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-2">
+                <Megaphone className="w-4 h-4 flex-shrink-0 animate-bounce" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+            </div>
+            {/* Duplicate for seamless loop */}
+            <div className="flex items-center gap-8 px-4 text-xs font-black tracking-wide uppercase" aria-hidden="true">
+              <span className="inline-flex items-center gap-2">
+                <Megaphone className="w-4 h-4 flex-shrink-0 animate-bounce" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-2">
+                <Megaphone className="w-4 h-4 flex-shrink-0 animate-bounce" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+              <span className="inline-flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>{config.announcementText}</span>
+              </span>
+              <span className="text-black/40 font-bold">•</span>
+            </div>
+          </div>
         </div>
       )}
 
