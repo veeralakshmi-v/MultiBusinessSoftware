@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Package, Truck, ArrowRightLeft, DollarSign, AlertTriangle, Search, Plus, Trash2, Edit2, Link, CalendarClock, FlaskConical } from 'lucide-react';
+import { Package, Truck, ArrowRightLeft, DollarSign, AlertTriangle, Search, Plus, Trash2, Edit2, Link, CalendarClock, FlaskConical, Globe } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 
@@ -89,6 +89,7 @@ function getCombinedMaterials(): Promise<any[]> {
             hsnCode: it.hsnCode || '',
             gst: it.gst ?? 5,
             isAvailable: it.isAvailable !== false,
+            showInWebsite: it.showInWebsite === true,
             description: it.description || '',
           }));
         }
@@ -117,6 +118,7 @@ function getCombinedMaterials(): Promise<any[]> {
                 hsnCode: d.hsnCode || '',
                 gst: d.gst ?? 5,
                 isAvailable: d.isAvailable !== false,
+                showInWebsite: d.showInWebsite === true,
                 description: d.description || '',
               });
             }
@@ -212,7 +214,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
 
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({
-    id: '', name: '', categoryId: '', price: 0, costPrice: 0, currentStock: 0, minStock: 10, unit: '', sku: '', barcode: '', hsnCode: '', gst: 5, isAvailable: true, description: ''
+    id: '', name: '', categoryId: '', price: 0, costPrice: 0, currentStock: 0, minStock: 10, unit: '', sku: '', barcode: '', hsnCode: '', gst: 5, isAvailable: true, showInWebsite: false, description: ''
   });
 
   const fetchMats = () => {
@@ -237,7 +239,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
   }, []);
 
   const [form, setForm] = useState({
-    name: '', unit: 'Pcs', minStockLevel: 10, pricePerUnit: 0, costPrice: 0, supplierId: '', categoryId: '', sku: '', barcode: '', hsnCode: '', gst: 5
+    name: '', unit: 'Pcs', minStockLevel: 10, pricePerUnit: 0, costPrice: 0, supplierId: '', categoryId: '', sku: '', barcode: '', hsnCode: '', gst: 5, showInWebsite: false
   });
   const [showForm, setShowForm] = useState(false);
 
@@ -261,6 +263,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       hsnCode: form.hsnCode.trim(),
       gst: Number(form.gst) || 5,
       isAvailable: true,
+      showInWebsite: form.showInWebsite === true,
     };
 
     let existing: any[] = [];
@@ -284,7 +287,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       body: JSON.stringify({...form, minStockLevel: Number(form.minStockLevel), pricePerUnit: Number(form.pricePerUnit)})
     });
     fetchMats();
-    setForm({ name: '', unit: 'Pcs', minStockLevel: 10, pricePerUnit: 0, costPrice: 0, supplierId: '', categoryId: '', sku: '', barcode: '', hsnCode: '', gst: 5 });
+    setForm({ name: '', unit: 'Pcs', minStockLevel: 10, pricePerUnit: 0, costPrice: 0, supplierId: '', categoryId: '', sku: '', barcode: '', hsnCode: '', gst: 5, showInWebsite: false });
     setShowForm(false);
   };
 
@@ -342,6 +345,25 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
     fetchMats();
   };
 
+  const handleToggleWebsiteVisibility = (item: any) => {
+    let existing: any[] = [];
+    try {
+      const saved = localStorage.getItem('universal_items');
+      if (saved) existing = JSON.parse(saved);
+    } catch {}
+
+    const updated = existing.map(i => {
+      if (i.id === item.id || i.name.toLowerCase() === item.name.toLowerCase()) {
+        return { ...i, showInWebsite: !i.showInWebsite };
+      }
+      return i;
+    });
+
+    localStorage.setItem('universal_items', JSON.stringify(updated));
+    window.dispatchEvent(new Event('storage'));
+    fetchMats();
+  };
+
   const handleEditClick = (item: any) => {
     setEditingItem(item);
     setEditForm({
@@ -358,6 +380,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       hsnCode: item.hsnCode || '',
       gst: item.gst ?? 5,
       isAvailable: item.isAvailable !== false,
+      showInWebsite: item.showInWebsite === true,
       description: item.description || '',
     });
   };
@@ -391,6 +414,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
           hsnCode: editForm.hsnCode.trim(),
           gst: Number(editForm.gst),
           isAvailable: editForm.isAvailable,
+          showInWebsite: editForm.showInWebsite === true,
           description: editForm.description.trim(),
         };
       }
@@ -595,6 +619,29 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
+
+            {/* Website Visibility Checkbox */}
+            <div className="col-span-1 sm:col-span-2 md:col-span-4 p-3.5 bg-theme-card/70 border border-theme-secondary/30 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-theme-primary">Show on Website / Online Store</div>
+                  <div className="text-[10px] text-theme-primary opacity-60">If checked, this product will be visible to customers on your public website catalog</div>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.showInWebsite}
+                  onChange={e => setForm({ ...form, showInWebsite: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+              </label>
+            </div>
+
             <div className="col-span-1 sm:col-span-2 md:col-span-4 flex flex-wrap gap-3 mt-2">
               <button type="submit" className="flex-1 sm:flex-none px-6 py-2.5 btn-theme-secondary font-bold text-xs rounded-xl uppercase shadow-md">Save Item</button>
               <button type="button" onClick={() => setShowForm(false)} className="flex-1 sm:flex-none px-6 py-2.5 bg-theme-card text-theme-primary opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100">Cancel</button>
@@ -686,6 +733,28 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 <input value={editForm.barcode} onChange={e => setEditForm({ ...editForm, barcode: e.target.value })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" />
               </div>
 
+              {/* Edit Modal Website Visibility Checkbox */}
+              <div className="col-span-2 p-3 bg-theme-card/70 border border-theme-secondary/30 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-theme-primary">Show on Website / Online Store</div>
+                    <div className="text-[10px] text-theme-primary opacity-60">If checked, this product is visible on your public website</div>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editForm.showInWebsite}
+                    onChange={e => setEditForm({ ...editForm, showInWebsite: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
               <div className="col-span-2 flex gap-3 pt-3 border-t border-theme-secondary/20">
                 <button type="submit" className="flex-1 btn-theme-secondary font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md">
                   Save Changes
@@ -711,7 +780,21 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h4 className="font-bold text-theme-primary text-sm leading-tight">{m.name}</h4>
-                  <span className="text-[10px] text-theme-primary opacity-60 block mt-0.5">{m.categoryName || 'General'}</span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-theme-primary opacity-60">{m.categoryName || 'General'}</span>
+                    <button
+                      onClick={() => handleToggleWebsiteVisibility(m)}
+                      className={cn(
+                        "px-1.5 py-0.2 rounded text-[9px] font-bold border inline-flex items-center gap-1",
+                        m.showInWebsite === true
+                          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                          : 'bg-gray-500/15 text-gray-400 border-gray-500/30'
+                      )}
+                    >
+                      <Globe className="w-2.5 h-2.5" />
+                      {m.showInWebsite === true ? 'Website: Yes' : 'Website: No'}
+                    </button>
+                  </div>
                 </div>
                 <span className="font-mono font-bold text-theme-accent text-sm flex-shrink-0">
                   ₹{(m.pricePerUnit || m.price || 0).toFixed(2)}
@@ -786,12 +869,13 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
               <th className="px-4 py-3 text-center">Tax / GST</th>
               <th className="px-4 py-3 text-center">Stock Level</th>
               <th className="px-4 py-3 text-center">POS Status</th>
+              <th className="px-4 py-3 text-center">Website</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-theme-secondary/20">
             {filtered.length === 0 ? (
-              <tr><td colSpan={8} className="px-5 py-8 text-center text-theme-primary opacity-60 text-xs">No products found matching your search or filters. Click "Add {stockNoun.split(' ')[0]}" above to create one.</td></tr>
+              <tr><td colSpan={9} className="px-5 py-8 text-center text-theme-primary opacity-60 text-xs">No products found matching your search or filters. Click "Add {stockNoun.split(' ')[0]}" above to create one.</td></tr>
             ) : filtered.map(m => (
               <tr key={m.id} className="hover:bg-theme-card/60 transition-colors">
                 <td className="px-4 py-3 font-bold text-theme-primary">
@@ -831,6 +915,21 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                     )}
                   >
                     {m.isAvailable !== false ? 'Active' : 'Disabled'}
+                  </button>
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <button
+                    onClick={() => handleToggleWebsiteVisibility(m)}
+                    title={m.showInWebsite ? "Visible on Website - Click to Hide" : "Hidden from Website - Click to Show"}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border inline-flex items-center gap-1",
+                      m.showInWebsite === true
+                        ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25"
+                        : "bg-gray-500/15 text-gray-400 border-gray-500/30 hover:bg-gray-500/25"
+                    )}
+                  >
+                    <Globe className="w-3 h-3" />
+                    <span>{m.showInWebsite === true ? 'Visible' : 'Hidden'}</span>
                   </button>
                 </td>
                 <td className="px-4 py-3 text-right">

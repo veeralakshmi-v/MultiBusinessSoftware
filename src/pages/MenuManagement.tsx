@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { 
   Package, Plus, Search, Edit2, Trash2, Tag, Check, X, 
   AlertCircle, DollarSign, Layers, Filter, CheckCircle2, ShieldAlert, Sparkles,
-  Boxes, Barcode, ArrowUpDown, ChevronRight, FolderPlus, HelpCircle
+  Boxes, Barcode, ArrowUpDown, ChevronRight, FolderPlus, HelpCircle, Globe
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -31,6 +31,7 @@ interface MenuItem {
   minStock?: number;
   description?: string;
   isAvailable: boolean;
+  showInWebsite?: boolean;
   imageUrl?: string;
   createdAt?: string;
 }
@@ -71,6 +72,7 @@ export default function MenuManagement() {
   const [itemMinStock, setItemMinStock] = useState<number | ''>(10);
   const [itemDesc, setItemDesc] = useState('');
   const [itemAvailable, setItemAvailable] = useState<boolean>(true);
+  const [itemShowInWebsite, setItemShowInWebsite] = useState<boolean>(false);
 
   // Refresh from server and sync
   const refreshCatalog = () => {
@@ -252,6 +254,7 @@ export default function MenuManagement() {
       setItemMinStock(item.minStock ?? 10);
       setItemDesc(item.description || '');
       setItemAvailable(item.isAvailable !== false);
+      setItemShowInWebsite(item.showInWebsite === true);
     } else {
       setEditingItem(null);
       setItemName('');
@@ -268,6 +271,7 @@ export default function MenuManagement() {
       setItemMinStock(10);
       setItemDesc('');
       setItemAvailable(true);
+      setItemShowInWebsite(false);
     }
     setIsItemModalOpen(true);
   };
@@ -295,6 +299,7 @@ export default function MenuManagement() {
       minStock: itemMinStock !== '' ? Number(itemMinStock) : 10,
       description: itemDesc.trim() || undefined,
       isAvailable: itemAvailable,
+      showInWebsite: itemShowInWebsite,
     };
 
     if (editingItem) {
@@ -346,6 +351,20 @@ export default function MenuManagement() {
   const handleToggleAvailability = (item: MenuItem) => {
     const updated = { ...item, isAvailable: !item.isAvailable };
     setItems(prev => prev.map(i => i.id === item.id ? updated : i));
+    try {
+      fetch(`/api/menu-items/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+    } catch (e) {}
+  };
+
+  const handleToggleWebsite = (item: MenuItem) => {
+    const updated = { ...item, showInWebsite: !item.showInWebsite };
+    const updatedItems = items.map(i => i.id === item.id ? updated : i);
+    setItems(updatedItems);
+    localStorage.setItem('universal_items', JSON.stringify(updatedItems));
     try {
       fetch(`/api/menu-items/${item.id}`, {
         method: 'PUT',
@@ -547,7 +566,8 @@ export default function MenuManagement() {
                 <th className="p-3.5 text-center">Tax / GST</th>
                 <th className="p-3.5 text-center">Unit</th>
                 <th className="p-3.5 text-center">Stock Level</th>
-                <th className="p-3.5 text-center">Status</th>
+                <th className="p-3.5 text-center">POS Status</th>
+                <th className="p-3.5 text-center">Website</th>
                 <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
@@ -615,6 +635,22 @@ export default function MenuManagement() {
                         )}
                       >
                         {item.isAvailable ? 'Active' : 'Disabled'}
+                      </button>
+                    </td>
+
+                    <td className="p-3.5 text-center">
+                      <button
+                        onClick={() => handleToggleWebsite(item)}
+                        title={item.showInWebsite ? "Visible on Website - Click to Hide" : "Hidden from Website - Click to Show"}
+                        className={cn(
+                          "px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border inline-flex items-center gap-1",
+                          item.showInWebsite
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                            : "bg-gray-500/10 text-gray-400 border-gray-500/30 hover:bg-gray-500/20"
+                        )}
+                      >
+                        <Globe className="w-3 h-3" />
+                        <span>{item.showInWebsite ? 'Visible' : 'Hidden'}</span>
                       </button>
                     </td>
 
@@ -885,8 +921,8 @@ export default function MenuManagement() {
                   />
                 </div>
 
-                {/* Active Status Toggle */}
-                <div className="sm:col-span-2 flex items-center gap-3 pt-1">
+                {/* Active Status & Website Toggles */}
+                <div className="sm:col-span-2 space-y-2.5 pt-1">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -896,6 +932,28 @@ export default function MenuManagement() {
                     />
                     <span className="text-xs text-gray-200 font-semibold">Available for active billing in POS</span>
                   </label>
+
+                  {/* Website Visibility Checkbox */}
+                  <div className="p-3 bg-[#131315] border border-[#2D2D30] rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                        <Globe className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-white">Show in Website / Online Catalog</div>
+                        <div className="text-[10px] text-gray-400">If checked, this product will be visible to customers on your public website</div>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={itemShowInWebsite}
+                        onChange={(e) => setItemShowInWebsite(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
                 </div>
               </div>
 

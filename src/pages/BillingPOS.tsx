@@ -32,6 +32,7 @@ interface MenuItem {
   currentStock?: number;
   description?: string;
   isAvailable: boolean;
+  showInWebsite?: boolean;
 }
 
 interface CartItem {
@@ -255,14 +256,18 @@ export default function BillingPOS() {
           const stockMap = new Map(existing.map((it: any) => [it.id, it.currentStock]));
           const nameStockMap = new Map(existing.map((it: any) => [it.name?.toLowerCase(), it.currentStock]));
           const availMap = new Map(existing.map((it: any) => [it.id, it.isAvailable]));
+          const websiteMap = new Map(existing.map((it: any) => [it.id, it.showInWebsite]));
+          const nameWebsiteMap = new Map(existing.map((it: any) => [it.name?.toLowerCase(), it.showInWebsite]));
 
           const merged = data.map((d: any) => {
             const savedStock = stockMap.get(d.id) ?? nameStockMap.get(d.name?.toLowerCase());
             const savedAvail = availMap.get(d.id);
+            const savedWeb = websiteMap.get(d.id) ?? nameWebsiteMap.get(d.name?.toLowerCase());
             return {
               ...d,
               currentStock: (savedStock !== undefined && savedStock !== null) ? savedStock : (d.currentStock ?? 50),
               isAvailable: savedAvail !== undefined ? savedAvail : (d.isAvailable !== false),
+              showInWebsite: savedWeb !== undefined ? savedWeb : (d.showInWebsite === true),
             };
           });
 

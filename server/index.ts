@@ -656,10 +656,14 @@ const getMenuItemsHandler = async (req: any, res: any) => {
       include: { category: true },
       orderBy: { createdAt: 'desc' },
     });
-    const parsedItems = items.map(item => ({
-      ...item,
-      attributes: typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : (item.attributes || {})
-    }));
+    const parsedItems = items.map(item => {
+      const attrs = typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : (item.attributes || {});
+      return {
+        ...item,
+        showInWebsite: attrs.showInWebsite === true,
+        attributes: attrs,
+      };
+    });
     return res.json(parsedItems);
   } catch (err) {
     return res.json([]);
@@ -670,7 +674,7 @@ app.get('/api/menu', getMenuItemsHandler);
 app.get('/api/menu-items', getMenuItemsHandler);
 
 const createMenuItemHandler = async (req: any, res: any) => {
-  const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, attributes } = req.body;
+  const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, showInWebsite, attributes } = req.body;
   if (!name) return res.status(400).json({ error: 'Item name is required' });
 
   try {
@@ -704,6 +708,10 @@ const createMenuItemHandler = async (req: any, res: any) => {
       targetCatId = defaultCat.id;
     }
 
+    const combinedAttrs = typeof attributes === 'object'
+      ? { ...attributes, showInWebsite: showInWebsite === true }
+      : { showInWebsite: showInWebsite === true };
+
     const item = await prisma.menuItem.create({
       data: {
         businessId: DEMO_BUSINESS_ID,
@@ -715,7 +723,7 @@ const createMenuItemHandler = async (req: any, res: any) => {
         kitchenSection: kitchenSection || 'Main Kitchen',
         dietary: dietary || 'VEG',
         imageUrl: imageUrl || '',
-        attributes: typeof attributes === 'object' ? JSON.stringify(attributes) : (attributes || '{}'),
+        attributes: JSON.stringify(combinedAttrs),
         isAvailable: true,
       },
       include: { category: true }
@@ -723,7 +731,8 @@ const createMenuItemHandler = async (req: any, res: any) => {
     console.log(`✅ MenuItem stored in DB: ${item.name} (${item.id})`);
     return res.status(201).json({
       ...item,
-      attributes: typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : item.attributes
+      showInWebsite: showInWebsite === true,
+      attributes: combinedAttrs
     });
   } catch (err) {
     console.error('❌ Error creating menu item:', err);
@@ -736,7 +745,7 @@ app.post('/api/menu-items', createMenuItemHandler);
 
 app.put('/api/menu-items/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, isAvailable, attributes } = req.body;
+  const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, isAvailable, showInWebsite, attributes } = req.body;
   try {
     let targetCatId = categoryId;
     if (targetCatId) {
@@ -747,6 +756,21 @@ app.put('/api/menu-items/:id', async (req, res) => {
         else targetCatId = undefined;
       }
     }
+
+    // Fetch existing item to merge attributes
+    const existing = await prisma.menuItem.findUnique({ where: { id } });
+    let existingAttrs: any = {};
+    try {
+      if (existing?.attributes) {
+        existingAttrs = typeof existing.attributes === 'string' ? JSON.parse(existing.attributes) : existing.attributes;
+      }
+    } catch (e) {}
+
+    const newAttrs = {
+      ...existingAttrs,
+      ...(typeof attributes === 'object' ? attributes : {}),
+      ...(showInWebsite !== undefined ? { showInWebsite: showInWebsite === true } : {}),
+    };
 
     const updated = await prisma.menuItem.update({
       where: { id },
@@ -760,14 +784,15 @@ app.put('/api/menu-items/:id', async (req, res) => {
         dietary,
         imageUrl,
         isAvailable,
-        attributes: typeof attributes === 'object' ? JSON.stringify(attributes) : attributes,
+        attributes: JSON.stringify(newAttrs),
       },
       include: { category: true }
     });
     console.log(`✅ MenuItem updated in DB: ${updated.name} (${updated.id})`);
     return res.json({
       ...updated,
-      attributes: typeof updated.attributes === 'string' ? JSON.parse(updated.attributes || '{}') : updated.attributes
+      showInWebsite: newAttrs.showInWebsite === true,
+      attributes: newAttrs
     });
   } catch (err) {
     console.error('❌ Error updating menu item:', err);
