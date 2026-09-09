@@ -7,7 +7,14 @@ import {
   Image as ImageIcon, Upload, Plus, X, Monitor, ExternalLink, Lock, KeyRound, ShieldCheck, Eye, EyeOff, Palette
 } from 'lucide-react';
 import ThemeCustomizer from '../components/theme/ThemeCustomizer';
-import { PROJECT_MENU_ITEMS, parseAppAccess } from './EmployeeDirectory';
+import {
+  PROJECT_MENU_ITEMS, parseAppAccess,
+  CATEGORY_ROLE_MAP, STANDARD_CATEGORIES, getRolesForCategory, getDefaultRoleForCategory
+} from './EmployeeDirectory';
+import {
+  isValidPhone, isValidAadhar, cleanPhone, cleanAadhar, formatAadhar,
+  getPhoneValidationError, getAadharValidationError
+} from '../utils/validation';
 
 export interface StaffUser {
   id: string;
@@ -35,7 +42,7 @@ const DEFAULT_STAFF: StaffUser[] = [
     name: 'Administrator',
     username: 'admin',
     role: 'ADMIN',
-    category: 'Management/Admin',
+    category: 'Management & Admin',
     applicationAccess: 'Full Access (All Modules & POS)',
     phone: '9876543210',
     familyPhone: '9876543211',
@@ -137,7 +144,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
   const [staffRole, setStaffRole] = useState<string>('CASHIER');
   const [customRoleTitle, setCustomRoleTitle] = useState('');
   const [isCustomRole, setIsCustomRole] = useState(false);
-  const [staffCategory, setStaffCategory] = useState('Management/Admin');
+  const [staffCategory, setStaffCategory] = useState('Management & Admin');
   const [customCategoryTitle, setCustomCategoryTitle] = useState('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [selectedAppAccess, setSelectedAppAccess] = useState<string[]>([]);
@@ -264,11 +271,16 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
   // Handle Save Profile & Billing
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
+    if (phone.trim() && !isValidPhone(phone)) {
+      alert('Please enter a valid Business Phone number!');
+      return;
+    }
+
     updateBusinessProfile({
       businessName,
       legalName,
       tagline,
-      phone,
+      phone: cleanPhone(phone) || phone,
       email,
       address,
       city,
@@ -323,8 +335,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         setIsCustomRole(true);
       }
 
-      const STANDARD_CATEGORIES = ['Management/Admin', 'Accounts & Finance', 'Sales & Marketing', 'HouseKeeping', 'General'];
-      const catVal = st.category || 'Management/Admin';
+      const catVal = st.category || 'Management & Admin';
       if (STANDARD_CATEGORIES.includes(catVal)) {
         setStaffCategory(catVal);
         setCustomCategoryTitle('');
@@ -335,6 +346,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         setIsCustomCategory(true);
       }
       setSelectedAppAccess(parseAppAccess(st.applicationAccess));
+      setStaffPhone(st.phone || '');
       setStaffFamilyPhone(st.familyPhone || '');
       setStaffEmail(st.email || '');
       setStaffPin(st.pinCode || '1234');
@@ -349,10 +361,11 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       setEditingStaff(null);
       setStaffName('');
       setStaffUsername('');
-      setStaffRole('CASHIER');
+      const defaultCat = 'Management & Admin';
+      setStaffCategory(defaultCat);
+      setStaffRole(getDefaultRoleForCategory(defaultCat));
       setCustomRoleTitle('');
       setIsCustomRole(false);
-      setStaffCategory('Management/Admin');
       setCustomCategoryTitle('');
       setIsCustomCategory(false);
       setSelectedAppAccess([]);
@@ -391,12 +404,24 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       alert('Contact Number (Mobile Number) is required as the default username!');
       return;
     }
+    if (!isValidPhone(staffPhone)) {
+      alert('Please enter a valid mobile number for Contact Number!');
+      return;
+    }
+    if (staffFamilyPhone.trim() && !isValidPhone(staffFamilyPhone)) {
+      alert('Please enter a valid mobile number for Family Contact Number!');
+      return;
+    }
     if (isStaffPhoneDuplicate) {
       alert('this number is already exits, give another number');
       return;
     }
     if (!staffAadhar.trim()) {
       alert('Aadhar Number is required!');
+      return;
+    }
+    if (!isValidAadhar(staffAadhar)) {
+      alert('Please enter a valid Aadhar Number!');
       return;
     }
 
@@ -647,14 +672,37 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Phone Number *</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={cn("text-xs font-semibold", phone.trim() && !isValidPhone(phone) ? "text-red-400 font-bold" : "text-gray-300")}>
+                  Phone Number *
+                </label>
+                {phone.trim() && isValidPhone(phone) && (
+                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Valid
+                  </span>
+                )}
+              </div>
               <input
                 type="tel"
                 required
+                maxLength={13}
+                placeholder="9876543210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                className={cn(
+                  "w-full rounded-xl px-3.5 py-2.5 text-xs font-mono outline-none transition-all",
+                  phone.trim() && !isValidPhone(phone)
+                    ? "bg-[#1A1A1C] border-2 border-red-500/80 text-red-200 focus:border-red-400"
+                    : phone.trim() && isValidPhone(phone)
+                      ? "bg-[#1A1A1C] border border-emerald-500/60 focus:border-emerald-400 text-white"
+                      : "bg-[#1A1A1C] border border-[#2D2D30] focus:border-[#C5A059] text-white"
+                )}
               />
+              {phone.trim() && !isValidPhone(phone) && (
+                <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
+                  ⚠️ Please enter a valid phone number
+                </p>
+              )}
             </div>
 
             <div>
@@ -1029,18 +1077,23 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                       if (val === 'CUSTOM') {
                         setIsCustomCategory(true);
                         setStaffCategory('CUSTOM');
+                        setIsCustomRole(true);
+                        setStaffRole('CUSTOM');
                       } else {
                         setIsCustomCategory(false);
                         setStaffCategory(val);
+                        const matchedRole = getDefaultRoleForCategory(val);
+                        setStaffRole(matchedRole);
+                        setIsCustomRole(false);
+                        setCustomRoleTitle('');
+                        if (matchedRole === 'ADMIN') setStaffStatus('ACTIVE');
                       }
                     }}
                     className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
                   >
-                    <option value="Management/Admin">Management/Admin</option>
-                    <option value="Accounts & Finance">Accounts & Finance</option>
-                    <option value="Sales & Marketing">Sales & Marketing</option>
-                    <option value="HouseKeeping">HouseKeeping</option>
-                    <option value="General">General</option>
+                    {STANDARD_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                     <option value="CUSTOM">⚡ CUSTOM CATEGORY (Enter custom department)</option>
                   </select>
 
@@ -1060,7 +1113,12 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Role *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-gray-300">Role *</label>
+                    <span className="text-[10px] text-[#C5A059] font-medium">
+                      Matched for {isCustomCategory ? 'Custom' : staffCategory}
+                    </span>
+                  </div>
                   <select
                     value={isCustomRole ? 'CUSTOM' : staffRole}
                     onChange={(e) => {
@@ -1076,10 +1134,12 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     }}
                     className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
                   >
-                    <option value="CASHIER">CASHIER</option>
-                    <option value="MANAGER">MANAGER</option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="STAFF">STAFF</option>
+                    {getRolesForCategory(isCustomCategory ? 'CUSTOM' : staffCategory).map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                    {staffRole && staffRole !== 'CUSTOM' && !getRolesForCategory(staffCategory).includes(staffRole) && (
+                      <option value={staffRole}>{staffRole}</option>
+                    )}
                     <option value="CUSTOM">⚡ CUSTOM ROLE</option>
                   </select>
 
@@ -1204,15 +1264,40 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1 text-[#C5A059]">Aadhar Number *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className={cn("text-xs font-semibold", staffAadhar.trim() && !isValidAadhar(staffAadhar) ? "text-red-400" : "text-[#C5A059]")}>
+                      Aadhar Number *
+                    </label>
+                    {staffAadhar.trim() && isValidAadhar(staffAadhar) && (
+                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Valid
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="text"
                     required
+                    maxLength={14}
                     placeholder="1234 5678 9012"
                     value={staffAadhar}
-                    onChange={(e) => setStaffAadhar(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#C5A059]/40 focus:border-[#C5A059] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^\d\s-]/g, '');
+                      setStaffAadhar(val);
+                    }}
+                    className={cn(
+                      "w-full bg-[#1A1A1C] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none transition-all",
+                      staffAadhar.trim() && !isValidAadhar(staffAadhar)
+                        ? "border-2 border-red-500/80 focus:border-red-400"
+                        : staffAadhar.trim() && isValidAadhar(staffAadhar)
+                          ? "border border-emerald-500/60 focus:border-emerald-400"
+                          : "border border-[#C5A059]/40 focus:border-[#C5A059]"
+                    )}
                   />
+                  {staffAadhar.trim() && !isValidAadhar(staffAadhar) && (
+                    <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-medium animate-in fade-in">
+                      ⚠️ Please enter a valid Aadhar number
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -1236,13 +1321,21 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                 </div>
 
                 <div>
-                  <label className={cn("block text-xs font-semibold mb-1", isStaffPhoneDuplicate ? "text-red-400 font-bold" : "text-[#C5A059]")}>
-                    Contact Number (Default Username) *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className={cn("text-xs font-semibold", isStaffPhoneDuplicate || (staffPhone.trim() && !isValidPhone(staffPhone)) ? "text-red-400 font-bold" : "text-[#C5A059]")}>
+                      Contact Number (Default Username) *
+                    </label>
+                    {staffPhone.trim() && isValidPhone(staffPhone) && !isStaffPhoneDuplicate && (
+                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Valid
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="tel"
                     required
-                    placeholder="+91 98765 00000"
+                    maxLength={13}
+                    placeholder="9876543210"
                     value={staffPhone}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -1251,27 +1344,51 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     }}
                     className={cn(
                       "w-full bg-[#1A1A1C] rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
-                      isStaffPhoneDuplicate
+                      isStaffPhoneDuplicate || (staffPhone.trim() && !isValidPhone(staffPhone))
                         ? "border-2 border-red-500 text-red-300 focus:border-red-400"
-                        : "border border-[#C5A059]/40 focus:border-[#C5A059] text-white"
+                        : staffPhone.trim() && isValidPhone(staffPhone)
+                          ? "border border-emerald-500/60 focus:border-emerald-400 text-white"
+                          : "border border-[#C5A059]/40 focus:border-[#C5A059] text-white"
                     )}
                   />
-                  {isStaffPhoneDuplicate && (
+                  {isStaffPhoneDuplicate ? (
                     <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-bold animate-in fade-in">
                       ⚠️ this number is already exits, give another number
                     </p>
-                  )}
+                  ) : staffPhone.trim() && !isValidPhone(staffPhone) ? (
+                    <p className="text-[11px] text-amber-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
+                      ⚠️ Please enter a valid contact number
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Family Contact Number</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-gray-300">Family Contact Number</label>
+                    {staffFamilyPhone.trim() && isValidPhone(staffFamilyPhone) && (
+                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Valid
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="tel"
-                    placeholder="+91 98765 11111"
+                    maxLength={13}
+                    placeholder="9876543211"
                     value={staffFamilyPhone}
                     onChange={(e) => setStaffFamilyPhone(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    className={cn(
+                      "w-full bg-[#1A1A1C] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]",
+                      staffFamilyPhone.trim() && !isValidPhone(staffFamilyPhone)
+                        ? "border-2 border-amber-500/80 focus:border-amber-400"
+                        : "border border-[#2D2D30]"
+                    )}
                   />
+                  {staffFamilyPhone.trim() && !isValidPhone(staffFamilyPhone) && (
+                    <p className="text-[11px] text-amber-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
+                      ⚠️ Please enter a valid contact number
+                    </p>
+                  )}
                 </div>
 
                 <div>

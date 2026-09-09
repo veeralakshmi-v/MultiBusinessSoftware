@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth, Role } from '../context/AuthContext';
-import { Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Receipt, Loader2 } from 'lucide-react';
+import { Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
+import { Receipt, Loader2, ArrowLeft, UserCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function Login() {
@@ -53,16 +53,48 @@ export default function Login() {
           }
         }
       } catch (e) {
-        // Fall back to client demo authentication
+        // Fall back to client authentication
       }
 
       const savedAdminPass = localStorage.getItem('admin_custom_password') || 'admin123';
-      if (cleanUser === 'admin' && (cleanPass === savedAdminPass || cleanPass === 'admin123' || cleanPass === 'admin')) {
+      if (cleanUser.toLowerCase() === 'admin' && (cleanPass === savedAdminPass || cleanPass === 'admin123' || cleanPass === 'admin')) {
         login(token, userObj);
         navigate(redirectTo, { replace: true });
-      } else {
-        throw new Error('Invalid username or password');
+        return;
       }
+
+      // Check staff credentials from staff list if not admin
+      const staffRaw = localStorage.getItem('universal_staff_list');
+      const staffList = staffRaw ? JSON.parse(staffRaw) : [];
+      const staffMatch = staffList.find(
+        (s: any) =>
+          (s.username?.toLowerCase() === cleanUser.toLowerCase() || s.phone === cleanUser) &&
+          (s.pinCode === cleanPass || s.password === cleanPass) &&
+          s.status === 'ACTIVE'
+      );
+
+      if (staffMatch) {
+        const staffUser = {
+          id: staffMatch.id,
+          username: staffMatch.username || staffMatch.name || staffMatch.phone,
+          role: staffMatch.role,
+          applicationAccess: staffMatch.applicationAccess || 'Full Access (All Modules & POS)',
+        };
+        localStorage.setItem('employee_session', JSON.stringify({
+          id: staffMatch.id,
+          name: staffMatch.name,
+          username: staffMatch.username || staffMatch.phone,
+          role: staffMatch.role,
+          phone: staffMatch.phone,
+          email: staffMatch.email,
+          applicationAccess: staffMatch.applicationAccess || 'Full Access (All Modules & POS)',
+        }));
+        login(token, staffUser);
+        navigate(redirectTo, { replace: true });
+        return;
+      }
+
+      throw new Error('Invalid username or password');
     } catch (err: any) {
       setError(err.message || 'Invalid credentials');
     } finally {
@@ -71,7 +103,18 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-[#0A0A0B] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative">
+      {/* Top back button */}
+      <div className="absolute top-6 left-6 z-20">
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 backdrop-blur-sm transition-all"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#C5A059]" />
+          <span>Back to Home</span>
+        </button>
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="h-16 w-16 bg-[#C5A059] rounded-2xl flex items-center justify-center shadow-2xl shadow-[#C5A059]/20">
@@ -91,7 +134,7 @@ export default function Login() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-gray-300">
-                Username
+                Username or Staff Phone
               </label>
               <div className="mt-1">
                 <input
@@ -109,7 +152,7 @@ export default function Login() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300">
-                Password
+                Password or PIN
               </label>
               <div className="mt-1">
                 <input
@@ -142,19 +185,15 @@ export default function Login() {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-[#C5A059] hover:text-[#b08d4a]">
-                  Forgot your password?
-                </a>
+                <Link to="/employee-login" className="font-medium text-[#C5A059] hover:text-[#b08d4a] flex items-center gap-1">
+                  <UserCircle className="w-3.5 h-3.5" /> Staff PIN Portal
+                </Link>
               </div>
             </div>
 
             {error && (
-              <div className="rounded-lg bg-red-50 p-3">
-                <div className="flex">
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                  </div>
-                </div>
+              <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3">
+                <p className="text-sm font-medium text-red-400">{error}</p>
               </div>
             )}
 

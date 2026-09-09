@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { 
-  Search, Plus, Minus, Trash2, X, IndianRupee, Printer, Save, Tag, 
-  ShoppingCart, Check, User, QrCode, CreditCard, CheckCircle2, 
-  RefreshCw, Barcode, ShieldAlert, Sparkles, Layers, UserPlus, 
+import {
+  Search, Plus, Minus, Trash2, X, IndianRupee, Printer, Save, Tag,
+  ShoppingCart, Check, User, QrCode, CreditCard, CheckCircle2,
+  RefreshCw, Barcode, ShieldAlert, Sparkles, Layers, UserPlus,
   ArrowRight, ArrowRightLeft, Clock, Receipt, Banknote, PauseCircle, PlayCircle, PackagePlus
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceModal';
 import { COMMON_UNITS } from './Inventory';
 import { NotificationEngine } from '../lib/notifications/notificationEngine';
+import { isValidPhone, cleanPhone } from '../utils/validation';
 
 interface Category {
   id: string;
@@ -126,7 +127,7 @@ export default function BillingPOS() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch {}
+      } catch { }
     }
     return [];
   });
@@ -137,7 +138,7 @@ export default function BillingPOS() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch {}
+      } catch { }
     }
     return [];
   });
@@ -149,7 +150,7 @@ export default function BillingPOS() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch {}
+    } catch { }
     return [
       { id: 'cust-1', name: 'Ramesh Kumar', mobile: '9876543210', email: 'ramesh@gmail.com', pendingBalance: 0 },
       { id: 'cust-2', name: 'Priya Sharma', mobile: '9123456789', email: 'priya@gmail.com', pendingBalance: 0 },
@@ -194,7 +195,7 @@ export default function BillingPOS() {
   const [heldBills, setHeldBills] = useState<HeldBill[]>(() => {
     const saved = localStorage.getItem('universal_held_bills');
     if (saved) {
-      try { return JSON.parse(saved); } catch {}
+      try { return JSON.parse(saved); } catch { }
     }
     return [];
   });
@@ -230,7 +231,7 @@ export default function BillingPOS() {
         const parsed = JSON.parse(savedCusts);
         if (Array.isArray(parsed) && parsed.length > 0) setCustomers(parsed);
       }
-    } catch {}
+    } catch { }
 
     // 2. Fetch from Backend API and sync state
     fetch('/api/categories')
@@ -241,7 +242,7 @@ export default function BillingPOS() {
           localStorage.setItem('universal_categories', JSON.stringify(data));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     fetch('/api/menu-items')
       .then(res => res.json())
@@ -251,7 +252,7 @@ export default function BillingPOS() {
           try {
             const saved = localStorage.getItem('universal_items');
             if (saved) existing = JSON.parse(saved);
-          } catch {}
+          } catch { }
 
           const stockMap = new Map(existing.map((it: any) => [it.id, it.currentStock]));
           const nameStockMap = new Map(existing.map((it: any) => [it.name?.toLowerCase(), it.currentStock]));
@@ -281,7 +282,7 @@ export default function BillingPOS() {
           localStorage.setItem('universal_items', JSON.stringify(merged));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     // Customers
     fetch('/api/customers')
@@ -292,7 +293,7 @@ export default function BillingPOS() {
           localStorage.setItem('universal_customers', JSON.stringify(data));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -500,7 +501,7 @@ export default function BillingPOS() {
 
       try {
         fetch(`/api/menu-items/${itemId}`, { method: 'DELETE' });
-      } catch {}
+      } catch { }
     }
   };
 
@@ -598,10 +599,15 @@ export default function BillingPOS() {
     e.preventDefault();
     if (!newCustName.trim() || !newCustMobile.trim()) return;
 
+    if (!isValidPhone(newCustMobile)) {
+      alert('Please enter a valid mobile number!');
+      return;
+    }
+
     const newCust: Customer = {
       id: `cust-${Date.now()}`,
       name: newCustName.trim(),
-      mobile: newCustMobile.trim(),
+      mobile: cleanPhone(newCustMobile) || newCustMobile.trim(),
       email: newCustEmail.trim() || undefined,
       address: newCustAddress.trim() || undefined,
       pendingBalance: 0,
@@ -633,7 +639,7 @@ export default function BillingPOS() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCust),
       });
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // Quick Add Item from POS
@@ -677,7 +683,7 @@ export default function BillingPOS() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(itemData),
       });
-    } catch (e) {}
+    } catch (e) { }
 
     addToCart(itemData);
     setIsAddItemModalOpen(false);
@@ -695,8 +701,8 @@ export default function BillingPOS() {
       return;
     }
 
-    const prefix = billType === 'GST' 
-      ? (businessProfile.invoicePrefix || 'INV/GST/2026/') 
+    const prefix = billType === 'GST'
+      ? (businessProfile.invoicePrefix || 'INV/GST/2026/')
       : 'BILL/NON-GST/';
     const invoiceNo = `${prefix}${Date.now().toString().slice(-4)}`;
 
@@ -715,10 +721,10 @@ export default function BillingPOS() {
       splitPaidMethod: paymentMethod === 'SPLIT' ? splitPaidMethod : undefined,
       customer: selectedCustomer
         ? {
-            name: selectedCustomer.name,
-            mobile: selectedCustomer.mobile,
-            address: selectedCustomer.address,
-          }
+          name: selectedCustomer.name,
+          mobile: selectedCustomer.mobile,
+          address: selectedCustomer.address,
+        }
         : null,
       items: cart.map(item => ({
         quantity: item.quantity,
@@ -795,7 +801,7 @@ export default function BillingPOS() {
       }).then(res => res.json())
         .then(data => console.log('✅ Order saved to Supabase:', data))
         .catch(err => console.error('Error saving order to Supabase:', err));
-    } catch {}
+    } catch { }
 
     // Trigger Real Notification
     try {
@@ -823,7 +829,7 @@ export default function BillingPOS() {
           },
         });
       }
-    } catch {}
+    } catch { }
 
     // Save Order to backend database API
     try {
@@ -877,11 +883,11 @@ export default function BillingPOS() {
 
         {/* Category Filter Chips */}
         {categories.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar flex-shrink-0">
+          <div className="flex items-center gap-2 overflow-x-auto py-1 no-scrollbar flex-shrink-0">
             <button
               onClick={() => setSelectedCategory('ALL')}
               className={cn(
-                "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0",
+                "h-8 px-3.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0 flex items-center justify-center",
                 selectedCategory === 'ALL'
                   ? "btn-theme-secondary shadow-md border-transparent"
                   : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
@@ -898,14 +904,14 @@ export default function BillingPOS() {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={cn(
-                    "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0 flex items-center gap-1.5",
+                    "h-8 px-3.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0 flex items-center gap-1.5",
                     isSelected
                       ? "btn-theme-secondary shadow-md border-transparent"
                       : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
                   )}
                 >
                   <span>{cat.name}</span>
-                  <span className={cn("text-[10px] px-1.5 py-0.2 rounded-full", isSelected ? "bg-black/20 text-current" : "bg-white/10 text-theme-primary")}>
+                  <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full leading-none", isSelected ? "bg-black/20 text-current" : "bg-white/10 text-theme-primary")}>
                     {count}
                   </span>
                 </button>
@@ -916,9 +922,9 @@ export default function BillingPOS() {
 
 
         {/* Products Grid */}
-        <div className="flex-1 overflow-y-auto no-scrollbar pr-1">
+        <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pt-1">
           {filteredItems.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
               {filteredItems.map(item => {
                 const inCart = cart.find(c => c.menuItem.id === item.id);
                 const stock = (item.currentStock !== undefined && item.currentStock !== null) ? item.currentStock : 50;
@@ -929,7 +935,7 @@ export default function BillingPOS() {
                     key={item.id}
                     onClick={() => handleProductCardClick(item)}
                     className={cn(
-                      "relative flex flex-col justify-between p-3 rounded-xl border transition-all select-none group",
+                      "relative flex flex-col justify-between h-full min-h-[115px] p-3 rounded-xl border transition-all select-none group",
                       isOut
                         ? "opacity-60 cursor-not-allowed bg-theme-surface border-red-500/30 text-theme-primary"
                         : inCart
@@ -937,14 +943,14 @@ export default function BillingPOS() {
                           : "bg-theme-card border-theme-secondary/20 hover:border-theme-secondary hover:bg-theme-secondary/10 cursor-pointer"
                     )}
                   >
-                    {/* Cart Count Badge */}
+                    {/* Cart Count Badge - Inset nicely so it doesn't float outside or overflow */}
                     {inCart && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full btn-theme-secondary font-bold text-xs flex items-center justify-center shadow-lg animate-in zoom-in">
+                      <div className="absolute top-2.5 right-2.5 min-w-[22px] h-[22px] px-1 rounded-full btn-theme-secondary font-bold text-xs flex items-center justify-center shadow-md animate-in zoom-in z-10">
                         {inCart.quantity}
                       </div>
                     )}
 
-                    <div>
+                    <div className={cn(inCart ? "pr-7" : "pr-1")}>
                       <div className="flex items-start justify-between gap-1">
                         <h4 className="font-bold text-theme-primary text-xs leading-snug line-clamp-2 group-hover:text-theme-accent transition-colors">
                           {item.name}
@@ -956,13 +962,13 @@ export default function BillingPOS() {
                       </div>
                     </div>
 
-                    <div className="mt-3 pt-2 border-t border-theme-secondary/20 flex items-center justify-between">
+                    <div className="mt-auto pt-2.5 border-t border-theme-secondary/15 flex items-center justify-between">
                       <span className="font-mono font-bold text-theme-primary text-sm">
                         {currency}{item.price.toFixed(2)}
                       </span>
                       <span className={cn(
                         "text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded",
-                        isOut ? "text-red-500 bg-red-500/15" : "text-theme-primary bg-theme-surface border border-theme-secondary/20"
+                        isOut ? "text-red-500 bg-red-500/15 border border-red-500/30" : "text-theme-primary bg-theme-surface border border-theme-secondary/20"
                       )}>
                         {isOut ? 'Out' : `${stock} left`}
                       </span>
@@ -1033,9 +1039,9 @@ export default function BillingPOS() {
 
       {/* Mobile Drawer Backdrop overlay */}
       {isMobileCartOpen && (
-        <div 
-          onClick={() => setIsMobileCartOpen(false)} 
-          className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-45 animate-in fade-in" 
+        <div
+          onClick={() => setIsMobileCartOpen(false)}
+          className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-45 animate-in fade-in"
         />
       )}
 
@@ -1661,15 +1667,37 @@ export default function BillingPOS() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Mobile Number *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className={cn("text-xs font-semibold", newCustMobile.trim() && !isValidPhone(newCustMobile) ? "text-red-400" : "text-gray-300")}>
+                    Mobile Number *
+                  </label>
+                  {newCustMobile.trim() && isValidPhone(newCustMobile) && (
+                    <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> Valid
+                    </span>
+                  )}
+                </div>
                 <input
                   type="tel"
                   required
+                  maxLength={13}
                   placeholder="e.g. 9876543210"
                   value={newCustMobile}
                   onChange={(e) => setNewCustMobile(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                  className={cn(
+                    "w-full rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
+                    newCustMobile.trim() && !isValidPhone(newCustMobile)
+                      ? "bg-[#1A1A1C] border-2 border-red-500/80 text-red-300 focus:border-red-400"
+                      : newCustMobile.trim() && isValidPhone(newCustMobile)
+                        ? "bg-[#1A1A1C] border border-emerald-500/60 focus:border-emerald-400 text-white"
+                        : "bg-[#1A1A1C] border border-[#2D2D30] focus:border-[#C5A059] text-white"
+                  )}
                 />
+                {newCustMobile.trim() && !isValidPhone(newCustMobile) && (
+                  <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
+                    ⚠️ Please enter a valid mobile number
+                  </p>
+                )}
               </div>
 
               <div>

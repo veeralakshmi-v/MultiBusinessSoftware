@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, Search, Gift, Clock, Heart, Plus, Edit2, MessageSquare, Phone } from 'lucide-react';
+import { Users, Search, Gift, Clock, Heart, Plus, Edit2, MessageSquare, Phone, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { isValidPhone, cleanPhone } from '../utils/validation';
 
 export default function Customers() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -16,7 +17,7 @@ export default function Customers() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) list = parsed;
       }
-    } catch {}
+    } catch { }
 
     fetch(`/api/customers?search=${search}`)
       .then(r => r.json())
@@ -58,7 +59,7 @@ export default function Customers() {
           <p className="text-gray-400 text-xs sm:text-sm mt-0.5">Manage customer profiles, order history, credit balance, and rewards</p>
         </div>
         <button onClick={() => setShowForm(true)} className="w-full sm:w-auto justify-center bg-[#C5A059] text-[#0A0A0B] px-4 py-2 rounded-xl font-bold flex items-center gap-2 text-xs shadow-md">
-          <Plus className="w-4 h-4"/> New Customer
+          <Plus className="w-4 h-4" /> New Customer
         </button>
       </div>
 
@@ -147,7 +148,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
         const ids = new Set(loaded.map(o => o.id));
         parsed.forEach((o: any) => { if (!ids.has(o.id)) loaded.push(o); });
       }
-    } catch {}
+    } catch { }
 
     const filtered = loaded.filter((o: any) => {
       if (o.customerId && o.customerId === customer.id) return true;
@@ -189,7 +190,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
         return c;
       });
       localStorage.setItem('universal_customers', JSON.stringify(updated));
-    } catch {}
+    } catch { }
 
     window.dispatchEvent(new Event('storage'));
     setIsSettleModalOpen(false);
@@ -198,9 +199,9 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
   };
 
   const sendNotification = async (channel: string) => {
-    if(!notifyMsg) return;
+    if (!notifyMsg) return;
     await fetch(`/api/customers/${customer.id}/notify`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ channel, message: notifyMsg })
     });
     setNotifyMsg('');
@@ -226,8 +227,8 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
           {/* Outstanding Pending Balance Card */}
           <div className={cn(
             "text-center border p-4 rounded-xl shadow-lg transition-all",
-            totalPendingBalance > 0 
-              ? "bg-red-500/10 border-red-500/30 text-red-400" 
+            totalPendingBalance > 0
+              ? "bg-red-500/10 border-red-500/30 text-red-400"
               : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
           )}>
             <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">Pending Credit Due</div>
@@ -258,7 +259,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
           <h3 className="text-lg font-bold text-white mb-4 flex items-center justify-between">
-            <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-blue-500"/> Order History ({customerOrders.length})</span>
+            <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-blue-500" /> Order History ({customerOrders.length})</span>
           </h3>
           <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
             {customerOrders.length === 0 && <div className="text-gray-500 text-sm">No past orders found.</div>}
@@ -295,7 +296,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
         </div>
 
         <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
-          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Heart className="w-5 h-5 text-red-500"/> Favorite Orders</h3>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Heart className="w-5 h-5 text-red-500" /> Favorite Orders</h3>
           <div className="flex flex-wrap gap-2">
             {(!customer.favoriteItems || customer.favoriteItems.length === 0) && <div className="text-gray-500 text-sm">No favorites recorded yet.</div>}
             {customer.favoriteItems?.map((f: any) => (
@@ -379,10 +380,10 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
             className="flex-1 bg-[#0A0A0B] border border-[#2D2D30] rounded-lg px-4 text-sm text-white"
           />
           <button onClick={() => sendNotification('WHATSAPP')} className="bg-green-500/10 text-green-500 border border-green-500/20 px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-green-500/20">
-            <MessageSquare className="w-4 h-4"/> WhatsApp
+            <MessageSquare className="w-4 h-4" /> WhatsApp
           </button>
           <button onClick={() => sendNotification('SMS')} className="bg-blue-500/10 text-blue-500 border border-blue-500/20 px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-500/20">
-            <Phone className="w-4 h-4"/> SMS
+            <Phone className="w-4 h-4" /> SMS
           </button>
         </div>
       </div>
@@ -397,10 +398,15 @@ function CustomerFormModal({ onClose, onSave }: { onClose: () => void, onSave: (
     e.preventDefault();
     if (!form.name.trim() || !form.mobile.trim()) return;
 
+    if (!isValidPhone(form.mobile)) {
+      alert('Please enter a valid mobile number!');
+      return;
+    }
+
     const newCust = {
       id: `cust-${Date.now()}`,
       name: form.name.trim(),
-      mobile: form.mobile.trim(),
+      mobile: cleanPhone(form.mobile) || form.mobile.trim(),
       address: form.address.trim() || undefined,
       gstNumber: form.gstNumber.trim() || undefined,
       birthday: form.birthday || undefined,
@@ -415,16 +421,16 @@ function CustomerFormModal({ onClose, onSave }: { onClose: () => void, onSave: (
       if (saved) list = JSON.parse(saved);
       const updated = [newCust, ...list.filter(c => c.id !== newCust.id && c.mobile !== newCust.mobile)];
       localStorage.setItem('universal_customers', JSON.stringify(updated));
-    } catch {}
+    } catch { }
 
     window.dispatchEvent(new Event('storage'));
 
     try {
       await fetch('/api/customers', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCust)
       });
-    } catch {}
+    } catch { }
     onSave();
   };
 
@@ -434,18 +440,53 @@ function CustomerFormModal({ onClose, onSave }: { onClose: () => void, onSave: (
         <h2 className="text-xl font-bold text-white mb-4">Add Customer</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-xs font-bold text-gray-400">Name</label><input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white" /></div>
-            <div><label className="text-xs font-bold text-gray-400">Mobile (Unique)</label><input required value={form.mobile} onChange={e=>setForm({...form, mobile: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white" /></div>
+            <div>
+              <label className="text-xs font-bold text-gray-400 mb-1 block">Customer Name *</label>
+              <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#C5A059]" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className={cn("text-xs font-bold", form.mobile.trim() && !isValidPhone(form.mobile) ? "text-red-400" : "text-gray-400")}>
+                  Mobile *
+                </label>
+                {form.mobile.trim() && isValidPhone(form.mobile) && (
+                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Valid
+                  </span>
+                )}
+              </div>
+              <input
+                required
+                type="tel"
+                maxLength={13}
+                placeholder="9876543210"
+                value={form.mobile}
+                onChange={e => setForm({ ...form, mobile: e.target.value })}
+                className={cn(
+                  "w-full rounded-xl p-2.5 text-xs font-mono outline-none transition-all",
+                  form.mobile.trim() && !isValidPhone(form.mobile)
+                    ? "bg-[#0A0A0B] border-2 border-red-500/80 text-red-300 focus:border-red-400"
+                    : form.mobile.trim() && isValidPhone(form.mobile)
+                      ? "bg-[#0A0A0B] border border-emerald-500/60 focus:border-emerald-400 text-white"
+                      : "bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] text-white"
+                )}
+              />
+              {form.mobile.trim() && !isValidPhone(form.mobile) && (
+                <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
+                  ⚠️ Please enter a valid mobile number
+                </p>
+              )}
+            </div>
           </div>
-          <div><label className="text-xs font-bold text-gray-400">Address</label><input value={form.address} onChange={e=>setForm({...form, address: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white" /></div>
-          <div><label className="text-xs font-bold text-gray-400">GST Number</label><input value={form.gstNumber} onChange={e=>setForm({...form, gstNumber: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white" /></div>
+          <div><label className="text-xs font-bold text-gray-400 mb-1 block">Address</label><input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#C5A059]" /></div>
+          <div><label className="text-xs font-bold text-gray-400 mb-1 block">GST Number</label><input value={form.gstNumber} onChange={e => setForm({ ...form, gstNumber: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]" /></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-xs font-bold text-gray-400">Birthday</label><input type="date" value={form.birthday} onChange={e=>setForm({...form, birthday: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white" /></div>
-            <div><label className="text-xs font-bold text-gray-400">Anniversary</label><input type="date" value={form.anniversary} onChange={e=>setForm({...form, anniversary: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white" /></div>
+            <div><label className="text-xs font-bold text-gray-400 mb-1 block">Birthday</label><input type="date" value={form.birthday} onChange={e => setForm({ ...form, birthday: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#C5A059] [color-scheme:dark]" /></div>
+            <div><label className="text-xs font-bold text-gray-400 mb-1 block">Anniversary</label><input type="date" value={form.anniversary} onChange={e => setForm({ ...form, anniversary: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#C5A059] [color-scheme:dark]" /></div>
           </div>
           <div className="flex gap-2 justify-end pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-white font-bold">Cancel</button>
-            <button type="submit" className="bg-[#C5A059] text-[#0A0A0B] px-4 py-2 rounded font-bold">Save</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-gray-400 hover:text-white font-bold">Cancel</button>
+            <button type="submit" className="bg-[#C5A059] text-[#0A0A0B] px-5 py-2 rounded-xl font-bold text-xs shadow-md hover:bg-[#d6b064]">Save Customer</button>
           </div>
         </form>
       </div>

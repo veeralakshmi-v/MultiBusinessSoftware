@@ -106,16 +106,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (saved) {
       try { return JSON.parse(saved); } catch {}
     }
-    return {
-      id: 'user-admin',
-      username: 'admin',
-      role: 'ADMIN',
-      businessId: DEFAULT_BUSINESS_ID,
-      businessType: DEFAULT_BUSINESS_TYPE,
-    };
+    return null;
   });
   
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token') || 'demo-live-token-admin');
+  const [token, setToken] = useState<string | null>(localStorage.getItem('token') || null);
   const [isLoading, setIsLoading] = useState(false);
   const [businessId, setBusinessId] = useState<string>(
     localStorage.getItem('businessId') || DEFAULT_BUSINESS_ID
@@ -339,10 +333,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user_profile');
+    localStorage.removeItem('employee_session');
     setToken(null);
     setUser(null);
-    // Redirect to public landing page after logout
-    window.location.href = '/';
+    window.location.href = '/login';
   };
 
   return (

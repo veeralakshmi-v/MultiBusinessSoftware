@@ -34,6 +34,117 @@ p, span, div, a, label, table, th, td {
 }
 
 
+.font-luxury {
+  font-family: 'Playfair Display', 'Cinzel', Georgia, serif !important;
+}
+
+.font-display {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif !important;
+}
+
+/* ── LUXORA STOREFRONT ISOLATION ── */
+.luxora-storefront {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color-scheme: dark light;
+}
+
+.luxora-storefront .font-serif,
+.luxora-storefront .font-luxury {
+  font-family: 'Playfair Display', 'Cinzel', Georgia, serif !important;
+}
+
+.luxora-storefront .font-mono {
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Ensure light sections in storefront have pure dark text and white bg */
+.luxora-storefront .bg-white {
+  background-color: #FFFFFF !important;
+}
+
+.luxora-storefront .bg-\[\#FAF9F6\],
+.luxora-storefront .bg-\[\#FBFBFA\],
+.luxora-storefront .bg-\[\#fbfbfa\],
+.luxora-storefront .bg-\[\#faf9f6\] {
+  background-color: #FAF9F6 !important;
+}
+
+.luxora-storefront .text-gray-900,
+.luxora-storefront .text-\[\#111827\],
+.luxora-storefront .text-\[\#121316\],
+.luxora-storefront .text-\[\#1a1a1a\] {
+  color: #111827 !important;
+}
+
+.luxora-storefront .text-gray-600,
+.luxora-storefront .text-gray-700,
+.luxora-storefront .text-gray-500 {
+  color: #4B5563 !important;
+}
+
+.luxora-storefront .text-white {
+  color: #FFFFFF !important;
+}
+
+.luxora-storefront .text-\[\#C5A059\],
+.luxora-storefront .text-\[\#E2B755\],
+.luxora-storefront .text-\[\#c5a059\] {
+  color: #C5A059 !important;
+}
+
+.luxora-storefront .bg-\[\#C5A059\],
+.luxora-storefront .bg-\[\#c5a059\] {
+  background-color: #C5A059 !important;
+  color: #0A0A0B !important;
+}
+
+.luxora-storefront .bg-\[\#070809\] {
+  background-color: #070809 !important;
+}
+.luxora-storefront .bg-\[\#0A0B0E\] {
+  background-color: #0A0B0E !important;
+}
+.luxora-storefront .bg-\[\#07080A\] {
+  background-color: #07080A !important;
+}
+.luxora-storefront .bg-\[\#0B0C0E\] {
+  background-color: #0B0C0E !important;
+}
+.luxora-storefront .bg-\[\#0F1012\] {
+  background-color: #0F1012 !important;
+}
+.luxora-storefront .bg-\[\#121316\] {
+  background-color: #121316 !important;
+}
+.luxora-storefront .bg-\[\#141518\] {
+  background-color: #141518 !important;
+}
+.luxora-storefront .bg-\[\#1A1B1F\] {
+  background-color: #1A1B1F !important;
+}
+.luxora-storefront .bg-\[\#1B1C20\] {
+  background-color: #1B1C20 !important;
+}
+.luxora-storefront .bg-\[\#151619\] {
+  background-color: #151619 !important;
+}
+
+.luxora-storefront .bg-black\/60,
+.luxora-storefront .bg-black\/75,
+.luxora-storefront .bg-black\/80,
+.luxora-storefront .bg-black\/85 {
+  background-color: rgba(9, 10, 12, 0.8) !important;
+}
+
+.luxora-storefront .text-gray-100,
+.luxora-storefront .text-gray-200,
+.luxora-storefront .text-gray-300 {
+  color: #F3F4F6 !important;
+}
+.luxora-storefront .text-gray-400 {
+  color: #9CA3AF !important;
+}
+
 /* Dynamic Theme Utilities */
 .bg-theme-primary {
   background-color: var(--theme-bg-primary) !important;

@@ -33,6 +33,21 @@ async function checkAndReconnectDb() {
   }
 }
 
+// Validation Utilities for API endpoints
+function isValidPhone(val: string | null | undefined): boolean {
+  if (!val) return false;
+  let digits = val.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+  return digits.length === 10 && /^\d{10}$/.test(digits);
+}
+
+function isValidAadhar(val: string | null | undefined): boolean {
+  if (!val) return false;
+  const digits = val.replace(/\D/g, '');
+  return digits.length === 12 && /^\d{12}$/.test(digits);
+}
+
 // In-Memory Seed Data Fallbacks if DB is uninitialized
 const DEMO_BUSINESS_ID = 'biz-default-business';
 
@@ -432,6 +447,13 @@ app.post('/api/users', async (req, res) => {
   const effectiveName = (name || fullName || staffName || effectiveUsername).trim();
   if (!effectiveUsername) return res.status(400).json({ error: 'Username or phone is required' });
 
+  if (phone && !isValidPhone(phone)) {
+    return res.status(400).json({ error: 'Phone number must be exactly 10 digits' });
+  }
+  if (aadharNumber && !isValidAadhar(aadharNumber)) {
+    return res.status(400).json({ error: 'Aadhar number must be exactly 12 digits' });
+  }
+
   try {
     await prisma.business.upsert({
       where: { id: DEMO_BUSINESS_ID },
@@ -505,6 +527,13 @@ app.post('/api/employees', async (req, res) => {
   const { name, fullName, staffName, username, phone, role, aadharNumber, address, email } = req.body;
   const effectiveUsername = (phone || username || '').trim();
   const effectiveName = (name || fullName || staffName || effectiveUsername).trim();
+
+  if (phone && !isValidPhone(phone)) {
+    return res.status(400).json({ error: 'Phone number must be exactly 10 digits' });
+  }
+  if (aadharNumber && !isValidAadhar(aadharNumber)) {
+    return res.status(400).json({ error: 'Aadhar number must be exactly 12 digits' });
+  }
 
   const empCode = `EMP-${effectiveUsername || Date.now()}`;
   const parts = effectiveName.split(' ');
@@ -1097,6 +1126,11 @@ app.get('/api/inventory/suppliers', async (req, res) => {
 app.post('/api/inventory/suppliers', async (req, res) => {
   const { name, contact, phone, email, address } = req.body;
   if (!name) return res.status(400).json({ error: 'Supplier name is required' });
+
+  const effectivePhone = phone || contact;
+  if (effectivePhone && !isValidPhone(effectivePhone)) {
+    return res.status(400).json({ error: 'Phone number must be exactly 10 digits' });
+  }
 
   try {
     await prisma.business.upsert({

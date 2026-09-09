@@ -33,6 +33,13 @@ import { AttendanceCalendarEngine } from '../src/lib/attendance/attendanceCalend
 import { HolidayEngine } from '../src/lib/holidays/holidayEngine';
 import { AttendancePermissionEngine } from '../src/lib/auth/attendancePermissionEngine';
 import { AttendanceNotificationEngine } from '../src/lib/notifications/attendanceNotificationEngine';
+import {
+  isValidPhone, isValidAadhar, cleanPhone, cleanAadhar, formatAadhar, formatPhone,
+  getPhoneValidationError, getAadharValidationError
+} from '../src/utils/validation';
+import {
+  CATEGORY_ROLE_MAP, getRolesForCategory, getDefaultRoleForCategory
+} from '../src/pages/EmployeeDirectory';
 
 // Calculation helper utilities for POS billing
 export function calculateOrderTotals(
@@ -3068,6 +3075,156 @@ describe('Attendance Notifications Engine Tests (Feature 18)', () => {
 
     const updated = AttendanceNotificationEngine.getNotifications('emp-001').find(n => n.id === notif.id);
     assert.strictEqual(updated?.isRead, true);
+  });
+});
+
+describe('Phone Number (10 Digits) & Aadhaar Number (12 Digits) Validation Engine Tests', () => {
+  it('Phone Validation: should accept valid 10-digit phone numbers in various standard formats', () => {
+    // Standard 10 digits
+    assert.strictEqual(isValidPhone('9876543210'), true);
+    assert.strictEqual(isValidPhone('8765432109'), true);
+    assert.strictEqual(isValidPhone('7890123456'), true);
+    assert.strictEqual(isValidPhone('6123456789'), true);
+
+    // With +91 country prefix
+    assert.strictEqual(isValidPhone('+91 98765 43210'), true);
+    assert.strictEqual(isValidPhone('+919876543210'), true);
+    assert.strictEqual(isValidPhone('919876543210'), true);
+
+    // With spaces, hyphens, and leading 0
+    assert.strictEqual(isValidPhone('98765 43210'), true);
+    assert.strictEqual(isValidPhone('9876-543-210'), true);
+    assert.strictEqual(isValidPhone('09876543210'), true);
+  });
+
+  it('Phone Validation: should reject phone numbers not having exactly 10 digits', () => {
+    // Too short (< 10 digits)
+    assert.strictEqual(isValidPhone('98765'), false);
+    assert.strictEqual(isValidPhone('987654321'), false); // 9 digits
+    assert.strictEqual(isValidPhone('123'), false);
+
+    // Too long (> 10 digits when not +91)
+    assert.strictEqual(isValidPhone('987654321000'), false);
+    assert.strictEqual(isValidPhone('1234567890123'), false);
+
+    // Empty or non-numeric
+    assert.strictEqual(isValidPhone(''), false);
+    assert.strictEqual(isValidPhone(null as any), false);
+    assert.strictEqual(isValidPhone(undefined as any), false);
+    assert.strictEqual(isValidPhone('abcdefghij'), false);
+  });
+
+  it('Phone Utilities: cleanPhone, formatPhone, and getPhoneValidationError', () => {
+    // cleanPhone
+    assert.strictEqual(cleanPhone('+91 98765 43210'), '9876543210');
+    assert.strictEqual(cleanPhone('09876543210'), '9876543210');
+    assert.strictEqual(cleanPhone('9876-543-210'), '9876543210');
+
+    // formatPhone
+    assert.strictEqual(formatPhone('9876543210'), '98765 43210');
+
+    // Error messages
+    assert.strictEqual(getPhoneValidationError('9876543210'), null);
+    assert.strictEqual(typeof getPhoneValidationError('98765'), 'string');
+    assert.strictEqual(getPhoneValidationError('') !== null, true);
+    assert.strictEqual(getPhoneValidationError('', false), null); // optional
+  });
+
+  it('Aadhaar Validation: should accept valid 12-digit Aadhaar numbers', () => {
+    // Standard 12 digits
+    assert.strictEqual(isValidAadhar('123456789012'), true);
+    assert.strictEqual(isValidAadhar('987654321098'), true);
+
+    // Formatted with spaces or dashes
+    assert.strictEqual(isValidAadhar('1234 5678 9012'), true);
+    assert.strictEqual(isValidAadhar('1234-5678-9012'), true);
+    assert.strictEqual(isValidAadhar('9845 1234 8921'), true);
+  });
+
+  it('Aadhaar Validation: should reject Aadhaar numbers not having exactly 12 digits', () => {
+    // Too short (< 12 digits)
+    assert.strictEqual(isValidAadhar('12345678901'), false); // 11 digits
+    assert.strictEqual(isValidAadhar('1234 5678'), false); // 8 digits
+
+    // Too long (> 12 digits)
+    assert.strictEqual(isValidAadhar('1234567890123'), false); // 13 digits
+    assert.strictEqual(isValidAadhar('123456789012345'), false);
+
+    // Empty or non-numeric
+    assert.strictEqual(isValidAadhar(''), false);
+    assert.strictEqual(isValidAadhar(null as any), false);
+    assert.strictEqual(isValidAadhar(undefined as any), false);
+    assert.strictEqual(isValidAadhar('abcd efgh ijkl'), false);
+  });
+
+  it('Aadhaar Utilities: cleanAadhar, formatAadhar, and getAadharValidationError', () => {
+    // cleanAadhar
+    assert.strictEqual(cleanAadhar('1234 5678 9012'), '123456789012');
+    assert.strictEqual(cleanAadhar('1234-5678-9012'), '123456789012');
+
+    // formatAadhar
+    assert.strictEqual(formatAadhar('123456789012'), '1234 5678 9012');
+
+    // Error messages
+    assert.strictEqual(getAadharValidationError('123456789012'), null);
+    assert.strictEqual(typeof getAadharValidationError('12345678'), 'string');
+    assert.strictEqual(getAadharValidationError('') !== null, true);
+    assert.strictEqual(getAadharValidationError('', false), null); // optional
+  });
+});
+
+describe('Category-to-Role Dynamic Mapping Engine Tests', () => {
+  it('should map each universal business category to its appropriate default role', () => {
+    assert.strictEqual(getDefaultRoleForCategory('Management & Admin'), 'ADMIN');
+    assert.strictEqual(getDefaultRoleForCategory('Billing & Cash Desk'), 'CASHIER');
+    assert.strictEqual(getDefaultRoleForCategory('Sales & Marketing'), 'SALES_EXECUTIVE');
+    assert.strictEqual(getDefaultRoleForCategory('Accounts & Finance'), 'ACCOUNTANT');
+    assert.strictEqual(getDefaultRoleForCategory('Inventory & Warehouse'), 'STORE_KEEPER');
+    assert.strictEqual(getDefaultRoleForCategory('Operations & Support'), 'OPERATIONS_MANAGER');
+    assert.strictEqual(getDefaultRoleForCategory('Customer Support & Service'), 'CUSTOMER_SUPPORT');
+    assert.strictEqual(getDefaultRoleForCategory('General'), 'STAFF');
+    // Fallback for custom or unknown category
+    assert.strictEqual(getDefaultRoleForCategory('Custom Category'), 'STAFF');
+  });
+
+  it('should return specific relevant roles when a universal category is selected', () => {
+    const mgmtRoles = getRolesForCategory('Management & Admin');
+    assert.strictEqual(mgmtRoles.includes('ADMIN'), true);
+    assert.strictEqual(mgmtRoles.includes('MANAGER'), true);
+    assert.strictEqual(mgmtRoles.includes('SUPERVISOR'), true);
+
+    const billingRoles = getRolesForCategory('Billing & Cash Desk');
+    assert.strictEqual(billingRoles.includes('CASHIER'), true);
+    assert.strictEqual(billingRoles.includes('BILLING_OPERATOR'), true);
+
+    const salesRoles = getRolesForCategory('Sales & Marketing');
+    assert.strictEqual(salesRoles.includes('SALES_EXECUTIVE'), true);
+    assert.strictEqual(salesRoles.includes('MARKETING_MANAGER'), true);
+
+    const financeRoles = getRolesForCategory('Accounts & Finance');
+    assert.strictEqual(financeRoles.includes('ACCOUNTANT'), true);
+    assert.strictEqual(financeRoles.includes('FINANCE_MANAGER'), true);
+
+    const invRoles = getRolesForCategory('Inventory & Warehouse');
+    assert.strictEqual(invRoles.includes('STORE_KEEPER'), true);
+    assert.strictEqual(invRoles.includes('INVENTORY_MANAGER'), true);
+
+    const opsRoles = getRolesForCategory('Operations & Support');
+    assert.strictEqual(opsRoles.includes('OPERATIONS_MANAGER'), true);
+    assert.strictEqual(opsRoles.includes('COORDINATOR'), true);
+
+    const supportRoles = getRolesForCategory('Customer Support & Service');
+    assert.strictEqual(supportRoles.includes('CUSTOMER_SUPPORT'), true);
+    assert.strictEqual(supportRoles.includes('RECEPTIONIST'), true);
+
+    const generalRoles = getRolesForCategory('General');
+    assert.strictEqual(generalRoles.includes('STAFF'), true);
+    assert.strictEqual(generalRoles.includes('OPERATOR'), true);
+
+    // Custom or unknown category fallback roles
+    const customRoles = getRolesForCategory('Custom Industry');
+    assert.strictEqual(customRoles.includes('STAFF'), true);
+    assert.strictEqual(customRoles.includes('ADMIN'), true);
   });
 });
 

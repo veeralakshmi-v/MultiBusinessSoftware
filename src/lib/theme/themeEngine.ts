@@ -161,11 +161,15 @@ export const COLOR_PRESETS: ColorPreset[] = [
 ];
 
 export const FONT_PRESETS: FontPreset[] = [
-  { id: 'Outfit', name: 'Outfit (Default)', fontFamily: "'Outfit', sans-serif", category: 'Modern Sans' },
-  { id: 'Inter', name: 'Inter UI', fontFamily: "'Inter', sans-serif", category: 'Clean Enterprise' },
-  { id: 'Roboto', name: 'Roboto', fontFamily: "'Roboto', sans-serif", category: 'Modern Sans' },
+  { id: 'Outfit', name: 'Outfit (Default Modern Sans)', fontFamily: "'Outfit', sans-serif", category: 'Modern Sans' },
+  { id: 'Inter', name: 'Inter UI (Clean Enterprise)', fontFamily: "'Inter', sans-serif", category: 'Clean Enterprise' },
+  { id: 'Roboto', name: 'Roboto (Standard Sans)', fontFamily: "'Roboto', sans-serif", category: 'Modern Sans' },
+  { id: 'Plus Jakarta Sans', name: 'Plus Jakarta Sans (SaaS Modern)', fontFamily: "'Plus Jakarta Sans', sans-serif", category: 'Modern Sans' },
+  { id: 'Poppins', name: 'Poppins (Friendly Geometric)', fontFamily: "'Poppins', sans-serif", category: 'Modern Sans' },
+  { id: 'Playfair Display', name: 'Playfair Display (Editorial Serif)', fontFamily: "'Playfair Display', serif", category: 'Luxury Serif' },
   { id: 'Cinzel', name: 'Cinzel Decorative', fontFamily: "'Cinzel', serif", category: 'Luxury Serif' },
   { id: 'JetBrains Mono', name: 'JetBrains Monospace', fontFamily: "'JetBrains Mono', monospace", category: 'Technical Mono' },
+  { id: 'System', name: 'System Default (Native OS)', fontFamily: "system-ui, -apple-system, sans-serif", category: 'Clean Enterprise' },
 ];
 
 export const INVOICE_THEME_DETAILS: Record<InvoiceThemeId, { name: string; description: string; headerClass: string; borderClass: string; badgeColor: string }> = {
@@ -270,10 +274,6 @@ export class ThemeEngine {
     // Apply document background and body text color
     document.body.style.backgroundColor = primaryBg;
     document.body.style.color = textColor;
-
-
-
-
 
     // Legacy variables fallback
     root.style.setProperty('--theme-primary', secondaryBtn);
