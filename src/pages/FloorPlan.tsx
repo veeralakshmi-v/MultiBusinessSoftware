@@ -192,7 +192,7 @@ export default function FloorPlan() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/80 backdrop-blur-md border border-white/60 p-5 rounded-3xl shadow-lg shadow-gray-200/50">
         <div>
           <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
             <Utensils className="w-6 h-6 text-[#2563EB]" />
@@ -328,7 +328,7 @@ export default function FloorPlan() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div>
-                <h3 className="font-bold text-white text-lg">{showStatusModal.name}</h3>
+                <h3 className="font-bold text-gray-900 text-lg">{showStatusModal.name}</h3>
                 <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                   <Users className="w-3 h-3" /> {showStatusModal.capacity} Seats
                   <span className={cn('ml-2 text-[10px] font-bold uppercase', STATUS_CONFIG[showStatusModal.status]?.badge)}>
@@ -353,7 +353,7 @@ export default function FloorPlan() {
                     'w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold transition-all',
                     showStatusModal.status === s
                       ? 'bg-[#C5A059]/10 border-[#2563EB]/40 text-[#2563EB] cursor-default'
-                      : 'bg-[#F8FAFC] border-gray-200 text-gray-300 hover:border-[#2563EB]/40 hover:text-gray-900'
+                      : 'bg-[#F8FAFC] border-gray-200 text-gray-600 hover:border-[#2563EB]/40 hover:text-gray-900'
                   )}
                 >
                   <div className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', STATUS_CONFIG[s].dot)} />
@@ -370,13 +370,13 @@ export default function FloorPlan() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => startAction('SHIFT', showStatusModal)}
-                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-gray-50 border border-gray-200 text-gray-300 hover:border-blue-500/50 hover:text-blue-400 transition-all"
+                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-gray-50 border border-gray-200 text-gray-600 hover:border-blue-500/50 hover:text-blue-400 transition-all"
                   >
                     <ArrowRightLeft className="w-3.5 h-3.5" /> Shift Table
                   </button>
                   <button
                     onClick={() => startAction('MERGE', showStatusModal)}
-                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-gray-50 border border-gray-200 text-gray-300 hover:border-purple-500/50 hover:text-purple-400 transition-all"
+                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-gray-50 border border-gray-200 text-gray-600 hover:border-purple-500/50 hover:text-purple-400 transition-all"
                   >
                     <Combine className="w-3.5 h-3.5" /> Merge Table
                   </button>
@@ -402,7 +402,7 @@ export default function FloorPlan() {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
           <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h3 className="font-bold text-white text-lg flex items-center gap-2">
+              <h3 className="font-bold text-gray-900 text-lg flex items-center gap-2">
                 <Plus className="w-5 h-5 text-[#2563EB]" /> Add New Table
               </h3>
               <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-gray-900">

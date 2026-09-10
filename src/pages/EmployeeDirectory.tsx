@@ -541,7 +541,7 @@ export default function EmployeeDirectory() {
 
               {/* Staff Main Info */}
               <div className="my-4 space-y-1.5">
-                <h3 className="font-bold text-white text-base group-hover:text-[#2563EB] transition-colors">{st.name}</h3>
+                <h3 className="font-bold text-gray-900 text-base group-hover:text-[#2563EB] transition-colors">{st.name}</h3>
                 <p className="font-mono text-xs text-gray-400">@{st.username}</p>
               </div>
 
@@ -626,12 +626,12 @@ export default function EmployeeDirectory() {
                         </div>
                       )}
                       <div>
-                        <p className="font-bold text-white text-xs whitespace-nowrap">{st.name}</p>
+                        <p className="font-bold text-gray-900 text-xs whitespace-nowrap">{st.name}</p>
                         <p className="font-mono text-[10px] text-gray-400">@{st.username}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-3.5 font-semibold text-gray-300 whitespace-nowrap">
+                  <td className="p-3.5 font-semibold text-gray-600 whitespace-nowrap">
                     {st.category || 'General'}
                   </td>
                   <td className="p-3.5 whitespace-nowrap">
@@ -653,10 +653,10 @@ export default function EmployeeDirectory() {
                       {st.status || 'ACTIVE'}
                     </span>
                   </td>
-                  <td className="p-3.5 font-mono text-gray-300 text-[11px] whitespace-nowrap">
+                  <td className="p-3.5 font-mono text-gray-600 text-[11px] whitespace-nowrap">
                     {st.dob || '—'}
                   </td>
-                  <td className="p-3.5 font-mono text-gray-300 text-[11px] whitespace-nowrap">
+                  <td className="p-3.5 font-mono text-gray-600 text-[11px] whitespace-nowrap">
                     {st.doj || '—'}
                   </td>
                   <td className="p-3.5 font-mono text-gray-400 text-[11px] whitespace-nowrap">
@@ -665,7 +665,7 @@ export default function EmployeeDirectory() {
                   <td className="p-3.5 font-mono text-[#2563EB] font-bold text-[11px] whitespace-nowrap">
                     {st.aadharNumber ? st.aadharNumber : <span className="text-red-400 text-[10px]">Required *</span>}
                   </td>
-                  <td className="p-3.5 font-mono text-gray-300 text-[11px] whitespace-nowrap">
+                  <td className="p-3.5 font-mono text-gray-600 text-[11px] whitespace-nowrap">
                     {st.phone || '—'}
                   </td>
                   <td className="p-3.5 text-right whitespace-nowrap">
@@ -674,7 +674,7 @@ export default function EmployeeDirectory() {
                         e.stopPropagation();
                         handleOpenModal(st);
                       }}
-                      className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-300 hover:text-[#2563EB] border border-gray-200 rounded-lg"
+                      className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-[#2563EB] border border-gray-200 rounded-lg"
                       title="Edit Staff"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -694,7 +694,7 @@ export default function EmployeeDirectory() {
             <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#2563EB]" />
-                <h3 className="font-bold text-white text-base">
+                <h3 className="font-bold text-gray-900 text-base">
                   {selectedStaff ? `Employee Details: ${selectedStaff.name}` : 'New Employee Details'}
                 </h3>
               </div>
@@ -741,7 +741,7 @@ export default function EmployeeDirectory() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Full Name *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
@@ -753,7 +753,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Login Username *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Login Username *</label>
                   <input
                     type="text"
                     disabled
@@ -772,7 +772,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Category / Department *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Category / Department *</label>
                   <select
                     value={isCustomCategory ? 'CUSTOM' : staffCategory}
                     onChange={(e) => {
@@ -811,7 +811,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Role *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Role *</label>
                   <select
                     value={isCustomRole ? 'CUSTOM' : staffRole}
                     onChange={(e) => {
@@ -878,21 +878,21 @@ export default function EmployeeDirectory() {
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Billing POS', 'Customers', 'Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-300 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
                     >
                       POS Cashier
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Dashboard', 'Billing POS', 'Categories & Items', 'Inventory', 'Sales Reports', 'Customers', 'Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-300 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
                     >
                       Store Manager
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-300 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
                     >
                       Attendance Only
                     </button>
@@ -946,7 +946,7 @@ export default function EmployeeDirectory() {
 
                 <div className="sm:col-span-2 p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-gray-300 flex items-center gap-1.5">
+                    <span className="text-gray-600 flex items-center gap-1.5">
                       <Shield className="w-3.5 h-3.5 text-[#2563EB]" /> Assigned Role Title:
                     </span>
                     <span className="font-mono text-[#2563EB] font-bold">
@@ -959,7 +959,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Date of Birth (DOB)</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Date of Birth (DOB)</label>
                   <input
                     type="date"
                     value={staffDob}
@@ -969,7 +969,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1 text-[#2563EB]">Aadhar Number *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1 text-[#2563EB]">Aadhar Number *</label>
                   <input
                     type="text"
                     required
@@ -981,7 +981,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Date of Joining (DOJ)</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Date of Joining (DOJ)</label>
                   <input
                     type="date"
                     value={staffDoj}
@@ -991,7 +991,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Date of Relieving (DOR)</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Date of Relieving (DOR)</label>
                   <input
                     type="date"
                     value={staffDor}
@@ -1029,7 +1029,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Family Contact Number</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Family Contact Number</label>
                   <input
                     type="tel"
                     placeholder="+91 98765 11111"
@@ -1040,7 +1040,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Email Address</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Email Address</label>
                   <input
                     type="email"
                     placeholder="staff@business.com"
@@ -1051,7 +1051,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">4-Digit PIN Code *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">4-Digit PIN Code *</label>
                   <input
                     type="password"
                     maxLength={6}
@@ -1064,7 +1064,7 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Residential Address</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Residential Address</label>
                   <textarea
                     rows={2}
                     placeholder="Full residential address..."

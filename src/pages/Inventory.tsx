@@ -1301,7 +1301,7 @@ function RecipesTab() {
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
       <div className="xl:col-span-1 bg-[#131315] border border-[#2D2D30] rounded-xl overflow-hidden flex flex-col max-h-[700px]">
         <div className="p-4 border-b border-[#2D2D30] bg-[#0A0A0B]">
-          <h3 className="font-bold text-white">Menu Items</h3>
+          <h3 className="font-bold text-gray-900">Menu Items</h3>
         </div>
         <div className="overflow-y-auto p-4 space-y-4">
           {categories.map(c => (
@@ -1314,7 +1314,7 @@ function RecipesTab() {
                     onClick={() => { setSelectedMenuItem(item); fetchRecipes(item.id); }}
                     className={cn(
                       "w-full text-left p-3 rounded-lg border text-sm font-bold transition-all",
-                      selectedMenuItem?.id === item.id ? "bg-[#C5A059]/10 border-[#C5A059] text-[#C5A059]" : "bg-[#0A0A0B] border-[#2D2D30] text-gray-300 hover:border-gray-600"
+                      selectedMenuItem?.id === item.id ? "bg-[#C5A059]/10 border-[#C5A059] text-[#C5A059]" : "bg-[#0A0A0B] border-[#2D2D30] text-gray-600 hover:border-gray-600"
                     )}
                   >
                     {item.name}
@@ -1341,7 +1341,7 @@ function RecipesTab() {
                 ) : recipes.map(r => (
                   <div key={r.id} className="flex justify-between items-center p-4 bg-[#0A0A0B] border border-[#2D2D30] rounded-lg">
                     <div>
-                      <div className="font-bold text-white">{r.rawMaterial?.name}</div>
+                      <div className="font-bold text-gray-900">{r.rawMaterial?.name}</div>
                       <div className="text-sm text-gray-400">Uses {r.quantityUsed} {r.rawMaterial?.unit}</div>
                     </div>
                     <button onClick={() => handleDelete(r.id)} className="text-gray-500 hover:text-red-500 transition-colors p-2"><Trash2 className="w-4 h-4"/></button>

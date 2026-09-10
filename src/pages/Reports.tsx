@@ -3,7 +3,8 @@ import {
   FileText, Download, Calendar, Search, RefreshCw, 
   BarChart3, TrendingUp, IndianRupee, PieChart,
   ShoppingBag, Receipt, Package, CheckCircle2,
-  ChevronLeft, ChevronRight, Layers, FileSpreadsheet, Plus, Sparkles, Trash2, Printer, SlidersHorizontal
+  ChevronLeft, ChevronRight, Layers, FileSpreadsheet, Plus, Sparkles, Trash2, Printer, SlidersHorizontal,
+  Clock, Tag
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn, getCategoryName } from '../lib/utils';
@@ -328,7 +329,7 @@ export default function Reports() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white border border-gray-200 p-4 sm:p-5 rounded-2xl shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white/80 backdrop-blur-md border border-white/60 p-5 sm:p-6 rounded-3xl shadow-lg shadow-gray-200/50">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-[#2563EB] flex-shrink-0" />
@@ -349,14 +350,14 @@ export default function Reports() {
           </button>
           <button
             onClick={handleExportCSV}
-            className="px-3 sm:px-4 py-2 bg-gray-50 hover:bg-gray-100 text-white border border-gray-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+            className="px-3 sm:px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
           >
             <Download className="w-4 h-4 text-[#2563EB]" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => window.print()}
-            className="px-3 sm:px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 hover:brightness-110 transition-all flex items-center gap-1.5"
+            className="px-3 sm:px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 hover:brightness-110 transition-all flex items-center gap-1.5"
           >
             <Printer className="w-4 h-4" />
             <span>Print Report</span>
@@ -365,7 +366,7 @@ export default function Reports() {
       </div>
 
       {/* Date Range & Search Filter Bar */}
-      <div className="bg-white border border-gray-200 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white/80 backdrop-blur-md border border-white/60 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md shadow-gray-200/30">
         {/* Date Presets */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-pan-x pb-1 sm:pb-0">
           {[
@@ -382,7 +383,7 @@ export default function Reports() {
                 "px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0",
                 dateRangePreset === p.id
                   ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 font-extrabold"
-                  : "bg-gray-50 text-gray-400 hover:text-gray-900 border border-[#262629]"
+                  : "bg-gray-50 text-gray-400 hover:text-gray-900 border border-gray-200"
               )}
             >
               {p.label}
@@ -398,7 +399,7 @@ export default function Reports() {
               type="date"
               value={startDate}
               onChange={(e) => { setStartDate(e.target.value); setDateRangePreset('CUSTOM'); }}
-              className="bg-gray-50 border border-gray-200 text-white px-2 py-1.5 rounded-xl outline-none focus:border-[#2563EB] font-mono text-xs w-28 sm:w-auto"
+              className="bg-gray-50 border border-gray-200 text-gray-900 px-2 py-1.5 rounded-xl outline-none focus:border-[#2563EB] font-mono text-xs w-28 sm:w-auto"
             />
           </div>
           <div className="flex items-center gap-1">
@@ -407,71 +408,90 @@ export default function Reports() {
               type="date"
               value={endDate}
               onChange={(e) => { setEndDate(e.target.value); setDateRangePreset('CUSTOM'); }}
-              className="bg-gray-50 border border-gray-200 text-white px-2 py-1.5 rounded-xl outline-none focus:border-[#2563EB] font-mono text-xs w-28 sm:w-auto"
+              className="bg-gray-50 border border-gray-200 text-gray-900 px-2 py-1.5 rounded-xl outline-none focus:border-[#2563EB] font-mono text-xs w-28 sm:w-auto"
             />
           </div>
         </div>
       </div>
 
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-white border border-gray-200 p-3.5 rounded-2xl shadow-md">
-          <div className="text-[11px] text-gray-400 font-medium">Total Gross Sales</div>
-          <div className="text-xl font-bold text-white mt-1 font-mono">
-            {currency}{summaryMetrics.totalGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* Total Gross Sales */}
+        <div className="bg-white/80 backdrop-blur-md border border-white/60 p-4 rounded-2xl shadow-lg shadow-gray-200/50 flex flex-col justify-between">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center mb-3 flex-shrink-0">
+            <BarChart3 className="w-4 h-4" />
           </div>
-          <div className="text-[10px] text-gray-500 mt-0.5">{summaryMetrics.count} Total Bills</div>
+          <div>
+            <div className="text-[11px] text-gray-500 font-medium">Total Gross Sales</div>
+            <div className="text-xl font-bold text-gray-900 mt-1 font-mono">
+              {currency}{summaryMetrics.totalGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+            <div className="text-[10px] text-gray-400 mt-0.5">{summaryMetrics.count} Total Bills</div>
+          </div>
         </div>
 
         {/* Amount Paid Collected */}
-        <div className="bg-white border border-emerald-500/30 p-3.5 rounded-2xl shadow-md">
-          <div className="text-[11px] text-emerald-400 font-medium">Paid Collected</div>
-          <div className="text-xl font-bold text-emerald-400 mt-1 font-mono">
-            {currency}{summaryMetrics.totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        <div className="bg-white/80 backdrop-blur-md border border-white/60 p-4 rounded-2xl shadow-lg shadow-gray-200/50 flex flex-col justify-between">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 flex-shrink-0">
+            <CheckCircle2 className="w-4 h-4" />
           </div>
-          <div className="text-[10px] text-emerald-500/80 mt-0.5">Net cash / online in hand</div>
+          <div>
+            <div className="text-[11px] text-emerald-600 font-medium">Paid Collected</div>
+            <div className="text-xl font-bold text-emerald-700 mt-1 font-mono">
+              {currency}{summaryMetrics.totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+            <div className="text-[10px] text-emerald-500 mt-0.5">Net cash / online in hand</div>
+          </div>
         </div>
 
         {/* Pending Due Sales */}
-        <div className="bg-white border border-red-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
-          <div className="absolute top-0 right-0 px-2 py-0.5 bg-red-500/20 text-red-400 text-[9px] font-bold rounded-bl-lg">
-            ⏳ Pending Due
+        <div className="bg-white/80 backdrop-blur-md border border-white/60 p-4 rounded-2xl shadow-lg shadow-gray-200/50 flex flex-col justify-between relative overflow-hidden">
+          <div className="w-9 h-9 rounded-xl bg-red-50 text-red-500 flex items-center justify-center mb-3 flex-shrink-0">
+            <Clock className="w-4 h-4" />
           </div>
-          <div className="text-[11px] text-red-400 font-semibold">Outstanding Due</div>
-          <div className="text-xl font-bold text-red-400 mt-1 font-mono">
-            {currency}{summaryMetrics.totalPending.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-          </div>
-          <div className="text-[10px] text-red-500/80 mt-0.5">Customer credit balance</div>
-        </div>
-
-        {/* GST Bills Summary Column */}
-        <div className="bg-white border border-emerald-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
-          <div className="absolute top-0 right-0 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[9px] font-bold rounded-bl-lg">
-            📄 GST Column
-          </div>
-          <div className="text-[11px] text-emerald-400 font-semibold">GST Sales ({summaryMetrics.gstOrdersCount})</div>
-          <div className="text-xl font-bold text-emerald-400 mt-1 font-mono">
-            {currency}{summaryMetrics.gstGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-          </div>
-          <div className="text-[10px] text-emerald-500/80 mt-0.5 font-mono">
-            Tax: {currency}{summaryMetrics.gstTax.toFixed(2)}
+          <div>
+            <div className="text-[11px] text-red-500 font-semibold">Outstanding Due</div>
+            <div className="text-xl font-bold text-red-600 mt-1 font-mono">
+              {currency}{summaryMetrics.totalPending.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+            <div className="text-[10px] text-red-400 mt-0.5">Customer credit balance</div>
           </div>
         </div>
 
-        {/* Non-GST Bills Summary Column */}
-        <div className="bg-white border border-amber-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
-          <div className="absolute top-0 right-0 px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[9px] font-bold rounded-bl-lg">
-            📝 Non-GST Column
+        {/* GST Bills Summary */}
+        <div className="bg-white/80 backdrop-blur-md border border-white/60 p-4 rounded-2xl shadow-lg shadow-gray-200/50 flex flex-col justify-between">
+          <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3 flex-shrink-0">
+            <FileText className="w-4 h-4" />
           </div>
-          <div className="text-[11px] text-amber-400 font-semibold">Non-GST ({summaryMetrics.nonGstOrdersCount})</div>
-          <div className="text-xl font-bold text-amber-400 mt-1 font-mono">
-            {currency}{summaryMetrics.nonGstGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          <div>
+            <div className="text-[11px] text-indigo-600 font-semibold">GST Sales ({summaryMetrics.gstOrdersCount})</div>
+            <div className="text-xl font-bold text-indigo-700 mt-1 font-mono">
+              {currency}{summaryMetrics.gstGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+            <div className="text-[10px] text-indigo-400 mt-0.5 font-mono">
+              Tax: {currency}{summaryMetrics.gstTax.toFixed(2)}
+            </div>
           </div>
-          <div className="text-[10px] text-amber-500/80 mt-0.5 font-mono">
-            Tax Exempt (0% GST)
+        </div>
+
+        {/* Non-GST Bills Summary */}
+        <div className="bg-white/80 backdrop-blur-md border border-white/60 p-4 rounded-2xl shadow-lg shadow-gray-200/50 flex flex-col justify-between">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3 flex-shrink-0">
+            <Tag className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-[11px] text-amber-600 font-semibold">Non-GST ({summaryMetrics.nonGstOrdersCount})</div>
+            <div className="text-xl font-bold text-amber-700 mt-1 font-mono">
+              {currency}{summaryMetrics.nonGstGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+            <div className="text-[10px] text-amber-400 mt-0.5 font-mono">
+              Tax Exempt (0% GST)
+            </div>
           </div>
         </div>
       </div>
+
+
 
       {/* Navigation Report Tabs */}
       <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
@@ -501,14 +521,14 @@ export default function Reports() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Payment Method Breakdown */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
-            <h3 className="font-bold text-white text-sm">Payment Methods Breakdown</h3>
+            <h3 className="font-bold text-gray-900 text-sm">Payment Methods Breakdown</h3>
             <div className="space-y-3">
               {Object.entries(summaryMetrics.paymentMap).map(([mode, val]) => {
                 const pct = summaryMetrics.totalGross > 0 ? (val.total / summaryMetrics.totalGross) * 100 : 0;
                 return (
-                  <div key={mode} className="bg-gray-50 border border-[#262629] p-3.5 rounded-xl space-y-2">
+                  <div key={mode} className="bg-gray-50 border border-gray-200 p-3.5 rounded-xl space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-white">{mode}</span>
+                      <span className="font-bold text-gray-900">{mode}</span>
                       <span className="font-mono font-bold text-[#2563EB]">
                         {currency}{val.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ({val.count} bills)
                       </span>
@@ -528,12 +548,12 @@ export default function Reports() {
 
           {/* Quick Item Performance Highlight */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
-            <h3 className="font-bold text-white text-sm">Top Selling Products</h3>
+            <h3 className="font-bold text-gray-900 text-sm">Top Selling Products</h3>
             <div className="divide-y divide-[#1F1F21]">
               {itemWiseReport.slice(0, 5).map((it, idx) => (
                 <div key={idx} className="py-2.5 first:pt-0 flex items-center justify-between text-xs">
                   <div>
-                    <div className="font-bold text-white">{it.name}</div>
+                    <div className="font-bold text-gray-900">{it.name}</div>
                     <div className="text-[10px] text-gray-500">{it.category} • {it.qty} sold</div>
                   </div>
                   <div className="font-mono font-bold text-white">
@@ -551,10 +571,10 @@ export default function Reports() {
 
       {/* TAB 2: DETAILED INVOICES LEDGER WITH GST vs NON-GST COLUMNS */}
       {activeTab === 'INVOICES' && (
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl space-y-3">
+        <div className="bg-white/90 border border-gray-100 rounded-2xl overflow-hidden shadow-md shadow-gray-100/50 shadow-xl space-y-3">
           <div className="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
             {/* GST vs Non-GST Column Filter */}
-            <div className="flex items-center gap-1.5 bg-gray-50 p-1 rounded-xl border border-[#262629]">
+            <div className="flex items-center gap-1.5 bg-gray-50 p-1 rounded-xl border border-gray-200">
               <button
                 onClick={() => setBillTypeFilter('ALL')}
                 className={cn(
@@ -647,11 +667,11 @@ export default function Reports() {
                         {order.createdAt ? new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' }) : '—'}
                       </td>
                       <td className="p-3.5 whitespace-nowrap">
-                        <div className="font-bold text-white">{order.customerName || 'Walk-in Customer'}</div>
+                        <div className="font-bold text-gray-900">{order.customerName || 'Walk-in Customer'}</div>
                         {order.customerMobile && <div className="text-[10px] text-gray-500 font-mono">{order.customerMobile}</div>}
                       </td>
                       <td className="p-3.5 whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-gray-50 border border-gray-200 text-gray-300 whitespace-nowrap inline-block">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-gray-50 border border-gray-200 text-gray-600 whitespace-nowrap inline-block">
                           {order.paymentMethod || 'CASH'}
                         </span>
                       </td>
@@ -705,7 +725,7 @@ export default function Reports() {
 
       {/* TAB 3: ITEM-WISE SALES */}
       {activeTab === 'ITEMS' && (
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-white/90 border border-gray-100 rounded-2xl overflow-hidden shadow-md shadow-gray-100/50 shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200">
@@ -741,7 +761,7 @@ export default function Reports() {
 
       {/* TAB 4: CATEGORY-WISE SALES */}
       {activeTab === 'CATEGORIES' && (
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-white/90 border border-gray-100 rounded-2xl overflow-hidden shadow-md shadow-gray-100/50 shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200">

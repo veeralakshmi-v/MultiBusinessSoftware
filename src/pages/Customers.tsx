@@ -52,7 +52,7 @@ export default function Customers() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/80 backdrop-blur-md border border-white/60 p-5 rounded-3xl shadow-lg shadow-gray-200/50">
         <div>
           <h1 className="text-xl sm:text-2xl font-serif font-bold text-gray-900">Customers & Loyalty CRM</h1>
           <p className="text-gray-400 text-xs sm:text-sm mt-0.5">Manage customer profiles, order history, credit balance, and rewards</p>
@@ -63,7 +63,7 @@ export default function Customers() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        <div className="lg:col-span-1 bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col max-h-[350px] sm:max-h-[700px]">
+        <div className="lg:col-span-1 bg-white/90 border border-gray-100 rounded-2xl overflow-hidden shadow-md shadow-gray-100/50 flex flex-col max-h-[350px] sm:max-h-[700px]">
           <div className="p-3 sm:p-4 border-b border-gray-200 bg-[#F8FAFC]">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-500" />
@@ -85,7 +85,7 @@ export default function Customers() {
                   onClick={() => fetchCustomerDetails(c.id)}
                   className={cn(
                     "w-full text-left p-3 rounded-lg transition-all flex items-center justify-between",
-                    selectedCustomer?.id === c.id ? "bg-[#C5A059]/10 text-[#2563EB]" : "text-gray-300 hover:bg-gray-50"
+                    selectedCustomer?.id === c.id ? "bg-blue-50 text-[#2563EB]" : "text-gray-600 hover:bg-gray-50"
                   )}
                 >
                   <div>
@@ -107,7 +107,7 @@ export default function Customers() {
           {selectedCustomer ? (
             <CustomerProfile customer={selectedCustomer} refresh={() => fetchCustomerDetails(selectedCustomer.id)} />
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-white border border-gray-200 rounded-xl p-12">
+            <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-12">
               <Users className="w-12 h-12 mb-4 opacity-50" />
               <div className="text-lg font-bold">Select a Customer</div>
               <div className="text-sm">View their order history, preferences, and loyalty points.</div>
@@ -269,7 +269,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
               return (
                 <div key={o.id} className="bg-[#F8FAFC] p-3.5 rounded-xl border border-gray-200 space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold text-white text-xs">{o.orderNumber || 'INV-LOCAL'}</span>
+                    <span className="font-bold text-gray-900 text-xs">{o.orderNumber || 'INV-LOCAL'}</span>
                     <span className="text-xs font-bold text-[#2563EB] font-mono">Bill Total: ₹{o.total?.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center text-[11px] font-mono border-t border-gray-200 pt-1.5">
@@ -299,7 +299,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
           <div className="flex flex-wrap gap-2">
             {(!customer.favoriteItems || customer.favoriteItems.length === 0) && <div className="text-gray-500 text-sm">No favorites recorded yet.</div>}
             {customer.favoriteItems?.map((f: any) => (
-              <span key={f.id} className="bg-[#F8FAFC] border border-gray-200 text-gray-300 px-3 py-1.5 rounded-full text-sm font-bold">
+              <span key={f.id} className="bg-[#F8FAFC] border border-gray-200 text-gray-600 px-3 py-1.5 rounded-full text-sm font-bold">
                 {f.name}
               </span>
             ))}
@@ -318,12 +318,12 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
 
             <form onSubmit={handleConfirmSettle} className="space-y-4">
               <div className="bg-[#F8FAFC] p-3 rounded-xl border border-gray-200 flex justify-between items-center text-xs">
-                <span className="text-gray-400">Total Pending Due:</span>
+                <span className="text-gray-600">Total Pending Due:</span>
                 <span className="font-mono font-bold text-red-400 text-sm">₹{totalPendingBalance.toFixed(2)}</span>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1">Amount Paid Now (₹) *</label>
+                <label className="block text-xs font-bold text-gray-600 mb-1">Amount Paid Now (₹) *</label>
                 <input
                   type="number"
                   step="any"
@@ -336,7 +336,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-300 mb-1">Payment Method</label>
+                <label className="block text-xs font-bold text-gray-600 mb-1">Payment Method</label>
                 <select
                   value={settleMethod}
                   onChange={e => setSettleMethod(e.target.value as any)}

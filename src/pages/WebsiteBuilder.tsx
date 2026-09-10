@@ -381,7 +381,7 @@ export default function WebsiteBuilder() {
         <div className="space-y-6">
           
           {/* Brand Identity */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div className="bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm space-y-4">
             <div className="border-b border-gray-200 pb-3">
               <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-blue-600" />
@@ -429,7 +429,7 @@ export default function WebsiteBuilder() {
           </div>
 
           {/* Hero Slides CRUD */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div className="bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
               <div>
                 <h2 className="text-base font-semibold text-gray-900">
@@ -607,7 +607,7 @@ export default function WebsiteBuilder() {
         <div className="space-y-6">
           
           {/* Section Headers Configuration */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div className="bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm space-y-4">
             <div className="border-b border-gray-200 pb-3">
               <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <Star className="w-4 h-4 text-blue-600" />
@@ -655,7 +655,7 @@ export default function WebsiteBuilder() {
           </div>
 
           {/* Showcase Items CRUD */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div className="bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
               <div>
                 <h2 className="text-base font-semibold text-gray-900">
@@ -876,7 +876,7 @@ export default function WebsiteBuilder() {
       {activeTab === 'PILLARS' && (
         <div className="space-y-6">
           
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div className="bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm space-y-4">
             <div className="border-b border-gray-200 pb-3">
               <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <Shield className="w-4 h-4 text-blue-600" />
@@ -997,7 +997,7 @@ export default function WebsiteBuilder() {
       {activeTab === 'JOURNAL' && (
         <div className="space-y-6">
           
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div className="bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm space-y-4">
             <div className="border-b border-gray-200 pb-3">
               <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-blue-600" />
@@ -1034,7 +1034,7 @@ export default function WebsiteBuilder() {
           </div>
 
           {/* Articles CRUD */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div className="bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
               <div>
                 <h2 className="text-base font-semibold text-gray-900">
@@ -1215,7 +1215,7 @@ export default function WebsiteBuilder() {
       {/* ========================================================================= */}
       {activeTab === 'CATALOG' && (
         <div className="space-y-6">
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div className="bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm space-y-4">
             <div className="border-b border-gray-200 pb-3">
               <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-blue-600" />
@@ -1272,7 +1272,7 @@ export default function WebsiteBuilder() {
       {/* 6. CONTACT & FOOTER TAB */}
       {/* ========================================================================= */}
       {activeTab === 'CONTACT_FOOTER' && (
-        <div className="space-y-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <div className="space-y-6 bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm">
           <div className="border-b border-gray-200 pb-3">
             <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <Phone className="w-4 h-4 text-blue-600" />
@@ -1372,7 +1372,7 @@ export default function WebsiteBuilder() {
       {/* 7. SECTION TOGGLES TAB */}
       {/* ========================================================================= */}
       {activeTab === 'TOGGLES' && (
-        <div className="space-y-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <div className="space-y-6 bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-6 shadow-sm">
           <div className="border-b border-gray-200 pb-3">
             <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <Sliders className="w-4 h-4 text-blue-600" />

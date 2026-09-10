@@ -291,7 +291,7 @@ export default function StaffAttendance() {
 
           return (
             <div className="space-y-5">
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl max-w-xl mx-auto space-y-5">
+              <div className="bg-white/90 border border-gray-100 rounded-2xl p-6 shadow-lg shadow-gray-200/40 max-w-xl mx-auto space-y-5">
                 <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB] font-bold">
                     {user?.username?.charAt(0).toUpperCase() || 'U'}
@@ -434,7 +434,7 @@ export default function StaffAttendance() {
                           </td>
                           <td className="px-4 py-3">
                             {worked > 0
-                              ? <span className="text-gray-300 font-mono">{worked.toFixed(1)}h</span>
+                              ? <span className="text-gray-600 font-mono">{worked.toFixed(1)}h</span>
                               : <span className="text-gray-600">—</span>}
                           </td>
                           <td className="px-4 py-3">

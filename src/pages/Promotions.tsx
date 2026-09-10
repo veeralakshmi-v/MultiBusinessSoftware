@@ -21,7 +21,7 @@ export default function Promotions() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/80 backdrop-blur-md border border-white/60 p-5 rounded-3xl shadow-lg shadow-gray-200/50">
         <div>
           <h1 className="text-2xl font-serif font-bold text-gray-900">Promotional Engine</h1>
           <p className="text-gray-400 text-sm mt-1">Manage BOGO, combos, and discounts</p>
@@ -33,35 +33,35 @@ export default function Promotions() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {promotions.map(promo => (
-          <div key={promo.id} className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col relative overflow-hidden">
+          <div key={promo.id} className="bg-white/90 border border-gray-100 rounded-xl shadow-md shadow-gray-100/50 p-5 flex flex-col relative overflow-hidden">
             <div className="absolute top-0 right-0 p-3 flex gap-2">
-              <button onClick={() => { setEditingPromo(promo); setShowForm(true); }} className="text-gray-400 hover:text-gray-900"><Edit2 className="w-4 h-4"/></button>
+              <button onClick={() => { setEditingPromo(promo); setShowForm(true); }} className="text-gray-600 hover:text-gray-900"><Edit2 className="w-4 h-4"/></button>
               <button onClick={() => handleDelete(promo.id)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4"/></button>
             </div>
             
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-[#F8FAFC] border border-gray-200 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center">
                 {promo.type === 'BOGO' ? <Gift className="w-5 h-5 text-purple-500"/> :
                  promo.type === 'PERCENTAGE' ? <Percent className="w-5 h-5 text-green-500"/> :
                  <Tag className="w-5 h-5 text-blue-500"/>}
               </div>
               <div>
-                <h3 className="text-white font-bold">{promo.name}</h3>
+                <h3 className="text-gray-900 font-bold text-sm">{promo.name}</h3>
                 <div className="text-xs font-bold text-gray-500">{promo.type} • Priority {promo.priority}</div>
               </div>
             </div>
 
-            <div className="text-sm text-gray-300 mb-4 flex-1">
+            <div className="text-sm text-gray-600 mb-4 flex-1">
               {promo.type === 'BOGO' && promo.buyItem && promo.getItem && (
                 <div className="bg-gray-50 p-3 rounded border border-gray-200">
                   <span className="text-[#2563EB]">Buy {promo.buyQty}</span> {promo.buyItem?.name}<br/>
-                  <span className="text-green-500">Get {promo.getQty}</span> {promo.getItem?.name} <span className="text-gray-400">for ₹{promo.getPrice}</span>
+                  <span className="text-green-500">Get {promo.getQty}</span> {promo.getItem?.name} <span className="text-gray-600">for ₹{promo.getPrice}</span>
                 </div>
               )}
               {promo.type === 'PERCENTAGE' && <div className="text-2xl font-bold text-gray-900">{promo.discountValue}% OFF</div>}
               {promo.type === 'FLAT' && <div className="text-2xl font-bold text-gray-900">₹{promo.discountValue} OFF</div>}
               {promo.minOrderValue > 0 && <div className="text-xs text-gray-400 mt-2">Min order: ₹{promo.minOrderValue}</div>}
-              {promo.code && !promo.autoApply && <div className="mt-2 text-xs font-bold bg-[#C5A059]/10 text-[#2563EB] px-2 py-1 rounded inline-block">CODE: {promo.code}</div>}
+              {promo.code && !promo.autoApply && <div className="mt-2 text-xs font-bold bg-blue-50 text-[#2563EB] px-2 py-1 rounded inline-block">CODE: {promo.code}</div>}
               {promo.autoApply && <div className="mt-2 text-xs font-bold bg-green-500/10 text-green-500 px-2 py-1 rounded inline-block">AUTO APPLY</div>}
             </div>
             

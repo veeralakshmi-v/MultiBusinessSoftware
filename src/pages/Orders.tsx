@@ -169,7 +169,7 @@ export default function Orders() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/80 backdrop-blur-md border border-white/60 p-5 rounded-3xl shadow-lg shadow-gray-200/50">
         <div>
           <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2.5">
             <Activity className="w-6 h-6 text-[#2563EB]" />
@@ -185,7 +185,7 @@ export default function Orders() {
             onClick={() => setFilter('ALL')}
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap",
-              filter === 'ALL' ? "bg-[#2563EB] text-white" : "text-gray-400 hover:text-gray-900"
+              filter === 'ALL' ? "bg-[#2563EB] text-white" : "text-gray-600 hover:text-gray-900"
             )}
           >
             Active ({orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length})
@@ -197,7 +197,7 @@ export default function Orders() {
               onClick={() => setFilter(step.code)}
               className={cn(
                 "px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap",
-                filter === step.code ? "bg-[#2563EB] text-white" : "text-gray-400 hover:text-gray-900"
+                filter === step.code ? "bg-[#2563EB] text-white" : "text-gray-600 hover:text-gray-900"
               )}
             >
               {step.label}
@@ -219,7 +219,7 @@ export default function Orders() {
           const progress = WorkflowEngine.getStepProgress(order.status, activeTemplate);
 
           return (
-            <div key={order.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col shadow-xl">
+            <div key={order.id} className="bg-white/90 border border-gray-100 rounded-2xl overflow-hidden shadow-md shadow-gray-100/50 flex flex-col shadow-xl">
               
               <div className={cn("p-4 border-b flex justify-between items-center", badgeStyle.border, badgeStyle.bg)}>
                 <div className="flex items-center gap-2">
@@ -255,7 +255,7 @@ export default function Orders() {
                       <Printer className="w-4 h-4" />
                     </button>
                     {order.estimatedPrepTime && (
-                      <div className="bg-gray-50 border border-gray-200 text-gray-300 px-2.5 py-1 rounded-lg text-[11px] font-bold font-mono">
+                      <div className="bg-gray-50 border border-gray-200 text-gray-600 px-2.5 py-1 rounded-lg text-[11px] font-bold font-mono">
                         {order.estimatedPrepTime}m
                       </div>
                     )}
@@ -268,7 +268,7 @@ export default function Orders() {
                     {order.items.map(item => (
                       <div key={item.id} className="bg-[#F8FAFC] p-2.5 rounded-xl border border-gray-200">
                         <div className="flex justify-between text-xs">
-                          <span className="text-white font-bold">{item.quantity}x {item.menuItem.name}</span>
+                          <span className="text-gray-900 font-bold">{item.quantity}x {item.menuItem.name}</span>
                         </div>
                         {item.notes && <div className="text-[10px] text-orange-400 mt-1 pl-2 border-l border-orange-500/30">» {item.notes}</div>}
                       </div>
@@ -279,7 +279,7 @@ export default function Orders() {
                 {(order.customerNotes || order.kitchenNotes) && (
                   <div className="space-y-1.5 pt-2 border-t border-gray-200 text-xs">
                     {order.customerNotes && (
-                      <div><span className="text-gray-500">Customer:</span> <span className="text-gray-300">{order.customerNotes}</span></div>
+                      <div><span className="text-gray-500">Customer:</span> <span className="text-gray-600">{order.customerNotes}</span></div>
                     )}
                     {order.kitchenNotes && (
                       <div><span className="text-gray-500">Notes:</span> <span className="text-orange-400">{order.kitchenNotes}</span></div>

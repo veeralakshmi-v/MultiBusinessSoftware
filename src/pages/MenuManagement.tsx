@@ -379,7 +379,7 @@ export default function MenuManagement() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-200 p-5 rounded-2xl shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/80 backdrop-blur-md border border-white/60 p-5 rounded-3xl shadow-lg shadow-gray-200/50">
         <div>
           <div className="flex items-center gap-2">
             <Layers className="w-6 h-6 text-[#2563EB]" />
@@ -543,7 +543,7 @@ export default function MenuManagement() {
           <select
             value={stockFilter}
             onChange={(e) => setStockFilter(e.target.value as any)}
-            className="bg-white border border-gray-200 text-gray-300 text-xs px-3 py-2.5 rounded-xl outline-none focus:border-[#2563EB]"
+            className="bg-white border border-gray-200 text-gray-600 text-xs px-3 py-2.5 rounded-xl outline-none focus:border-[#2563EB]"
           >
             <option value="ALL">All Stock Levels</option>
             <option value="IN_STOCK">In Stock</option>
@@ -554,7 +554,7 @@ export default function MenuManagement() {
       </div>
 
       {/* Items Catalog Table / Grid */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white/90 border border-gray-100 rounded-2xl overflow-hidden shadow-md shadow-gray-100/50 shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200 tracking-wider">
@@ -582,7 +582,7 @@ export default function MenuManagement() {
                 return (
                   <tr key={item.id} className="hover:bg-gray-50 transition-colors group">
                     <td className="p-3.5">
-                      <div className="font-bold text-white text-sm">{item.name}</div>
+                      <div className="font-bold text-gray-900 text-sm">{item.name}</div>
                       <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5">
                         {item.sku && <span>SKU: {item.sku}</span>}
                         {item.barcode && <span>• Barcode: {item.barcode}</span>}
@@ -590,7 +590,7 @@ export default function MenuManagement() {
                     </td>
 
                     <td className="p-3.5">
-                      <span className="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-300 text-[11px] font-medium">
+                      <span className="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 text-[11px] font-medium">
                         {catObj?.name || 'General'}
                       </span>
                     </td>
@@ -604,7 +604,7 @@ export default function MenuManagement() {
                     </td>
 
                     <td className="p-3.5 text-center">
-                      <span className="px-2 py-0.5 rounded-md bg-[#C5A059]/10 text-[#2563EB] border border-[#2563EB]/20 font-mono text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#2563EB] border border-[#2563EB]/20 font-mono text-[10px] font-bold">
                         {item.gst}% GST
                       </span>
                     </td>
@@ -658,7 +658,7 @@ export default function MenuManagement() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenItemModal(item)}
-                          className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-300 hover:text-[#2563EB] border border-gray-200 rounded-lg transition-all"
+                          className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-[#2563EB] border border-gray-200 rounded-lg transition-all"
                           title="Edit Product"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -704,18 +704,18 @@ export default function MenuManagement() {
             <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
                 <FolderPlus className="w-5 h-5 text-[#2563EB]" />
-                <h3 className="font-bold text-white text-base">
+                <h3 className="font-bold text-gray-900 text-base">
                   {editingCategory ? 'Edit Category' : 'Create New Category'}
                 </h3>
               </div>
-              <button onClick={() => setIsCategoryModalOpen(false)} className="text-gray-400 hover:text-gray-900">
+              <button onClick={() => setIsCategoryModalOpen(false)} className="text-gray-600 hover:text-gray-900">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSaveCategory} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5">Category Name *</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category Name *</label>
                 <input
                   type="text"
                   required
@@ -727,7 +727,7 @@ export default function MenuManagement() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1.5">Description (Optional)</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Description (Optional)</label>
                 <textarea
                   rows={3}
                   placeholder="Brief description for category..."
@@ -764,11 +764,11 @@ export default function MenuManagement() {
             <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
                 <Package className="w-5 h-5 text-[#2563EB]" />
-                <h3 className="font-bold text-white text-base">
+                <h3 className="font-bold text-gray-900 text-base">
                   {editingItem ? 'Edit Product Item' : 'Add Item under Category'}
                 </h3>
               </div>
-              <button onClick={() => setIsItemModalOpen(false)} className="text-gray-400 hover:text-gray-900">
+              <button onClick={() => setIsItemModalOpen(false)} className="text-gray-600 hover:text-gray-900">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -777,7 +777,7 @@ export default function MenuManagement() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Item Name */}
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Product / Item Name *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Product / Item Name *</label>
                   <input
                     type="text"
                     required
@@ -790,7 +790,7 @@ export default function MenuManagement() {
 
                 {/* Category Selector */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Category *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category *</label>
                   <select
                     value={itemCatId}
                     onChange={(e) => setItemCatId(e.target.value)}
@@ -804,7 +804,7 @@ export default function MenuManagement() {
 
                 {/* Unit */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Unit of Measurement</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Unit of Measurement</label>
                   <select
                     value={itemUnit}
                     onChange={(e) => setItemUnit(e.target.value)}
@@ -829,7 +829,7 @@ export default function MenuManagement() {
 
                 {/* Selling Price */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Selling Price ({currency}) *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Selling Price ({currency}) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -844,7 +844,7 @@ export default function MenuManagement() {
 
                 {/* Cost Price */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Cost / Purchase Price ({currency})</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Cost / Purchase Price ({currency})</label>
                   <input
                     type="number"
                     step="0.01"
@@ -858,7 +858,7 @@ export default function MenuManagement() {
 
                 {/* Tax / GST Rate */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">GST / Tax Rate (%)</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">GST / Tax Rate (%)</label>
                   <select
                     value={itemGst}
                     onChange={(e) => setItemGst(Number(e.target.value))}
@@ -874,7 +874,7 @@ export default function MenuManagement() {
 
                 {/* Opening Stock */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Initial Stock Quantity</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Initial Stock Quantity</label>
                   <input
                     type="number"
                     min="0"
@@ -887,7 +887,7 @@ export default function MenuManagement() {
 
                 {/* SKU Code */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">SKU / Item Code</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">SKU / Item Code</label>
                   <input
                     type="text"
                     placeholder="e.g. SKU-1001"
@@ -899,7 +899,7 @@ export default function MenuManagement() {
 
                 {/* Barcode */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Barcode / EAN (Optional)</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Barcode / EAN (Optional)</label>
                   <input
                     type="text"
                     placeholder="Scan or enter barcode"
@@ -911,7 +911,7 @@ export default function MenuManagement() {
 
                 {/* Description */}
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Notes / Description (Optional)</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Notes / Description (Optional)</label>
                   <input
                     type="text"
                     placeholder="Additional item details or specifications"

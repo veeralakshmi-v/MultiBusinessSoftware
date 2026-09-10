@@ -399,7 +399,7 @@ export default function Dashboard() {
                 <th className="p-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-gray-50 bg-white/60">
               {dateOrders.slice(0, 10).map(order => (
                 <tr key={order.id} className="hover:bg-blue-50/30 transition-colors">
                   <td className="p-3.5 font-mono font-bold text-[#0F172A]">{order.orderNumber}</td>
