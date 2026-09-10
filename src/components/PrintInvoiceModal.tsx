@@ -142,18 +142,18 @@ export default function PrintInvoiceModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto print:p-0 print:bg-white print:static">
-      <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl max-w-4xl w-full flex flex-col max-h-[90vh] shadow-2xl overflow-hidden print:border-none print:shadow-none print:max-w-none print:max-h-none print:bg-white text-gray-200">
+      <div className="bg-white border border-gray-200 rounded-2xl max-w-4xl w-full flex flex-col max-h-[90vh] shadow-2xl overflow-hidden print:border-none print:shadow-none print:max-w-none print:max-h-none print:bg-white text-gray-200">
         
         {/* Header Controls Bar */}
-        <div className="p-4 border-b border-[#1F1F21] flex flex-wrap items-center justify-between gap-4 bg-[#161618] print:hidden">
+        <div className="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4 bg-gray-50 print:hidden">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059]">
+            <div className="w-9 h-9 rounded-xl bg-[#2563EB]/10 border border-blue-400/30 flex items-center justify-center text-[#2563EB]">
               <Printer className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm tracking-tight flex items-center gap-2">
+              <h3 className="font-bold text-gray-900 text-sm tracking-tight flex items-center gap-2">
                 {layout.headerTitle}
-                <span className="px-2 py-0.5 rounded-full bg-[#1A1A1C] border border-[#C5A059]/30 text-[10px] text-[#C5A059] font-mono">
+                <span className="px-2 py-0.5 rounded-full bg-gray-50 border border-blue-400/30 text-[10px] text-[#2563EB] font-mono">
                   TAX INVOICE
                 </span>
               </h3>
@@ -165,28 +165,28 @@ export default function PrintInvoiceModal({
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Paper Format Switcher */}
-            <div className="flex items-center bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-1 text-xs">
+            <div className="flex items-center bg-[#F8FAFC] border border-gray-200 rounded-xl p-1 text-xs">
               <button
                 onClick={() => setPrintFormat('80MM')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === '80MM' ? 'bg-[#C5A059] text-[#0A0A0B]' : 'text-gray-400 hover:text-white'}`}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === '80MM' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
               >
                 80mm
               </button>
               <button
                 onClick={() => setPrintFormat('58MM')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === '58MM' ? 'bg-[#C5A059] text-[#0A0A0B]' : 'text-gray-400 hover:text-white'}`}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === '58MM' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
               >
                 58mm
               </button>
               <button
                 onClick={() => setPrintFormat('A4')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === 'A4' ? 'bg-[#C5A059] text-[#0A0A0B]' : 'text-gray-400 hover:text-white'}`}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === 'A4' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
               >
                 A4 Tax
               </button>
               <button
                 onClick={() => setPrintFormat('KOT')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === 'KOT' ? 'bg-[#C5A059] text-[#0A0A0B]' : 'text-gray-400 hover:text-white'}`}
+                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === 'KOT' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
               >
                 KOT Slip
               </button>
@@ -199,7 +199,7 @@ export default function PrintInvoiceModal({
                 "px-2.5 py-1 rounded-xl text-xs font-bold transition-all border flex items-center gap-1",
                 showQrScanner
                   ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
-                  : "bg-[#1A1A1C] text-gray-400 border-[#2D2D30] hover:text-white"
+                  : "bg-gray-50 text-gray-400 border-gray-200 hover:text-gray-900"
               )}
               title="Toggle QR Code Scanner on Receipt"
             >
@@ -208,7 +208,7 @@ export default function PrintInvoiceModal({
 
             <button
               onClick={handleCopySummary}
-              className="px-3 py-1.5 bg-[#1A1A1C] border border-[#2D2D30] hover:border-gray-500 text-gray-300 hover:text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 hover:border-gray-500 text-gray-300 hover:text-gray-900 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? 'Copied' : 'Copy'}
@@ -216,20 +216,20 @@ export default function PrintInvoiceModal({
 
             <button
               onClick={handlePrint}
-              className="px-4 py-1.5 bg-[#C5A059] hover:bg-[#b08d4a] text-[#0A0A0B] font-bold text-xs rounded-xl uppercase tracking-wider shadow-md shadow-[#C5A059]/20 flex items-center gap-1.5 transition-all"
+              className="px-4 py-1.5 bg-[#2563EB] hover:bg-[#b08d4a] text-[#0A0A0B] font-bold text-xs rounded-xl uppercase tracking-wider shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all"
             >
               <Printer className="w-4 h-4" />
               Print Receipt
             </button>
 
-            <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-white rounded-lg">
+            <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-900 rounded-lg">
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {/* Invoice View Area */}
-        <div className="flex-1 overflow-y-auto p-6 bg-[#0A0A0B] print:bg-white print:p-0 flex justify-center">
+        <div className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC] print:bg-white print:p-0 flex justify-center">
           
           {/* FORMAT 1: 80MM / 58MM THERMAL RECEIPT */}
           {(printFormat === '80MM' || printFormat === '58MM') && (
@@ -342,7 +342,7 @@ export default function PrintInvoiceModal({
                 </div>
                 {order.paidAmount !== undefined && order.paidAmount < order.total && (
                   <>
-                    <div className="flex justify-between font-normal text-[#C5A059] pt-0.5">
+                    <div className="flex justify-between font-normal text-[#2563EB] pt-0.5">
                       <span>Paid Amount ({order.splitPaidMethod || order.paymentMethod}):</span>
                       <span>₹{order.paidAmount.toFixed(2)}</span>
                     </div>
@@ -471,7 +471,7 @@ export default function PrintInvoiceModal({
                   </div>
                   {order.paidAmount !== undefined && order.paidAmount < order.total && (
                     <>
-                      <div className="flex justify-between text-xs text-[#C5A059] font-bold">
+                      <div className="flex justify-between text-xs text-[#2563EB] font-bold">
                         <span>Paid Amount ({order.splitPaidMethod || order.paymentMethod}):</span>
                         <span>₹{order.paidAmount.toFixed(2)}</span>
                       </div>

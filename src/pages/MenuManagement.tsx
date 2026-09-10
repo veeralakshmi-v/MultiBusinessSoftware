@@ -379,11 +379,11 @@ export default function MenuManagement() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#131315] border border-[#1F1F21] p-5 rounded-2xl shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-200 p-5 rounded-2xl shadow-lg">
         <div>
           <div className="flex items-center gap-2">
-            <Layers className="w-6 h-6 text-[#C5A059]" />
-            <h1 className="text-xl font-bold text-white tracking-tight">Categories & Product Catalog</h1>
+            <Layers className="w-6 h-6 text-[#2563EB]" />
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Categories & Product Catalog</h1>
           </div>
           <p className="text-xs text-gray-400 mt-1">
             Create categories and add products, prices, tax rates, and inventory stock for your business.
@@ -411,8 +411,8 @@ export default function MenuManagement() {
 
       {/* Metrics Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-xl flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#C5A059]/10 border border-[#C5A059]/20 flex items-center justify-center text-[#C5A059]">
+        <div className="bg-white border border-gray-200 p-3.5 rounded-xl flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-[#C5A059]/10 border border-[#2563EB]/20 flex items-center justify-center text-[#2563EB]">
             <Layers className="w-4 h-4" />
           </div>
           <div>
@@ -421,7 +421,7 @@ export default function MenuManagement() {
           </div>
         </div>
 
-        <div className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-xl flex items-center gap-3">
+        <div className="bg-white border border-gray-200 p-3.5 rounded-xl flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
             <Package className="w-4 h-4" />
           </div>
@@ -431,7 +431,7 @@ export default function MenuManagement() {
           </div>
         </div>
 
-        <div className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-xl flex items-center gap-3">
+        <div className="bg-white border border-gray-200 p-3.5 rounded-xl flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-400">
             <CheckCircle2 className="w-4 h-4" />
           </div>
@@ -441,7 +441,7 @@ export default function MenuManagement() {
           </div>
         </div>
 
-        <div className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-xl flex items-center gap-3">
+        <div className="bg-white border border-gray-200 p-3.5 rounded-xl flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
             <Boxes className="w-4 h-4" />
           </div>
@@ -453,7 +453,7 @@ export default function MenuManagement() {
       </div>
 
       {/* Category Selection Tabs / Chips */}
-      <div className="bg-[#131315] border border-[#1F1F21] p-4 rounded-2xl space-y-3">
+      <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Select Category to View Items</span>
           <span className="text-[11px] text-theme-accent font-medium">{filteredItems.length} products listed</span>
@@ -496,10 +496,10 @@ export default function MenuManagement() {
                 </button>
 
                 {/* Quick Edit/Delete buttons on hover */}
-                <div className="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-[#141416] p-0.5 rounded-md border border-[#2D2D30] shadow-lg z-10">
+                <div className="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-white p-0.5 rounded-md border border-gray-200 shadow-lg z-10">
                   <button
                     onClick={(e) => { e.stopPropagation(); handleOpenCategoryModal(cat); }}
-                    className="p-1 hover:text-[#C5A059] text-gray-400"
+                    className="p-1 hover:text-[#2563EB] text-gray-400"
                     title="Edit Category"
                   >
                     <Edit2 className="w-3 h-3" />
@@ -527,12 +527,12 @@ export default function MenuManagement() {
             placeholder="Search items by Name, Barcode, or SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-[#131315] border border-[#1F1F21] rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#C5A059] transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#2563EB] transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -543,7 +543,7 @@ export default function MenuManagement() {
           <select
             value={stockFilter}
             onChange={(e) => setStockFilter(e.target.value as any)}
-            className="bg-[#131315] border border-[#1F1F21] text-gray-300 text-xs px-3 py-2.5 rounded-xl outline-none focus:border-[#C5A059]"
+            className="bg-white border border-gray-200 text-gray-300 text-xs px-3 py-2.5 rounded-xl outline-none focus:border-[#2563EB]"
           >
             <option value="ALL">All Stock Levels</option>
             <option value="IN_STOCK">In Stock</option>
@@ -554,10 +554,10 @@ export default function MenuManagement() {
       </div>
 
       {/* Items Catalog Table / Grid */}
-      <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#161618] text-gray-400 font-bold uppercase text-[10px] border-b border-[#1F1F21] tracking-wider">
+            <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200 tracking-wider">
               <tr>
                 <th className="p-3.5">Product / Item</th>
                 <th className="p-3.5">Category</th>
@@ -580,7 +580,7 @@ export default function MenuManagement() {
                 const isOut = stock <= 0;
 
                 return (
-                  <tr key={item.id} className="hover:bg-[#18181A] transition-colors group">
+                  <tr key={item.id} className="hover:bg-gray-50 transition-colors group">
                     <td className="p-3.5">
                       <div className="font-bold text-white text-sm">{item.name}</div>
                       <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5">
@@ -590,7 +590,7 @@ export default function MenuManagement() {
                     </td>
 
                     <td className="p-3.5">
-                      <span className="px-2.5 py-1 rounded-lg bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 text-[11px] font-medium">
+                      <span className="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-300 text-[11px] font-medium">
                         {catObj?.name || 'General'}
                       </span>
                     </td>
@@ -604,7 +604,7 @@ export default function MenuManagement() {
                     </td>
 
                     <td className="p-3.5 text-center">
-                      <span className="px-2 py-0.5 rounded-md bg-[#C5A059]/10 text-[#C5A059] border border-[#C5A059]/20 font-mono text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-md bg-[#C5A059]/10 text-[#2563EB] border border-[#2563EB]/20 font-mono text-[10px] font-bold">
                         {item.gst}% GST
                       </span>
                     </td>
@@ -658,14 +658,14 @@ export default function MenuManagement() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenItemModal(item)}
-                          className="p-1.5 bg-[#1A1A1C] hover:bg-[#252528] text-gray-300 hover:text-[#C5A059] border border-[#2D2D30] rounded-lg transition-all"
+                          className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-300 hover:text-[#2563EB] border border-gray-200 rounded-lg transition-all"
                           title="Edit Product"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteItem(item.id)}
-                          className="p-1.5 bg-[#1A1A1C] hover:bg-red-500/10 text-gray-400 hover:text-red-400 border border-[#2D2D30] rounded-lg transition-all"
+                          className="p-1.5 bg-gray-50 hover:bg-red-500/10 text-gray-400 hover:text-red-400 border border-gray-200 rounded-lg transition-all"
                           title="Delete Product"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -700,15 +700,15 @@ export default function MenuManagement() {
       {/* Category Add/Edit Modal */}
       {isCategoryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#141416] border border-[#2D2D30] rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-[#222225] pb-3">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
-                <FolderPlus className="w-5 h-5 text-[#C5A059]" />
+                <FolderPlus className="w-5 h-5 text-[#2563EB]" />
                 <h3 className="font-bold text-white text-base">
                   {editingCategory ? 'Edit Category' : 'Create New Category'}
                 </h3>
               </div>
-              <button onClick={() => setIsCategoryModalOpen(false)} className="text-gray-400 hover:text-white">
+              <button onClick={() => setIsCategoryModalOpen(false)} className="text-gray-400 hover:text-gray-900">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -722,7 +722,7 @@ export default function MenuManagement() {
                   placeholder="e.g. Beverages, Groceries, Apparel, Electronics"
                   value={catName}
                   onChange={(e) => setCatName(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                 />
               </div>
 
@@ -733,21 +733,21 @@ export default function MenuManagement() {
                   placeholder="Brief description for category..."
                   value={catDesc}
                   onChange={(e) => setCatDesc(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl p-3 text-xs text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-[#222225]">
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setIsCategoryModalOpen(false)}
-                  className="px-4 py-2 bg-[#1A1A1C] text-gray-400 hover:text-white rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-xl text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold rounded-xl text-xs hover:bg-[#b08d4a]"
+                  className="px-5 py-2 bg-[#2563EB] text-white font-bold rounded-xl text-xs hover:bg-[#b08d4a]"
                 >
                   {editingCategory ? 'Update Category' : 'Save Category'}
                 </button>
@@ -760,15 +760,15 @@ export default function MenuManagement() {
       {/* Item Add/Edit Modal */}
       {isItemModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-[#141416] border border-[#2D2D30] rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-5 my-8">
-            <div className="flex items-center justify-between border-b border-[#222225] pb-3">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-5 my-8">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
-                <Package className="w-5 h-5 text-[#C5A059]" />
+                <Package className="w-5 h-5 text-[#2563EB]" />
                 <h3 className="font-bold text-white text-base">
                   {editingItem ? 'Edit Product Item' : 'Add Item under Category'}
                 </h3>
               </div>
-              <button onClick={() => setIsItemModalOpen(false)} className="text-gray-400 hover:text-white">
+              <button onClick={() => setIsItemModalOpen(false)} className="text-gray-400 hover:text-gray-900">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -784,7 +784,7 @@ export default function MenuManagement() {
                     placeholder="e.g. Masala Chai, USB Cable, Paracetamol 500mg, Cotton T-Shirt"
                     value={itemName}
                     onChange={(e) => setItemName(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -794,7 +794,7 @@ export default function MenuManagement() {
                   <select
                     value={itemCatId}
                     onChange={(e) => setItemCatId(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   >
                     {categories.map(cat => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -808,7 +808,7 @@ export default function MenuManagement() {
                   <select
                     value={itemUnit}
                     onChange={(e) => setItemUnit(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   >
                     <option value="Pcs">Pcs (Pieces)</option>
                     <option value="Unit">Unit</option>
@@ -838,7 +838,7 @@ export default function MenuManagement() {
                     placeholder="0.00"
                     value={itemPrice}
                     onChange={(e) => setItemPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -852,7 +852,7 @@ export default function MenuManagement() {
                     placeholder="0.00"
                     value={itemCostPrice}
                     onChange={(e) => setItemCostPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -862,7 +862,7 @@ export default function MenuManagement() {
                   <select
                     value={itemGst}
                     onChange={(e) => setItemGst(Number(e.target.value))}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   >
                     <option value={0}>0% (Tax Exempt / Nil)</option>
                     <option value={5}>5% (Standard Essential)</option>
@@ -881,7 +881,7 @@ export default function MenuManagement() {
                     placeholder="0"
                     value={itemStock}
                     onChange={(e) => setItemStock(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -893,7 +893,7 @@ export default function MenuManagement() {
                     placeholder="e.g. SKU-1001"
                     value={itemSku}
                     onChange={(e) => setItemSku(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -905,7 +905,7 @@ export default function MenuManagement() {
                     placeholder="Scan or enter barcode"
                     value={itemBarcode}
                     onChange={(e) => setItemBarcode(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -917,7 +917,7 @@ export default function MenuManagement() {
                     placeholder="Additional item details or specifications"
                     value={itemDesc}
                     onChange={(e) => setItemDesc(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -928,13 +928,13 @@ export default function MenuManagement() {
                       type="checkbox"
                       checked={itemAvailable}
                       onChange={(e) => setItemAvailable(e.target.checked)}
-                      className="rounded border-[#2D2D30] text-[#C5A059] focus:ring-0 bg-[#1A1A1C] w-4 h-4"
+                      className="rounded border-gray-200 text-[#2563EB] focus:ring-0 bg-gray-50 w-4 h-4"
                     />
                     <span className="text-xs text-gray-200 font-semibold">Available for active billing in POS</span>
                   </label>
 
                   {/* Website Visibility Checkbox */}
-                  <div className="p-3 bg-[#131315] border border-[#2D2D30] rounded-xl flex items-center justify-between">
+                  <div className="p-3 bg-white border border-gray-200 rounded-xl flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
                         <Globe className="w-3.5 h-3.5" />
@@ -957,17 +957,17 @@ export default function MenuManagement() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-[#222225]">
+              <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setIsItemModalOpen(false)}
-                  className="px-4 py-2 bg-[#1A1A1C] text-gray-400 hover:text-white rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-xl text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#C5A059] text-[#0A0A0B] font-bold rounded-xl text-xs hover:bg-[#b08d4a] shadow-lg shadow-[#C5A059]/20"
+                  className="px-6 py-2.5 bg-[#2563EB] text-white font-bold rounded-xl text-xs hover:bg-[#b08d4a] shadow-lg shadow-blue-500/20"
                 >
                   {editingItem ? 'Update Product' : 'Save Product'}
                 </button>

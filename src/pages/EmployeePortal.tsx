@@ -129,19 +129,19 @@ function PunchModal({ mode, onConfirm, onClose }: PunchModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      <div className="w-full max-w-sm bg-[#0E0E10] border border-white/[0.08] rounded-3xl overflow-hidden shadow-2xl">
+      <div className="w-full max-w-sm bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-2xl">
 
         {/* Top accent */}
         <div className={`h-1 bg-gradient-to-r from-transparent ${mode === 'in' ? 'via-emerald-500' : 'via-red-500'} to-transparent`} />
 
         {/* Header */}
-        <div className="px-5 py-4 flex items-center justify-between border-b border-white/[0.06]">
+        <div className="px-5 py-4 flex items-center justify-between border-b border-gray-200">
           <div className="flex items-center gap-2">
             <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${mode === 'in' ? 'bg-emerald-500/15 border border-emerald-500/25' : 'bg-red-500/15 border border-red-500/25'}`}>
               <Clock className={`w-4 h-4 ${mode === 'in' ? 'text-emerald-400' : 'text-red-400'}`} />
             </div>
             <div>
-              <p className="text-sm font-bold text-white">Punch {mode === 'in' ? 'IN' : 'OUT'}</p>
+              <p className="text-sm font-bold text-gray-900">Punch {mode === 'in' ? 'IN' : 'OUT'}</p>
               <p className="text-[10px] text-gray-500 font-mono">{new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
             </div>
           </div>
@@ -152,7 +152,7 @@ function PunchModal({ mode, onConfirm, onClose }: PunchModalProps) {
 
         <div className="p-5 space-y-4">
           {/* Camera / Selfie preview */}
-          <div className="relative rounded-2xl overflow-hidden bg-[#141416] border border-white/[0.06]" style={{ aspectRatio: '4/3' }}>
+          <div className="relative rounded-2xl overflow-hidden bg-gray-50 border border-gray-200" style={{ aspectRatio: '4/3' }}>
             {capturedSelfie ? (
               <>
                 <img src={capturedSelfie} alt="selfie" className="w-full h-full object-cover" />
@@ -195,7 +195,7 @@ function PunchModal({ mode, onConfirm, onClose }: PunchModalProps) {
 
           {/* Location status */}
           <div className={`flex items-start gap-3 p-3.5 rounded-xl border ${
-            locLoading ? 'bg-white/[0.03] border-white/[0.06]' :
+            locLoading ? 'bg-white/[0.03] border-gray-200' :
             locError   ? 'bg-red-500/10 border-red-500/20' :
             location   ? 'bg-emerald-500/10 border-emerald-500/20' : ''
           }`}>
@@ -542,7 +542,7 @@ export default function EmployeePortal() {
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-5">
 
             {/* Punch card */}
-            <div className="bg-[#0E0E10] border border-white/[0.07] rounded-2xl p-8 flex flex-col items-center justify-center gap-6 text-center">
+            <div className="bg-white border border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center gap-6 text-center">
 
               {punchSuccess && (
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-semibold">
@@ -586,7 +586,7 @@ export default function EmployeePortal() {
               )}
 
               <div>
-                <p className="text-lg font-bold text-white">
+                <p className="text-lg font-bold text-gray-900">
                   {isPunchedOut ? 'Day Complete' : isPunchedIn ? "You're Clocked In" : 'Not Punched In'}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -625,9 +625,9 @@ export default function EmployeePortal() {
             </div>
 
             {/* Recent attendance table */}
-            <div className="bg-[#0E0E10] border border-white/[0.07] rounded-2xl overflow-hidden flex flex-col">
-              <div className="px-5 py-4 border-b border-white/[0.06] flex-shrink-0">
-                <h3 className="text-sm font-bold text-white">Recent Attendance</h3>
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col">
+              <div className="px-5 py-4 border-b border-gray-200 flex-shrink-0">
+                <h3 className="text-sm font-bold text-gray-900">Recent Attendance</h3>
               </div>
               <div className="overflow-auto flex-1">
                 {myAttendance.length === 0 ? (
@@ -703,10 +703,10 @@ export default function EmployeePortal() {
         {/* ── APPLY LEAVE TAB ── */}
         {activeTab === 'apply' && (
           <div className="flex-1 flex items-start justify-center">
-            <div className="w-full max-w-lg bg-[#0E0E10] border border-white/[0.07] rounded-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-2">
+            <div className="w-full max-w-lg bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
                 <CalendarDays className="w-4 h-4 text-pink-400" />
-                <h3 className="text-sm font-bold text-white">Apply for Leave</h3>
+                <h3 className="text-sm font-bold text-gray-900">Apply for Leave</h3>
               </div>
 
               {leaveSuccess && (
@@ -720,7 +720,7 @@ export default function EmployeePortal() {
                   <label className="block text-xs font-semibold text-gray-300 mb-1.5">Leave Type</label>
                   <div className="relative">
                     <select value={leaveType} onChange={e => setLeaveType(e.target.value)}
-                      className="w-full bg-[#141416] border border-[#2A2A2D] focus:border-pink-500/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none appearance-none cursor-pointer">
+                      className="w-full bg-gray-50 border border-[#2A2A2D] focus:border-pink-500/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none appearance-none cursor-pointer">
                       <option>Casual Leave</option>
                       <option>Sick Leave</option>
                       <option>Earned Leave</option>
@@ -735,14 +735,14 @@ export default function EmployeePortal() {
                   <input type="date" value={leaveDate}
                     min={new Date().toISOString().split('T')[0]}
                     onChange={e => setLeaveDate(e.target.value)}
-                    className="w-full bg-[#141416] border border-[#2A2A2D] focus:border-pink-500/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none [color-scheme:dark]" />
+                    className="w-full bg-gray-50 border border-[#2A2A2D] focus:border-pink-500/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none [color-scheme:dark]" />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 mb-1.5">Reason</label>
                   <textarea rows={3} value={leaveReason} onChange={e => setLeaveReason(e.target.value)}
                     placeholder="Brief reason for your leave request..."
-                    className="w-full bg-[#141416] border border-[#2A2A2D] focus:border-pink-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none resize-none" />
+                    className="w-full bg-gray-50 border border-[#2A2A2D] focus:border-pink-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none resize-none" />
                 </div>
 
                 <button type="submit" disabled={leaveLoading || !leaveDate || !leaveReason.trim()}
@@ -757,10 +757,10 @@ export default function EmployeePortal() {
 
         {/* ── LEAVE HISTORY TAB ── */}
         {activeTab === 'history' && (
-          <div className="flex-1 bg-[#0E0E10] border border-white/[0.07] rounded-2xl overflow-hidden flex flex-col">
-            <div className="px-5 py-4 border-b border-white/[0.06] flex items-center gap-2 flex-shrink-0">
+          <div className="flex-1 bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col">
+            <div className="px-5 py-4 border-b border-gray-200 flex items-center gap-2 flex-shrink-0">
               <FileCheck className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-sm font-bold text-white">Leave History</h3>
+              <h3 className="text-sm font-bold text-gray-900">Leave History</h3>
             </div>
 
             {leaves.length === 0 ? (

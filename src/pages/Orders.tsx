@@ -171,8 +171,8 @@ export default function Orders() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-white flex items-center gap-2.5">
-            <Activity className="w-6 h-6 text-[#C5A059]" />
+          <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2.5">
+            <Activity className="w-6 h-6 text-[#2563EB]" />
             {activeTemplate.terms?.fulfillmentNoun || 'Workflow & Orders Pipeline'}
           </h1>
           <p className="text-gray-400 text-sm mt-1">
@@ -180,12 +180,12 @@ export default function Orders() {
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 bg-[#131315] border border-[#2D2D30] p-1 rounded-xl overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1.5 bg-white border border-gray-200 p-1 rounded-xl overflow-x-auto no-scrollbar">
           <button
             onClick={() => setFilter('ALL')}
             className={cn(
               "px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap",
-              filter === 'ALL' ? "bg-[#C5A059] text-[#0A0A0B]" : "text-gray-400 hover:text-white"
+              filter === 'ALL' ? "bg-[#2563EB] text-white" : "text-gray-400 hover:text-gray-900"
             )}
           >
             Active ({orders.filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length})
@@ -197,7 +197,7 @@ export default function Orders() {
               onClick={() => setFilter(step.code)}
               className={cn(
                 "px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap",
-                filter === step.code ? "bg-[#C5A059] text-[#0A0A0B]" : "text-gray-400 hover:text-white"
+                filter === step.code ? "bg-[#2563EB] text-white" : "text-gray-400 hover:text-gray-900"
               )}
             >
               {step.label}
@@ -219,7 +219,7 @@ export default function Orders() {
           const progress = WorkflowEngine.getStepProgress(order.status, activeTemplate);
 
           return (
-            <div key={order.id} className="bg-[#131315] border border-[#2D2D30] rounded-2xl overflow-hidden flex flex-col shadow-xl">
+            <div key={order.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col shadow-xl">
               
               <div className={cn("p-4 border-b flex justify-between items-center", badgeStyle.border, badgeStyle.bg)}>
                 <div className="flex items-center gap-2">
@@ -241,21 +241,21 @@ export default function Orders() {
               <div className="p-5 flex-1 space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-base font-bold text-white font-mono">{order.orderNumber}</h3>
-                    <div className="text-xs text-[#C5A059] font-bold">
+                    <h3 className="text-base font-bold text-gray-900 font-mono">{order.orderNumber}</h3>
+                    <div className="text-xs text-[#2563EB] font-bold">
                       {order.orderType.replace('_', ' ')} {order.table ? `• ${order.table.name}` : ''}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleOpenPrint(order)}
-                      className="p-2 bg-[#1A1A1C] hover:bg-[#252528] text-[#C5A059] rounded-xl border border-[#2D2D30] transition-colors"
+                      className="p-2 bg-gray-50 hover:bg-gray-100 text-[#2563EB] rounded-xl border border-gray-200 transition-colors"
                       title="Print Invoice / KOT"
                     >
                       <Printer className="w-4 h-4" />
                     </button>
                     {order.estimatedPrepTime && (
-                      <div className="bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 px-2.5 py-1 rounded-lg text-[11px] font-bold font-mono">
+                      <div className="bg-gray-50 border border-gray-200 text-gray-300 px-2.5 py-1 rounded-lg text-[11px] font-bold font-mono">
                         {order.estimatedPrepTime}m
                       </div>
                     )}
@@ -266,7 +266,7 @@ export default function Orders() {
                   <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Items Ordered</div>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                     {order.items.map(item => (
-                      <div key={item.id} className="bg-[#0A0A0B] p-2.5 rounded-xl border border-[#1F1F21]">
+                      <div key={item.id} className="bg-[#F8FAFC] p-2.5 rounded-xl border border-gray-200">
                         <div className="flex justify-between text-xs">
                           <span className="text-white font-bold">{item.quantity}x {item.menuItem.name}</span>
                         </div>
@@ -277,7 +277,7 @@ export default function Orders() {
                 </div>
 
                 {(order.customerNotes || order.kitchenNotes) && (
-                  <div className="space-y-1.5 pt-2 border-t border-[#1F1F21] text-xs">
+                  <div className="space-y-1.5 pt-2 border-t border-gray-200 text-xs">
                     {order.customerNotes && (
                       <div><span className="text-gray-500">Customer:</span> <span className="text-gray-300">{order.customerNotes}</span></div>
                     )}
@@ -288,7 +288,7 @@ export default function Orders() {
                 )}
               </div>
 
-              <div className="p-3 border-t border-[#1F1F21] bg-[#0A0A0B] flex flex-wrap gap-2">
+              <div className="p-3 border-t border-gray-200 bg-[#F8FAFC] flex flex-wrap gap-2">
                 {nextSteps.map(nextStep => {
                   const btnStyles = WorkflowEngine.getStatusBadgeStyles(nextStep.color);
                   return (
@@ -322,7 +322,7 @@ export default function Orders() {
       </div>
       
       {activeOrders.length === 0 && (
-        <div className="py-20 text-center bg-[#131315] border border-[#2D2D30] rounded-2xl">
+        <div className="py-20 text-center bg-white border border-gray-200 rounded-2xl">
           <ChefHat className="w-12 h-12 text-gray-600 mx-auto mb-3 opacity-50" />
           <h3 className="text-base font-bold text-gray-400">No Active Orders</h3>
           <p className="text-xs text-gray-600 mt-1">All orders in this stage have been fulfilled and processed.</p>

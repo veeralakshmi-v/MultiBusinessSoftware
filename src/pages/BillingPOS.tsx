@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import {
-  Search, Plus, Minus, Trash2, X, IndianRupee, Printer, Save, Tag,
-  ShoppingCart, Check, User, QrCode, CreditCard, CheckCircle2,
-  RefreshCw, Barcode, ShieldAlert, Sparkles, Layers, UserPlus,
+import { 
+  Search, Plus, Minus, Trash2, X, IndianRupee, Printer, Save, Tag, 
+  ShoppingCart, Check, User, QrCode, CreditCard, CheckCircle2, 
+  RefreshCw, Barcode, ShieldAlert, Sparkles, Layers, UserPlus, 
   ArrowRight, ArrowRightLeft, Clock, Receipt, Banknote, PauseCircle, PlayCircle, PackagePlus
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceModal';
 import { COMMON_UNITS } from './Inventory';
 import { NotificationEngine } from '../lib/notifications/notificationEngine';
-import { isValidPhone, cleanPhone } from '../utils/validation';
 
 interface Category {
   id: string;
@@ -127,7 +126,7 @@ export default function BillingPOS() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch { }
+      } catch {}
     }
     return [];
   });
@@ -138,7 +137,7 @@ export default function BillingPOS() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch { }
+      } catch {}
     }
     return [];
   });
@@ -150,7 +149,7 @@ export default function BillingPOS() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch { }
+    } catch {}
     return [
       { id: 'cust-1', name: 'Ramesh Kumar', mobile: '9876543210', email: 'ramesh@gmail.com', pendingBalance: 0 },
       { id: 'cust-2', name: 'Priya Sharma', mobile: '9123456789', email: 'priya@gmail.com', pendingBalance: 0 },
@@ -195,7 +194,7 @@ export default function BillingPOS() {
   const [heldBills, setHeldBills] = useState<HeldBill[]>(() => {
     const saved = localStorage.getItem('universal_held_bills');
     if (saved) {
-      try { return JSON.parse(saved); } catch { }
+      try { return JSON.parse(saved); } catch {}
     }
     return [];
   });
@@ -231,7 +230,7 @@ export default function BillingPOS() {
         const parsed = JSON.parse(savedCusts);
         if (Array.isArray(parsed) && parsed.length > 0) setCustomers(parsed);
       }
-    } catch { }
+    } catch {}
 
     // 2. Fetch from Backend API and sync state
     fetch('/api/categories')
@@ -242,7 +241,7 @@ export default function BillingPOS() {
           localStorage.setItem('universal_categories', JSON.stringify(data));
         }
       })
-      .catch(() => { });
+      .catch(() => {});
 
     fetch('/api/menu-items')
       .then(res => res.json())
@@ -252,7 +251,7 @@ export default function BillingPOS() {
           try {
             const saved = localStorage.getItem('universal_items');
             if (saved) existing = JSON.parse(saved);
-          } catch { }
+          } catch {}
 
           const stockMap = new Map(existing.map((it: any) => [it.id, it.currentStock]));
           const nameStockMap = new Map(existing.map((it: any) => [it.name?.toLowerCase(), it.currentStock]));
@@ -282,7 +281,7 @@ export default function BillingPOS() {
           localStorage.setItem('universal_items', JSON.stringify(merged));
         }
       })
-      .catch(() => { });
+      .catch(() => {});
 
     // Customers
     fetch('/api/customers')
@@ -293,7 +292,7 @@ export default function BillingPOS() {
           localStorage.setItem('universal_customers', JSON.stringify(data));
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -501,7 +500,7 @@ export default function BillingPOS() {
 
       try {
         fetch(`/api/menu-items/${itemId}`, { method: 'DELETE' });
-      } catch { }
+      } catch {}
     }
   };
 
@@ -599,15 +598,10 @@ export default function BillingPOS() {
     e.preventDefault();
     if (!newCustName.trim() || !newCustMobile.trim()) return;
 
-    if (!isValidPhone(newCustMobile)) {
-      alert('Please enter a valid mobile number!');
-      return;
-    }
-
     const newCust: Customer = {
       id: `cust-${Date.now()}`,
       name: newCustName.trim(),
-      mobile: cleanPhone(newCustMobile) || newCustMobile.trim(),
+      mobile: newCustMobile.trim(),
       email: newCustEmail.trim() || undefined,
       address: newCustAddress.trim() || undefined,
       pendingBalance: 0,
@@ -639,7 +633,7 @@ export default function BillingPOS() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCust),
       });
-    } catch (e) { }
+    } catch (e) {}
   };
 
   // Quick Add Item from POS
@@ -683,7 +677,7 @@ export default function BillingPOS() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(itemData),
       });
-    } catch (e) { }
+    } catch (e) {}
 
     addToCart(itemData);
     setIsAddItemModalOpen(false);
@@ -701,8 +695,8 @@ export default function BillingPOS() {
       return;
     }
 
-    const prefix = billType === 'GST'
-      ? (businessProfile.invoicePrefix || 'INV/GST/2026/')
+    const prefix = billType === 'GST' 
+      ? (businessProfile.invoicePrefix || 'INV/GST/2026/') 
       : 'BILL/NON-GST/';
     const invoiceNo = `${prefix}${Date.now().toString().slice(-4)}`;
 
@@ -721,10 +715,10 @@ export default function BillingPOS() {
       splitPaidMethod: paymentMethod === 'SPLIT' ? splitPaidMethod : undefined,
       customer: selectedCustomer
         ? {
-          name: selectedCustomer.name,
-          mobile: selectedCustomer.mobile,
-          address: selectedCustomer.address,
-        }
+            name: selectedCustomer.name,
+            mobile: selectedCustomer.mobile,
+            address: selectedCustomer.address,
+          }
         : null,
       items: cart.map(item => ({
         quantity: item.quantity,
@@ -801,7 +795,7 @@ export default function BillingPOS() {
       }).then(res => res.json())
         .then(data => console.log('✅ Order saved to Supabase:', data))
         .catch(err => console.error('Error saving order to Supabase:', err));
-    } catch { }
+    } catch {}
 
     // Trigger Real Notification
     try {
@@ -829,7 +823,7 @@ export default function BillingPOS() {
           },
         });
       }
-    } catch { }
+    } catch {}
 
     // Save Order to backend database API
     try {
@@ -854,26 +848,27 @@ export default function BillingPOS() {
   };
 
   return (
-    <div className="h-full flex flex-col lg:flex-row gap-3 overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row gap-4 overflow-hidden">
+
       {/* LEFT: Item Catalog & Search Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-theme-surface border border-theme-secondary/20 rounded-2xl overflow-hidden p-3.5 space-y-3">
+      <div className="flex-1 flex flex-col min-w-0 bg-white/80 backdrop-blur-md border border-white/60 rounded-3xl overflow-hidden p-4 shadow-lg shadow-gray-200/50 space-y-3">
         {/* Search Input Bar + Add Product Button */}
         <form onSubmit={handleBarcodeSubmit} className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-theme-accent absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#2563EB] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               ref={searchInputRef}
               type="text"
               placeholder="Search products by Name, Barcode, or SKU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-theme-card border border-theme-secondary/30 rounded-xl text-xs text-theme-primary placeholder:text-theme-primary/50 focus:outline-none focus:border-theme-secondary transition-all"
+              className="w-full pl-10 pr-10 py-2.5 bg-gray-50/80 border border-gray-200 rounded-2xl text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#2563EB] focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-primary opacity-60 hover:opacity-100"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -883,14 +878,14 @@ export default function BillingPOS() {
 
         {/* Category Filter Chips */}
         {categories.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto py-1 no-scrollbar flex-shrink-0">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar flex-shrink-0">
             <button
               onClick={() => setSelectedCategory('ALL')}
               className={cn(
-                "h-8 px-3.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0 flex items-center justify-center",
+                "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer shadow-xs",
                 selectedCategory === 'ALL'
-                  ? "btn-theme-secondary shadow-md border-transparent"
-                  : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
+                  ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
+                  : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
               )}
             >
               All Products ({menuItems.length})
@@ -904,14 +899,14 @@ export default function BillingPOS() {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={cn(
-                    "h-8 px-3.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0 flex items-center gap-1.5",
+                    "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 cursor-pointer shadow-xs",
                     isSelected
-                      ? "btn-theme-secondary shadow-md border-transparent"
-                      : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
+                      ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
+                      : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
                   )}
                 >
                   <span>{cat.name}</span>
-                  <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full leading-none", isSelected ? "bg-black/20 text-current" : "bg-white/10 text-theme-primary")}>
+                  <span className={cn("text-[10px] px-1.5 py-0.2 rounded-full font-mono", isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600")}>
                     {count}
                   </span>
                 </button>
@@ -920,9 +915,8 @@ export default function BillingPOS() {
           </div>
         )}
 
-
         {/* Products Grid */}
-        <div className="flex-1 overflow-y-auto no-scrollbar pr-1 pt-1">
+        <div className="flex-1 overflow-y-auto no-scrollbar pr-1">
           {filteredItems.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
               {filteredItems.map(item => {
@@ -935,40 +929,40 @@ export default function BillingPOS() {
                     key={item.id}
                     onClick={() => handleProductCardClick(item)}
                     className={cn(
-                      "relative flex flex-col justify-between h-full min-h-[115px] p-3 rounded-xl border transition-all select-none group",
+                      "relative flex flex-col justify-between p-3.5 rounded-2xl border transition-all duration-200 select-none group shadow-sm hover:shadow-md",
                       isOut
-                        ? "opacity-60 cursor-not-allowed bg-theme-surface border-red-500/30 text-theme-primary"
+                        ? "opacity-60 cursor-not-allowed bg-gray-50 border-red-200 text-gray-500"
                         : inCart
-                          ? "bg-theme-secondary/15 border-theme-secondary shadow-md shadow-theme-secondary/10 cursor-pointer"
-                          : "bg-theme-card border-theme-secondary/20 hover:border-theme-secondary hover:bg-theme-secondary/10 cursor-pointer"
+                          ? "bg-blue-50/90 border-[#2563EB] shadow-md shadow-blue-500/10 cursor-pointer"
+                          : "bg-white border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 cursor-pointer"
                     )}
                   >
-                    {/* Cart Count Badge - Inset nicely so it doesn't float outside or overflow */}
+                    {/* Cart Count Badge */}
                     {inCart && (
-                      <div className="absolute top-2.5 right-2.5 min-w-[22px] h-[22px] px-1 rounded-full btn-theme-secondary font-bold text-xs flex items-center justify-center shadow-md animate-in zoom-in z-10">
+                      <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center shadow-md animate-in zoom-in">
                         {inCart.quantity}
                       </div>
                     )}
 
-                    <div className={cn(inCart ? "pr-7" : "pr-1")}>
+                    <div>
                       <div className="flex items-start justify-between gap-1">
-                        <h4 className="font-bold text-theme-primary text-xs leading-snug line-clamp-2 group-hover:text-theme-accent transition-colors">
+                        <h4 className="font-bold text-gray-900 text-xs leading-snug line-clamp-2 group-hover:text-[#2563EB] transition-colors">
                           {item.name}
                         </h4>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] text-theme-primary opacity-60 font-mono mt-1">
+                      <div className="flex items-center gap-1 text-[10px] text-gray-500 font-mono mt-1">
                         <span>{item.unit || 'Pcs'}</span>
                         {item.gst > 0 && <span>• {item.gst}% GST</span>}
                       </div>
                     </div>
 
-                    <div className="mt-auto pt-2.5 border-t border-theme-secondary/15 flex items-center justify-between">
-                      <span className="font-mono font-bold text-theme-primary text-sm">
+                    <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between">
+                      <span className="font-mono font-bold text-gray-900 text-sm">
                         {currency}{item.price.toFixed(2)}
                       </span>
                       <span className={cn(
-                        "text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded",
-                        isOut ? "text-red-500 bg-red-500/15 border border-red-500/30" : "text-theme-primary bg-theme-surface border border-theme-secondary/20"
+                        "text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded-md border",
+                        isOut ? "text-red-600 bg-red-50 border-red-200" : "text-gray-600 bg-gray-50 border-gray-200"
                       )}>
                         {isOut ? 'Out' : `${stock} left`}
                       </span>
@@ -978,18 +972,18 @@ export default function BillingPOS() {
               })}
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-theme-primary opacity-70 space-y-3">
-              <ShoppingCart className="w-10 h-10 text-theme-accent opacity-50" />
+            <div className="h-64 flex flex-col items-center justify-center text-gray-500 space-y-3">
+              <ShoppingCart className="w-10 h-10 text-gray-300" />
               {menuItems.length === 0 ? (
                 <>
-                  <p className="text-sm font-semibold text-theme-primary">No Products in Catalog</p>
-                  <p className="text-xs text-theme-primary opacity-60 max-w-sm text-center">
+                  <p className="text-sm font-semibold text-gray-800">No Products in Catalog</p>
+                  <p className="text-xs text-gray-500 max-w-sm text-center">
                     Your product catalog is empty. Click below to add your custom business products and start billing!
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <Link
                       to="/inventory"
-                      className="px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl"
+                      className="px-4 py-2 bg-[#2563EB] text-white font-bold text-xs rounded-xl shadow-md"
                     >
                       Manage Categories & Catalog →
                     </Link>
@@ -997,13 +991,13 @@ export default function BillingPOS() {
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-bold text-theme-primary">No products match "{searchQuery}"</p>
-                  <p className="text-xs text-theme-primary opacity-60 max-w-sm text-center">
+                  <p className="text-sm font-bold text-gray-800">No products match "{searchQuery}"</p>
+                  <p className="text-xs text-gray-500 max-w-sm text-center">
                     Try checking for typos or clear the search to view all catalog products.
                   </p>
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl shadow-md"
+                    className="px-4 py-2 bg-[#2563EB] text-white font-bold text-xs rounded-xl shadow-md"
                   >
                     Clear Search
                   </button>
@@ -1016,20 +1010,20 @@ export default function BillingPOS() {
 
       {/* Floating Sticky Bottom Cart Action Bar for Mobile (<lg) */}
       {cart.length > 0 && !isMobileCartOpen && (
-        <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-[#141416] border border-[#C5A059]/40 p-3 rounded-2xl shadow-2xl flex items-center justify-between backdrop-blur-md">
+        <div className="lg:hidden fixed bottom-3 left-3 right-3 z-40 bg-white/90 border border-gray-200 p-3 rounded-2xl shadow-xl flex items-center justify-between backdrop-blur-md">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl btn-theme-secondary font-bold text-xs flex items-center justify-center shadow-md">
+            <div className="w-9 h-9 rounded-xl bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center shadow-xs">
               {cart.reduce((s, i) => s + i.quantity, 0)}
             </div>
             <div>
-              <div className="text-[10px] text-gray-400 font-bold uppercase">Total Bill</div>
-              <div className="text-sm font-bold text-white font-mono">{currency}{grandTotal.toFixed(2)}</div>
+              <div className="text-[10px] text-gray-500 font-bold uppercase">Total Bill</div>
+              <div className="text-sm font-bold text-gray-900 font-mono">{currency}{grandTotal.toFixed(2)}</div>
             </div>
           </div>
 
           <button
             onClick={() => setIsMobileCartOpen(true)}
-            className="px-4 py-2.5 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-[#2563EB] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
           >
             <ShoppingCart className="w-4 h-4" />
             <span>View Cart ({cart.length}) →</span>
@@ -1039,38 +1033,39 @@ export default function BillingPOS() {
 
       {/* Mobile Drawer Backdrop overlay */}
       {isMobileCartOpen && (
-        <div
-          onClick={() => setIsMobileCartOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-45 animate-in fade-in"
+        <div 
+          onClick={() => setIsMobileCartOpen(false)} 
+          className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-xs z-45 animate-in fade-in" 
         />
       )}
 
       {/* RIGHT: Billing Register & Cart Panel (Mobile Slide-up Drawer / Desktop Right Column) */}
       <div className={cn(
-        "w-full lg:w-[420px] xl:w-[450px] flex flex-col bg-theme-surface border border-theme-secondary/20 overflow-hidden shadow-2xl flex-shrink-0 transition-all duration-300",
-        "fixed inset-x-0 bottom-0 z-50 h-[90vh] rounded-t-3xl border-t border-[#C5A059]/40 lg:static lg:h-auto lg:rounded-2xl lg:z-auto",
+        "w-full lg:w-[420px] xl:w-[450px] flex flex-col bg-white/80 backdrop-blur-md border border-white/60 overflow-hidden shadow-lg shadow-gray-200/50 flex-shrink-0 transition-all duration-300",
+        "fixed inset-x-0 bottom-0 z-50 h-[90vh] rounded-t-3xl border-t border-gray-200 lg:static lg:h-auto lg:rounded-3xl lg:z-auto",
         isMobileCartOpen ? "translate-y-0" : "translate-y-full lg:translate-y-0 hidden lg:flex"
       )}>
+
         {/* Cart Top Bar: Customer Selector & Held Bills */}
-        <div className="p-3.5 border-b border-theme-secondary/20 space-y-2.5 bg-theme-card">
+        <div className="p-3.5 border-b border-gray-200 space-y-2.5 bg-gray-50/80">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsMobileCartOpen(false)}
-                className="lg:hidden p-1 rounded-lg text-gray-400 hover:text-white bg-[#1A1A1C] mr-1"
+                className="lg:hidden p-1 rounded-lg text-gray-500 hover:text-gray-900 bg-gray-200 mr-1"
                 title="Close Cart Drawer"
               >
                 <X className="w-4 h-4" />
               </button>
-              <Receipt className="w-4 h-4 text-theme-accent" />
-              <span className="text-xs font-bold uppercase tracking-wider text-theme-primary">Current Sale ({cart.length} items)</span>
+              <Receipt className="w-4 h-4 text-[#2563EB]" />
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-900">Current Sale ({cart.length} items)</span>
             </div>
 
             <div className="flex items-center gap-1.5">
               {heldBills.length > 0 && (
                 <button
                   onClick={() => setIsHeldModalOpen(true)}
-                  className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
+                  className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/30 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
                 >
                   <PlayCircle className="w-3 h-3" />
                   <span>Recall ({heldBills.length})</span>
@@ -1079,7 +1074,7 @@ export default function BillingPOS() {
               {cart.length > 0 && (
                 <button
                   onClick={handleHoldBill}
-                  className="p-1.5 hover:bg-[#1A1A1C] text-gray-400 hover:text-amber-400 rounded-lg transition-colors"
+                  className="p-1.5 hover:bg-gray-200 text-gray-500 hover:text-amber-600 rounded-lg transition-colors"
                   title="Hold / Park Bill"
                 >
                   <PauseCircle className="w-4 h-4" />
@@ -1088,7 +1083,7 @@ export default function BillingPOS() {
               {cart.length > 0 && (
                 <button
                   onClick={handleClearCart}
-                  className="p-1.5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
+                  className="p-1.5 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-lg transition-colors"
                   title="Clear Cart"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -1111,12 +1106,12 @@ export default function BillingPOS() {
                     setCustomerSearch(e.target.value);
                     setIsCustomerDropdownOpen(true);
                   }}
-                  className="w-full pl-8 pr-7 py-2 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl text-xs text-white placeholder-gray-400 focus:outline-none focus:border-[#C5A059]"
+                  className="w-full pl-8 pr-7 py-2 bg-white border border-gray-300 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#2563EB]"
                 />
                 {selectedCustomer && (
                   <button
                     onClick={() => { setSelectedCustomer(null); setCustomerSearch(''); }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -1124,7 +1119,7 @@ export default function BillingPOS() {
               </div>
               <button
                 onClick={() => setIsAddCustomerModalOpen(true)}
-                className="p-2 bg-[#1A1A1C] hover:bg-[#252528] text-[#C5A059] border border-[#2D2D30] rounded-xl"
+                className="p-2 bg-white hover:bg-gray-100 text-[#2563EB] border border-gray-300 rounded-xl"
                 title="Add New Customer"
               >
                 <UserPlus className="w-4 h-4" />
@@ -1133,7 +1128,7 @@ export default function BillingPOS() {
 
             {/* Customer Dropdown Results */}
             {isCustomerDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-[#161618] border border-[#2D2D30] rounded-xl shadow-2xl z-30 max-h-48 overflow-y-auto divide-y divide-[#222225]">
+              <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl z-30 max-h-48 overflow-y-auto divide-y divide-gray-100">
                 <button
                   type="button"
                   onClick={() => {
@@ -1141,7 +1136,7 @@ export default function BillingPOS() {
                     setCustomerSearch('');
                     setIsCustomerDropdownOpen(false);
                   }}
-                  className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-[#1F1F22] hover:text-[#C5A059] flex items-center justify-between"
+                  className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 hover:text-[#2563EB] flex items-center justify-between"
                 >
                   <span className="font-semibold">Walk-in Customer</span>
                   <span className="text-[10px] text-gray-500">Default</span>
@@ -1155,13 +1150,13 @@ export default function BillingPOS() {
                       setCustomerSearch('');
                       setIsCustomerDropdownOpen(false);
                     }}
-                    className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-[#1F1F22] hover:text-white flex items-center justify-between"
+                    className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 hover:text-gray-900 flex items-center justify-between"
                   >
                     <div>
-                      <div className="font-bold text-white">{cust.name}</div>
+                      <div className="font-bold text-gray-900">{cust.name}</div>
                       <div className="text-[10px] text-gray-500 font-mono">{cust.mobile}</div>
                     </div>
-                    <Check className={cn("w-3.5 h-3.5 text-[#C5A059]", selectedCustomer?.id === cust.id ? "opacity-100" : "opacity-0")} />
+                    <Check className={cn("w-3.5 h-3.5 text-[#2563EB]", selectedCustomer?.id === cust.id ? "opacity-100" : "opacity-0")} />
                   </button>
                 ))}
               </div>
@@ -1170,27 +1165,27 @@ export default function BillingPOS() {
         </div>
 
         {/* Cart Items List */}
-        <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2 bg-white">
           {cart.map(item => {
             const lineTotal = item.price * item.quantity;
             return (
               <div
                 key={item.id}
-                className="bg-[#141416] border border-[#222225] p-2.5 rounded-xl flex items-center justify-between gap-2 group hover:border-[#2D2D30] transition-colors"
+                className="bg-gray-50 border border-gray-200 p-2.5 rounded-xl flex items-center justify-between gap-2 group hover:border-gray-300 transition-colors"
               >
                 <div className="flex-1 min-w-0">
-                  <h5 className="font-bold text-white text-xs truncate">{item.menuItem.name}</h5>
-                  <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                  <h5 className="font-bold text-gray-900 text-xs truncate">{item.menuItem.name}</h5>
+                  <div className="text-[10px] text-gray-500 font-mono mt-0.5">
                     {currency}{item.price.toFixed(2)} × {formatQuantityWithSubunit(item.quantity, item.menuItem.unit)}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   {/* Quantity Adjustment */}
-                  <div className="flex items-center bg-[#1A1A1C] border border-[#2D2D30] rounded-lg p-0.5">
+                  <div className="flex items-center bg-white border border-gray-300 rounded-lg p-0.5 shadow-2xs">
                     <button
                       onClick={() => updateQuantity(item.id, -1)}
-                      className="p-1 hover:bg-[#252528] text-gray-400 hover:text-white rounded"
+                      className="p-1 hover:bg-gray-100 text-gray-600 hover:text-gray-900 rounded"
                       title="Reduce quantity"
                     >
                       <Minus className="w-3 h-3" />
@@ -1207,14 +1202,14 @@ export default function BillingPOS() {
                           setSubUnitVal(curVal || '250');
                         }
                       }}
-                      className="font-mono font-bold text-xs text-white px-2 min-w-[20px] text-center hover:text-[#C5A059] transition-colors cursor-pointer"
+                      className="font-mono font-bold text-xs text-gray-900 px-2 min-w-[20px] text-center hover:text-[#2563EB] transition-colors cursor-pointer"
                       title="Click to edit custom weight/volume (grams / ml)"
                     >
                       {item.quantity}
                     </button>
                     <button
                       onClick={() => updateQuantity(item.id, 1)}
-                      className="p-1 hover:bg-[#252528] text-gray-400 hover:text-white rounded"
+                      className="p-1 hover:bg-gray-100 text-gray-600 hover:text-gray-900 rounded"
                       title="Increase quantity"
                     >
                       <Plus className="w-3 h-3" />
@@ -1222,14 +1217,14 @@ export default function BillingPOS() {
                   </div>
 
                   {/* Line Total */}
-                  <div className="font-mono font-bold text-white text-xs min-w-[65px] text-right">
+                  <div className="font-mono font-bold text-gray-900 text-xs min-w-[65px] text-right">
                     {currency}{lineTotal.toFixed(2)}
                   </div>
 
                   {/* Delete Button */}
                   <button
                     onClick={() => removeFromCart(item.id)}
-                    className="p-1 text-gray-500 hover:text-red-400 rounded transition-colors"
+                    className="p-1 text-gray-400 hover:text-red-600 rounded transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -1239,28 +1234,28 @@ export default function BillingPOS() {
           })}
 
           {cart.length === 0 && (
-            <div className="h-44 flex flex-col items-center justify-center text-gray-500 space-y-2">
-              <ShoppingCart className="w-8 h-8 text-gray-700" />
-              <p className="text-xs font-semibold text-gray-400">Cart is empty</p>
-              <p className="text-[10px] text-gray-600">Click products from catalog to start billing</p>
+            <div className="h-44 flex flex-col items-center justify-center text-gray-400 space-y-2">
+              <ShoppingCart className="w-8 h-8 text-gray-300" />
+              <p className="text-xs font-semibold text-gray-600">Cart is empty</p>
+              <p className="text-[10px] text-gray-400">Click products from catalog to start billing</p>
             </div>
           )}
         </div>
 
         {/* Cart Bottom: Calculations & Checkout */}
-        <div className="p-3.5 border-t border-[#1F1F21] bg-[#131315] space-y-3">
+        <div className="p-3.5 border-t border-gray-200 bg-gray-50/90 space-y-3">
           {/* Bill Type Selector (GST vs Non-GST) - Theme Adaptive */}
-          <div className="flex items-center justify-between p-2 bg-theme-surface border border-theme-secondary/30 rounded-xl mb-2">
-            <span className="text-xs font-bold text-theme-primary">Bill Type:</span>
-            <div className="flex items-center gap-1 bg-theme-card p-1 rounded-lg border border-theme-secondary/30">
+          <div className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-xl mb-2 shadow-2xs">
+            <span className="text-xs font-bold text-gray-900">Bill Type:</span>
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200">
               <button
                 type="button"
                 onClick={() => setBillType('GST')}
                 className={cn(
                   "px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5",
                   billType === 'GST'
-                    ? "btn-theme-secondary shadow font-extrabold"
-                    : "text-theme-primary opacity-75 hover:opacity-100 hover:bg-theme-secondary/15"
+                    ? "bg-[#2563EB] text-white shadow font-extrabold"
+                    : "text-gray-700 hover:text-gray-900 hover:bg-gray-200"
                 )}
               >
                 <span>📄 GST Bill</span>
@@ -1271,8 +1266,8 @@ export default function BillingPOS() {
                 className={cn(
                   "px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5",
                   billType === 'NON_GST'
-                    ? "bg-amber-500 text-black shadow font-extrabold"
-                    : "text-theme-primary opacity-75 hover:opacity-100 hover:bg-theme-secondary/15"
+                    ? "bg-amber-500 text-white shadow font-extrabold"
+                    : "text-gray-700 hover:text-gray-900 hover:bg-gray-200"
                 )}
               >
                 <span>📝 Non-GST Bill</span>
@@ -1281,26 +1276,26 @@ export default function BillingPOS() {
           </div>
 
           {/* Bill Summary Calculations */}
-          <div className="space-y-1.5 text-xs text-gray-400 border-b border-[#1F1F21] pb-2.5">
+          <div className="space-y-1.5 text-xs text-gray-600 border-b border-gray-200 pb-2.5">
             <div className="flex justify-between">
               <span>Items Subtotal</span>
-              <span className="font-mono text-white">{currency}{subtotal.toFixed(2)}</span>
+              <span className="font-mono font-bold text-gray-900">{currency}{subtotal.toFixed(2)}</span>
             </div>
 
             {/* Discount Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <span>Discount</span>
-                <div className="inline-flex bg-[#1A1A1C] border border-[#2D2D30] rounded-md p-0.5 text-[9px] font-bold">
+                <div className="inline-flex bg-white border border-gray-300 rounded-md p-0.5 text-[9px] font-bold">
                   <button
                     onClick={() => setBillDiscountType('FIXED')}
-                    className={cn("px-1 rounded", billDiscountType === 'FIXED' ? "bg-[#C5A059] text-[#0A0A0B]" : "text-gray-400")}
+                    className={cn("px-1 rounded", billDiscountType === 'FIXED' ? "bg-[#2563EB] text-white" : "text-gray-500")}
                   >
                     {currency}
                   </button>
                   <button
                     onClick={() => setBillDiscountType('PERCENT')}
-                    className={cn("px-1 rounded", billDiscountType === 'PERCENT' ? "bg-[#C5A059] text-[#0A0A0B]" : "text-gray-400")}
+                    className={cn("px-1 rounded", billDiscountType === 'PERCENT' ? "bg-[#2563EB] text-white" : "text-gray-500")}
                   >
                     %
                   </button>
@@ -1313,31 +1308,32 @@ export default function BillingPOS() {
                   placeholder="0"
                   value={billDiscountValue || ''}
                   onChange={(e) => setBillDiscountValue(Math.max(0, Number(e.target.value)))}
-                  className="w-16 bg-[#1A1A1C] border border-[#2D2D30] rounded px-1.5 py-0.5 text-right text-xs font-mono text-white outline-none focus:border-[#C5A059]"
+                  className="w-16 bg-white border border-gray-300 rounded px-1.5 py-0.5 text-right text-xs font-mono text-gray-900 outline-none focus:border-[#2563EB]"
                 />
-                <span className="font-mono text-amber-400 min-w-[50px] text-right">
+                <span className="font-mono text-amber-600 font-bold min-w-[50px] text-right">
                   -{currency}{discountAmount.toFixed(2)}
                 </span>
               </div>
             </div>
 
             <div className="flex justify-between">
-              <span className={billType === 'NON_GST' ? 'line-through text-gray-600' : ''}>
+              <span className={billType === 'NON_GST' ? 'line-through text-gray-400' : ''}>
                 Estimated Tax / GST {billType === 'NON_GST' && '(Exempt)'}
               </span>
-              <span className={cn("font-mono font-bold", billType === 'NON_GST' ? "text-amber-500 font-normal" : "text-white")}>
+              <span className={cn("font-mono font-bold", billType === 'NON_GST' ? "text-amber-600 font-normal" : "text-gray-900")}>
                 {currency}{taxAmount.toFixed(2)}
               </span>
             </div>
 
             {/* Grand Total Highlight */}
-            <div className="flex justify-between items-baseline pt-1.5 border-t border-[#1F1F21] text-white">
+            <div className="flex justify-between items-baseline pt-1.5 border-t border-gray-200 text-gray-900">
               <span className="font-bold text-sm tracking-tight">Grand Total</span>
-              <span className="font-mono font-extrabold text-xl text-[#C5A059]">
+              <span className="font-mono font-extrabold text-xl text-[#2563EB]">
                 {currency}{grandTotal.toFixed(2)}
               </span>
             </div>
           </div>
+
 
           {/* Payment Method Selector */}
           <div className="space-y-1.5">
@@ -1667,37 +1663,15 @@ export default function BillingPOS() {
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className={cn("text-xs font-semibold", newCustMobile.trim() && !isValidPhone(newCustMobile) ? "text-red-400" : "text-gray-300")}>
-                    Mobile Number *
-                  </label>
-                  {newCustMobile.trim() && isValidPhone(newCustMobile) && (
-                    <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" /> Valid
-                    </span>
-                  )}
-                </div>
+                <label className="block text-xs font-semibold text-gray-300 mb-1">Mobile Number *</label>
                 <input
                   type="tel"
                   required
-                  maxLength={13}
                   placeholder="e.g. 9876543210"
                   value={newCustMobile}
                   onChange={(e) => setNewCustMobile(e.target.value)}
-                  className={cn(
-                    "w-full rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
-                    newCustMobile.trim() && !isValidPhone(newCustMobile)
-                      ? "bg-[#1A1A1C] border-2 border-red-500/80 text-red-300 focus:border-red-400"
-                      : newCustMobile.trim() && isValidPhone(newCustMobile)
-                        ? "bg-[#1A1A1C] border border-emerald-500/60 focus:border-emerald-400 text-white"
-                        : "bg-[#1A1A1C] border border-[#2D2D30] focus:border-[#C5A059] text-white"
-                  )}
+                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
                 />
-                {newCustMobile.trim() && !isValidPhone(newCustMobile) && (
-                  <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
-                    ⚠️ Please enter a valid mobile number
-                  </p>
-                )}
               </div>
 
               <div>

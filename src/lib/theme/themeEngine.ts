@@ -254,7 +254,7 @@ export class ThemeEngine {
     const borderTint = isLightBg ? 'rgba(0, 0, 0, 0.15)' : `rgba(${rgbSecondary}, 0.35)`;
     const glow = `0 0 20px rgba(${rgbSecondary}, 0.25)`;
 
-    // Inject Primary & Secondary & Font Color & Button CSS Root Variables
+    // Inject Primary & Secondary & Font Color & Button CSS Root Variables for website
     root.style.setProperty('--theme-bg-primary', primaryBg);
     root.style.setProperty('--theme-bg-surface', surfaceBg);
     root.style.setProperty('--theme-bg-card', cardBg);
@@ -271,35 +271,19 @@ export class ThemeEngine {
     root.style.setProperty('--theme-border-tint', borderTint);
     root.style.setProperty('--theme-glow', glow);
 
-    // Apply document background and body text color
-    document.body.style.backgroundColor = primaryBg;
-    document.body.style.color = textColor;
-
     // Legacy variables fallback
     root.style.setProperty('--theme-primary', secondaryBtn);
     root.style.setProperty('--theme-primary-hover', secondaryHover);
     root.style.setProperty('--theme-primary-bg', `rgba(${rgbSecondary}, 0.12)`);
     root.style.setProperty('--theme-primary-border', borderTint);
 
-    // Apply document background
-    document.body.style.backgroundColor = primaryBg;
+    // Ensure document body maintains software default background
+    document.body.style.backgroundColor = '#0A0A0B';
+    document.body.style.color = '#E0E0E0';
 
     // 2. Typography / Font
     const font = FONT_PRESETS.find(f => f.id === config.fontFamily) || FONT_PRESETS[0];
     root.style.setProperty('--theme-font', font.fontFamily);
-    document.body.style.fontFamily = font.fontFamily;
-
-    // 3. Font Size Scaling
-    if (config.fontSize === 'SMALL') {
-      root.style.fontSize = '13px';
-      document.body.style.fontSize = '13px';
-    } else if (config.fontSize === 'LARGE') {
-      root.style.fontSize = '17px';
-      document.body.style.fontSize = '17px';
-    } else {
-      root.style.fontSize = '15px';
-      document.body.style.fontSize = '15px';
-    }
 
 
     // 4. Update Document Title
@@ -316,15 +300,6 @@ export class ThemeEngine {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed.colorPreset === 'LUXURY_GOLD' && !parsed.userCustomized) {
-          parsed.colorPreset = 'LIGHT_SAPPHIRE';
-          parsed.primaryBgColor = '#F8FAFC';
-          parsed.secondaryBtnColor = '#2563EB';
-          parsed.textColor = '#0F172A';
-          parsed.textAccentColor = '#2563EB';
-          parsed.invoiceTheme = 'MODERN_BLUE';
-          localStorage.setItem(this.STORAGE_KEY, JSON.stringify(parsed));
-        }
         const preset = COLOR_PRESETS.find(c => c.id === parsed.colorPreset) || COLOR_PRESETS[0];
         return {
           ...parsed,

@@ -103,25 +103,25 @@ export default function CustomReportBuilderModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl max-w-4xl w-full flex flex-col max-h-[90vh] shadow-2xl overflow-hidden text-gray-200">
+      <div className="bg-white border border-gray-200 rounded-2xl max-w-4xl w-full flex flex-col max-h-[90vh] shadow-2xl overflow-hidden text-gray-200">
         
         {/* Header */}
-        <div className="p-4 border-b border-[#1F1F21] flex items-center justify-between bg-[#161618]">
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#C5A059]/10 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059]">
+            <div className="w-10 h-10 rounded-xl bg-[#2563EB]/10 border border-blue-400/30 flex items-center justify-center text-[#2563EB]">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-base tracking-tight flex items-center gap-2">
+              <h3 className="font-bold text-gray-900 text-base tracking-tight flex items-center gap-2">
                 Universal Report Builder
-                <span className="px-2 py-0.5 rounded-full bg-[#1A1A1C] border border-[#C5A059]/30 text-[10px] text-[#C5A059] font-mono">
+                <span className="px-2 py-0.5 rounded-full bg-gray-50 border border-blue-400/30 text-[10px] text-[#2563EB] font-mono">
                   {businessType}
                 </span>
               </h3>
               <p className="text-xs text-gray-400">Design custom reports with columns, filters, grouping, and visual charts</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-[#252528]">
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-900 rounded-xl hover:bg-[#252528]">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -138,7 +138,7 @@ export default function CustomReportBuilderModal({
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="e.g. Monthly High-Value Sales Audit"
-                className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl px-3.5 py-2 text-sm text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3.5 py-2 text-sm text-white outline-none focus:border-blue-400"
               />
             </div>
             <div className="space-y-1.5">
@@ -148,17 +148,17 @@ export default function CustomReportBuilderModal({
                 value={category}
                 onChange={e => setCategory(e.target.value)}
                 placeholder="e.g. Sales & Revenue / Audits"
-                className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl px-3.5 py-2 text-sm text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3.5 py-2 text-sm text-white outline-none focus:border-blue-400"
               />
             </div>
           </div>
 
           {/* Section 2: Choose Columns */}
-          <div className="space-y-3 border-t border-[#1F1F21] pt-4">
+          <div className="space-y-3 border-t border-gray-200 pt-4">
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-[#C5A059]" />
+                  <SlidersHorizontal className="w-4 h-4 text-[#2563EB]" />
                   1. Choose Columns ({selectedColumns.length} Selected)
                 </h4>
                 <p className="text-[11px] text-gray-500">Pick which fields will be displayed in the report table & exports</p>
@@ -167,14 +167,14 @@ export default function CustomReportBuilderModal({
                 <button
                   type="button"
                   onClick={selectAllColumns}
-                  className="px-2.5 py-1 bg-[#1A1A1C] border border-[#2D2D30] hover:border-[#C5A059] rounded-lg text-gray-300 hover:text-white"
+                  className="px-2.5 py-1 bg-gray-50 border border-gray-200 hover:border-blue-400 rounded-lg text-gray-300 hover:text-gray-900"
                 >
                   Select All
                 </button>
                 <button
                   type="button"
                   onClick={clearAllColumns}
-                  className="px-2.5 py-1 bg-[#1A1A1C] border border-[#2D2D30] hover:border-red-500/50 rounded-lg text-gray-400 hover:text-red-400"
+                  className="px-2.5 py-1 bg-gray-50 border border-gray-200 hover:border-red-500/50 rounded-lg text-gray-400 hover:text-red-400"
                 >
                   Reset
                 </button>
@@ -183,8 +183,8 @@ export default function CustomReportBuilderModal({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.entries(groupedFields).map(([groupTitle, fields]) => (
-                <div key={groupTitle} className="bg-[#0A0A0B] border border-[#1F1F21] rounded-xl p-3 space-y-2">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#C5A059]">{groupTitle}</div>
+                <div key={groupTitle} className="bg-[#F8FAFC] border border-gray-200 rounded-xl p-3 space-y-2">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#2563EB]">{groupTitle}</div>
                   <div className="flex flex-wrap gap-1.5">
                     {fields.map(f => {
                       const isSelected = selectedColumns.includes(f.id);
@@ -196,8 +196,8 @@ export default function CustomReportBuilderModal({
                           className={cn(
                             "px-2.5 py-1 rounded-lg text-xs font-medium transition-all border flex items-center gap-1.5",
                             isSelected
-                              ? "bg-[#C5A059]/15 text-[#C5A059] border-[#C5A059]/40 font-semibold"
-                              : "bg-[#131315] text-gray-400 border-[#2D2D30] hover:text-white"
+                              ? "bg-[#2563EB]/15 text-[#2563EB] border-blue-400/40 font-semibold"
+                              : "bg-white text-gray-400 border-gray-200 hover:text-gray-900"
                           )}
                         >
                           {isSelected ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5 text-gray-600" />}
@@ -212,9 +212,9 @@ export default function CustomReportBuilderModal({
           </div>
 
           {/* Section 3: Choose Filters */}
-          <div className="space-y-3 border-t border-[#1F1F21] pt-4">
+          <div className="space-y-3 border-t border-gray-200 pt-4">
             <h4 className="font-bold text-sm text-white flex items-center gap-2">
-              <Filter className="w-4 h-4 text-[#C5A059]" />
+              <Filter className="w-4 h-4 text-[#2563EB]" />
               2. Choose Filters
             </h4>
             
@@ -224,7 +224,7 @@ export default function CustomReportBuilderModal({
                 <select
                   value={datePreset}
                   onChange={e => setDatePreset(e.target.value)}
-                  className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl px-2.5 py-2 text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-2 text-white outline-none focus:border-blue-400"
                 >
                   <option value="TODAY">Today</option>
                   <option value="YESTERDAY">Yesterday</option>
@@ -241,7 +241,7 @@ export default function CustomReportBuilderModal({
                 <select
                   value={orderType}
                   onChange={e => setOrderType(e.target.value)}
-                  className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl px-2.5 py-2 text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-2 text-white outline-none focus:border-blue-400"
                 >
                   <option value="ALL">All Types</option>
                   {activeTemplate.invoiceTypes?.map(it => (
@@ -255,7 +255,7 @@ export default function CustomReportBuilderModal({
                 <select
                   value={paymentMethod}
                   onChange={e => setPaymentMethod(e.target.value)}
-                  className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl px-2.5 py-2 text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-2 text-white outline-none focus:border-blue-400"
                 >
                   <option value="ALL">All Payment Methods</option>
                   <option value="CASH">Cash</option>
@@ -273,19 +273,19 @@ export default function CustomReportBuilderModal({
                   value={minAmount}
                   onChange={e => setMinAmount(e.target.value)}
                   placeholder="e.g. 1000"
-                  className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl px-2.5 py-2 text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-2 text-white outline-none focus:border-blue-400"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 4: Grouping & Visual Chart View */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-[#1F1F21] pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-200 pt-4">
             
             {/* Choose Grouping */}
             <div className="space-y-2">
               <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#C5A059]" />
+                <Layers className="w-4 h-4 text-[#2563EB]" />
                 3. Choose Grouping
               </h4>
               <p className="text-[11px] text-gray-500">Aggregate rows and calculate summaries by selected dimension</p>
@@ -306,8 +306,8 @@ export default function CustomReportBuilderModal({
                     className={cn(
                       "py-2 px-2 rounded-xl text-xs font-bold transition-all border text-center",
                       groupBy === g.id
-                        ? "bg-[#C5A059] text-[#0A0A0B] border-[#C5A059]"
-                        : "bg-[#0A0A0B] text-gray-400 border-[#2D2D30] hover:text-white"
+                        ? "bg-[#2563EB] text-[#0A0A0B] border-blue-400"
+                        : "bg-[#F8FAFC] text-gray-400 border-gray-200 hover:text-gray-900"
                     )}
                   >
                     {g.label}
@@ -319,7 +319,7 @@ export default function CustomReportBuilderModal({
             {/* Choose Charts */}
             <div className="space-y-2">
               <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#C5A059]" />
+                <BarChart3 className="w-4 h-4 text-[#2563EB]" />
                 4. Choose Visual Chart
               </h4>
               <p className="text-[11px] text-gray-500">Enable interactive visualization on top of report dataset</p>
@@ -340,8 +340,8 @@ export default function CustomReportBuilderModal({
                       className={cn(
                         "py-2 px-1 rounded-xl text-[11px] font-bold transition-all border flex flex-col items-center gap-1",
                         chartType === c.id
-                          ? "bg-[#C5A059] text-[#0A0A0B] border-[#C5A059]"
-                          : "bg-[#0A0A0B] text-gray-400 border-[#2D2D30] hover:text-white"
+                          ? "bg-[#2563EB] text-[#0A0A0B] border-blue-400"
+                          : "bg-[#F8FAFC] text-gray-400 border-gray-200 hover:text-gray-900"
                       )}
                     >
                       <Icon className="w-4 h-4" />
@@ -356,20 +356,20 @@ export default function CustomReportBuilderModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-[#1F1F21] bg-[#161618] flex items-center justify-between">
+        <div className="p-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
           <div className="text-xs text-gray-400 font-mono">
             {selectedColumns.length} Columns • Group: {groupBy} • Chart: {chartType}
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-[#1A1A1C] border border-[#2D2D30] hover:border-gray-500 text-gray-300 font-bold text-xs rounded-xl transition-colors"
+              className="px-4 py-2 bg-gray-50 border border-gray-200 hover:border-gray-500 text-gray-300 font-bold text-xs rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-5 py-2 bg-[#C5A059] hover:bg-[#b08d4a] text-[#0A0A0B] font-bold text-xs rounded-xl uppercase tracking-wider shadow-lg shadow-[#C5A059]/20 flex items-center gap-1.5 transition-all"
+              className="px-5 py-2 bg-[#2563EB] hover:bg-[#b08d4a] text-[#0A0A0B] font-bold text-xs rounded-xl uppercase tracking-wider shadow-lg shadow-blue-500/20 flex items-center gap-1.5 transition-all"
             >
               <Save className="w-4 h-4" />
               Save & Run Report

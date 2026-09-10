@@ -156,26 +156,26 @@ export default function DashboardLayout() {
   const isCurrentRouteAllowed = isRouteAllowedForRole(user.role, location.pathname);
 
   return (
-    <div className="flex h-screen bg-[#0A0A0B] text-[#E0E0E0] font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#F8FAFC] text-[#0F172A] font-sans overflow-hidden">
       {/* Collapsible Sidebar */}
       <aside
         className={cn(
-          "bg-theme-surface border-r border-theme-secondary/20 flex flex-col hidden md:flex transition-all duration-300 ease-in-out relative z-20 flex-shrink-0",
+          "bg-white border-r border-gray-200 flex flex-col hidden md:flex transition-all duration-300 ease-in-out relative z-20 flex-shrink-0",
           isCollapsed ? "w-20" : "w-64"
         )}
       >
         {/* Brand Header */}
-        <div className={cn("h-20 flex items-center border-b border-theme-secondary/20 bg-theme-surface transition-all px-4 justify-between")}>
+        <div className={cn("h-20 flex items-center border-b border-gray-200 bg-white transition-all px-4 justify-between")}>
           <div className="flex items-center truncate">
-            <div className="w-10 h-10 btn-theme-secondary rounded-xl flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-lg border border-white/20">
+            <div className="w-10 h-10 bg-[#2563EB] text-white rounded-xl flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-md">
               {brandTitle.charAt(0).toUpperCase()}
             </div>
             {!isCollapsed && (
               <div className="ml-3 truncate">
-                <h1 className="font-serif font-bold text-sm tracking-tight text-theme-primary truncate">
+                <h1 className="font-serif font-bold text-sm tracking-tight text-gray-900 truncate">
                   {brandTitle}
                 </h1>
-                <span className="text-[10px] text-theme-accent font-medium tracking-wider uppercase truncate block">
+                <span className="text-[10px] text-[#2563EB] font-bold tracking-wider uppercase truncate block">
                   {brandTagline}
                 </span>
               </div>
@@ -184,10 +184,10 @@ export default function DashboardLayout() {
 
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg nav-item-hover transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {isCollapsed ? <ChevronRight className="w-5 h-5 text-theme-accent" /> : <ChevronLeft className="w-5 h-5" />}
+            {isCollapsed ? <ChevronRight className="w-5 h-5 text-[#2563EB]" /> : <ChevronLeft className="w-5 h-5" />}
           </button>
         </div>
 
@@ -208,19 +208,15 @@ export default function DashboardLayout() {
                     'flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-150 relative group',
                     isCollapsed ? "justify-center" : "justify-start",
                     isActive
-                      ? 'border-l-4 shadow-sm font-bold bg-theme-secondary/20 text-theme-accent border-theme-secondary'
-                      : 'nav-item-hover opacity-85 hover:opacity-100'
+                      ? 'border-l-4 shadow-xs font-bold bg-blue-50 text-[#2563EB] border-[#2563EB]'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   )}
-                  style={isActive ? {
-                    borderColor: 'var(--theme-btn-secondary)',
-                    backgroundColor: 'rgba(var(--theme-btn-secondary-rgb, 197, 160, 89), 0.18)'
-                  } : {}}
                 >
                   <Icon
                     className={cn(
                       'h-5 w-5 flex-shrink-0 transition-colors',
                       isCollapsed ? '' : 'mr-3',
-                      isActive ? 'text-theme-accent' : 'opacity-80 group-hover:opacity-100'
+                      isActive ? 'text-[#2563EB]' : 'text-gray-400 group-hover:text-gray-700'
                     )}
                     aria-hidden="true"
                   />
@@ -230,7 +226,7 @@ export default function DashboardLayout() {
 
                   {/* Tooltip for Collapsed State */}
                   {isCollapsed && (
-                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-theme-surface text-theme-primary text-xs font-bold rounded-lg shadow-xl border border-theme-secondary/30 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-lg shadow-xl border border-gray-200 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                       {item.name}
                     </div>
                   )}
@@ -241,53 +237,52 @@ export default function DashboardLayout() {
         </div>
 
         {/* Sidebar Footer & Collapse Toggle */}
-        <div className="p-3 border-t border-theme-secondary/20 space-y-1">
+        <div className="p-3 border-t border-gray-200 space-y-1">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={cn(
-              "flex items-center w-full px-3 py-2 text-xs font-bold rounded-xl nav-item-hover transition-colors mb-1",
+              "flex items-center w-full px-3 py-2 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors mb-1",
               isCollapsed ? "justify-center" : "justify-between"
             )}
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {!isCollapsed && <span className="uppercase tracking-wider text-[10px] opacity-75">Sidebar View</span>}
-            {isCollapsed ? <PanelLeftOpen className="w-4 h-4 text-theme-accent" /> : <PanelLeftClose className="w-4 h-4 opacity-75" />}
+            {!isCollapsed && <span className="uppercase tracking-wider text-[10px]">Sidebar View</span>}
+            {isCollapsed ? <PanelLeftOpen className="w-4 h-4 text-[#2563EB]" /> : <PanelLeftClose className="w-4 h-4 opacity-75" />}
           </button>
 
           <button
             onClick={logout}
             className={cn(
-              "flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-xl hover:bg-red-500/15 text-red-400 hover:text-red-300 transition-colors",
+              "flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-xl hover:bg-red-50 text-red-600 transition-colors",
               isCollapsed ? "justify-center" : "justify-start"
             )}
             title={isCollapsed ? "Logout" : undefined}
           >
-            <LogOut className={cn("h-5 w-5 flex-shrink-0 text-red-400 hover:text-red-300", isCollapsed ? "" : "mr-3")} />
+            <LogOut className={cn("h-5 w-5 flex-shrink-0 text-red-500", isCollapsed ? "" : "mr-3")} />
             {!isCollapsed && <span className="font-semibold">Logout</span>}
           </button>
         </div>
       </aside>
 
-
       {/* Mobile Hamburger Slide-Over Navigation Drawer */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex md:hidden bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-[#131315] w-72 h-full border-r border-[#2D2D30] p-5 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left">
+        <div className="fixed inset-0 z-50 flex md:hidden bg-black/40 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white w-72 h-full border-r border-gray-200 p-5 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left">
             {/* Drawer Header */}
             <div>
-              <div className="flex items-center justify-between border-b border-[#222225] pb-4 mb-4">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-4">
                 <div className="flex items-center">
-                  <div className="w-9 h-9 btn-theme-secondary rounded-xl flex items-center justify-center font-bold text-lg mr-3 shadow-md">
+                  <div className="w-9 h-9 bg-[#2563EB] text-white rounded-xl flex items-center justify-center font-bold text-lg mr-3 shadow-sm">
                     {brandTitle.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h2 className="font-serif font-bold text-sm text-white tracking-tight">{brandTitle}</h2>
-                    <span className="text-[10px] text-[#C5A059] font-bold block uppercase">{brandTagline}</span>
+                    <h2 className="font-serif font-bold text-sm text-gray-900 tracking-tight">{brandTitle}</h2>
+                    <span className="text-[10px] text-[#2563EB] font-bold block uppercase">{brandTagline}</span>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-white bg-[#1A1A1C]"
+                  className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 bg-gray-100"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -308,11 +303,11 @@ export default function DashboardLayout() {
                       className={cn(
                         'flex items-center px-3.5 py-3 text-xs font-bold rounded-xl transition-all',
                         isActive
-                          ? 'bg-[#C5A059]/20 text-[#C5A059] border-l-4 border-[#C5A059]'
-                          : 'text-gray-300 hover:bg-[#1A1A1C] hover:text-white'
+                          ? 'bg-blue-50 text-[#2563EB] border-l-4 border-[#2563EB]'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                       )}
                     >
-                      <Icon className={cn('h-4 w-4 mr-3', isActive ? 'text-[#C5A059]' : 'text-gray-400')} />
+                      <Icon className={cn('h-4 w-4 mr-3', isActive ? 'text-[#2563EB]' : 'text-gray-400')} />
                       <span>{item.name}</span>
                     </Link>
                   );
@@ -321,14 +316,14 @@ export default function DashboardLayout() {
             </div>
 
             {/* Mobile Drawer Footer */}
-            <div className="border-t border-[#222225] pt-4 space-y-3">
-              <div className="flex items-center justify-between bg-[#1A1A1C] p-2.5 rounded-xl border border-[#2D2D30]">
+            <div className="border-t border-gray-200 pt-4 space-y-3">
+              <div className="flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gray-200">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-[#C5A059] flex items-center justify-center text-xs font-bold text-[#0A0A0B]">
+                  <div className="w-7 h-7 rounded-full bg-[#2563EB] flex items-center justify-center text-xs font-bold text-white">
                     {user.username.substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-white leading-tight">{user.username}</div>
+                    <div className="text-xs font-bold text-gray-900 leading-tight">{user.username}</div>
                     <div className="text-[10px] text-gray-500 uppercase">{user.role}</div>
                   </div>
                 </div>
@@ -336,9 +331,9 @@ export default function DashboardLayout() {
 
               <button
                 onClick={() => { setIsMobileMenuOpen(false); logout(); }}
-                className="flex items-center justify-center w-full px-3 py-2.5 text-xs font-bold rounded-xl bg-red-500/15 text-red-400 hover:bg-red-500/25 transition-colors gap-2"
+                className="flex items-center justify-center w-full px-3 py-2.5 text-xs font-bold rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors gap-2"
               >
-                <LogOut className="h-4 w-4 text-red-400" />
+                <LogOut className="h-4 w-4 text-red-600" />
                 <span>Logout Account</span>
               </button>
             </div>
@@ -352,35 +347,35 @@ export default function DashboardLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         {/* Top Navbar */}
-        <header className="h-16 bg-[#0F0F10] border-b border-[#1F1F21] flex items-center justify-between px-3 sm:px-5 lg:px-8 z-10 flex-shrink-0">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-3 sm:px-5 lg:px-8 z-10 flex-shrink-0">
           <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
             {/* Mobile Hamburger & Logo */}
             <div className="flex items-center md:hidden min-w-0">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 rounded-xl text-gray-300 hover:text-white bg-[#1A1A1C] border border-[#2D2D30] mr-2 flex-shrink-0"
+                className="p-2 rounded-xl text-gray-600 hover:text-gray-900 bg-gray-100 border border-gray-200 mr-2 flex-shrink-0"
                 title="Open Navigation Menu"
               >
-                <Menu className="w-5 h-5 text-[#C5A059]" />
+                <Menu className="w-5 h-5 text-[#2563EB]" />
               </button>
-              <div className="w-8 h-8 btn-theme-secondary rounded-lg flex items-center justify-center font-bold text-lg mr-2 flex-shrink-0">
+              <div className="w-8 h-8 bg-[#2563EB] text-white rounded-lg flex items-center justify-center font-bold text-lg mr-2 flex-shrink-0">
                 {brandTitle.charAt(0).toUpperCase()}
               </div>
-              <h1 className="font-serif font-bold text-xs sm:text-sm tracking-tight text-white truncate max-w-[90px] xs:max-w-[140px] sm:max-w-xs">{brandTitle}</h1>
+              <h1 className="font-serif font-bold text-xs sm:text-sm tracking-tight text-gray-900 truncate max-w-[90px] xs:max-w-[140px] sm:max-w-xs">{brandTitle}</h1>
             </div>
 
             {/* Desktop Sidebar Toggle in Top Bar */}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden md:flex items-center gap-2 p-2 rounded-xl text-gray-400 hover:text-white hover:bg-[#1A1A1C] border border-[#1F1F21] transition-all"
+              className="hidden md:flex items-center gap-2 p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 transition-all"
               title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
-              {isCollapsed ? <PanelLeftOpen className="w-4 h-4 text-[#C5A059]" /> : <PanelLeftClose className="w-4 h-4" />}
-              <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">{isCollapsed ? "Expand" : "Collapse"}</span>
+              {isCollapsed ? <PanelLeftOpen className="w-4 h-4 text-[#2563EB]" /> : <PanelLeftClose className="w-4 h-4" />}
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">{isCollapsed ? "Expand" : "Collapse"}</span>
             </button>
 
             <div className="hidden lg:flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-400 truncate max-w-xs">
+              <span className="text-xs font-medium text-gray-500 truncate max-w-xs">
                 {brandTitle}
               </span>
             </div>
@@ -391,10 +386,10 @@ export default function DashboardLayout() {
             <Link
               to="/dashboard/settings"
               state={{ tab: 'theme' }}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-[#1A1A1C] hover:bg-[#252528] text-gray-300 hover:text-white border border-[#2D2D30] text-xs font-bold rounded-xl transition-all"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border border-gray-200 text-xs font-bold rounded-xl transition-all"
               title="Change Application Theme & Color Palette"
             >
-              <Palette className="w-4 h-4 text-theme-secondary" />
+              <Palette className="w-4 h-4 text-[#2563EB]" />
               <span className="hidden sm:inline">Theme</span>
             </Link>
 
@@ -402,7 +397,7 @@ export default function DashboardLayout() {
             {isRouteAllowedForRole(user.role, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
               <Link
                 to="/dashboard/billing"
-                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 btn-theme-secondary font-bold text-xs rounded-xl shadow-lg transition-all"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-md transition-all"
               >
                 <Receipt className="w-4 h-4" />
                 <span className="hidden sm:inline">Open POS</span>
@@ -413,37 +408,37 @@ export default function DashboardLayout() {
             <NotificationCenter />
 
             {/* User Badge */}
-            <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 bg-[#1A1A1C] rounded-xl border border-[#1F1F21]">
-              <div className="w-7 h-7 rounded-full bg-[#C5A059] flex items-center justify-center text-xs font-bold text-[#0A0A0B] shadow-md flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 bg-gray-100 rounded-xl border border-gray-200">
+              <div className="w-7 h-7 rounded-full bg-[#2563EB] flex items-center justify-center text-xs font-bold text-white shadow-xs flex-shrink-0">
                 {user.username.substring(0, 2).toUpperCase()}
               </div>
               <div className="hidden sm:flex flex-col pr-1">
-                <span className="text-xs font-bold text-white leading-none">{user.username}</span>
+                <span className="text-xs font-bold text-gray-900 leading-none">{user.username}</span>
                 <span className="text-[10px] text-gray-500 uppercase mt-0.5">{user.role}</span>
               </div>
             </div>
           </div>
         </header>
 
-        <main className={cn("flex-1 bg-[#0A0A0B]", location.pathname === '/billing' ? "p-1.5 sm:p-3 overflow-hidden flex flex-col h-[calc(100vh-64px)]" : "p-2.5 sm:p-5 lg:p-8 overflow-y-auto")}>
+        <main className={cn("flex-1 bg-[#F8FAFC]", location.pathname === '/billing' ? "p-1.5 sm:p-3 overflow-hidden flex flex-col h-[calc(100vh-64px)]" : "p-2.5 sm:p-5 lg:p-8 overflow-y-auto")}>
           <div className={cn("w-full h-full flex flex-col flex-1 min-w-0", location.pathname === '/billing' ? "overflow-hidden" : "mx-auto max-w-7xl")}>
             {isCurrentRouteAllowed ? (
               <Outlet />
             ) : (
-              <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-[#131315] border border-[#2D2D30] rounded-2xl shadow-2xl space-y-4 my-auto">
-                <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+              <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white border border-gray-200 rounded-2xl shadow-xl space-y-4 my-auto">
+                <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-500">
                   <ShieldAlert className="w-8 h-8" />
                 </div>
                 <div className="space-y-1 max-w-md">
-                  <h2 className="text-xl font-bold text-white font-serif">Access Restricted ({user.role})</h2>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    Your assigned role <span className="font-mono text-[#C5A059] font-bold">{user.role}</span> does not have permission to access <span className="font-mono text-white">{location.pathname}</span>.
+                  <h2 className="text-xl font-bold text-gray-900 font-serif">Access Restricted ({user.role})</h2>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    Your assigned role <span className="font-mono text-[#2563EB] font-bold">{user.role}</span> does not have permission to access <span className="font-mono text-gray-900">{location.pathname}</span>.
                   </p>
                 </div>
                 <div className="pt-2">
                   <Link
                     to={navigation[0]?.href || '/dashboard/billing'}
-                    className="px-5 py-2.5 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:bg-[#b08d4a] transition-all inline-flex items-center gap-2"
+                    className="px-5 py-2.5 bg-[#2563EB] text-white font-bold text-xs rounded-xl shadow-md hover:bg-[#1D4ED8] transition-all inline-flex items-center gap-2"
                   >
                     <span>Go to Authorized Section</span>
                   </Link>
@@ -456,3 +451,4 @@ export default function DashboardLayout() {
     </div>
   );
 }
+

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Users, Search, Gift, Clock, Heart, Plus, Edit2, MessageSquare, Phone, CheckCircle2 } from 'lucide-react';
+import { Users, Search, Gift, Clock, Heart, Plus, Edit2, MessageSquare, Phone } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { isValidPhone, cleanPhone } from '../utils/validation';
 
 export default function Customers() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -17,7 +16,7 @@ export default function Customers() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) list = parsed;
       }
-    } catch { }
+    } catch {}
 
     fetch(`/api/customers?search=${search}`)
       .then(r => r.json())
@@ -55,17 +54,17 @@ export default function Customers() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-serif font-bold text-white">Customers & Loyalty CRM</h1>
+          <h1 className="text-xl sm:text-2xl font-serif font-bold text-gray-900">Customers & Loyalty CRM</h1>
           <p className="text-gray-400 text-xs sm:text-sm mt-0.5">Manage customer profiles, order history, credit balance, and rewards</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="w-full sm:w-auto justify-center bg-[#C5A059] text-[#0A0A0B] px-4 py-2 rounded-xl font-bold flex items-center gap-2 text-xs shadow-md">
-          <Plus className="w-4 h-4" /> New Customer
+        <button onClick={() => setShowForm(true)} className="w-full sm:w-auto justify-center bg-[#2563EB] text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 text-xs shadow-md">
+          <Plus className="w-4 h-4"/> New Customer
         </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        <div className="lg:col-span-1 bg-[#131315] border border-[#2D2D30] rounded-2xl overflow-hidden flex flex-col max-h-[350px] sm:max-h-[700px]">
-          <div className="p-3 sm:p-4 border-b border-[#2D2D30] bg-[#0A0A0B]">
+        <div className="lg:col-span-1 bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col max-h-[350px] sm:max-h-[700px]">
+          <div className="p-3 sm:p-4 border-b border-gray-200 bg-[#F8FAFC]">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-500" />
               <input
@@ -73,7 +72,7 @@ export default function Customers() {
                 placeholder="Search name or mobile..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-xs text-gray-900 focus:outline-none focus:border-[#2563EB]"
               />
             </div>
           </div>
@@ -86,7 +85,7 @@ export default function Customers() {
                   onClick={() => fetchCustomerDetails(c.id)}
                   className={cn(
                     "w-full text-left p-3 rounded-lg transition-all flex items-center justify-between",
-                    selectedCustomer?.id === c.id ? "bg-[#C5A059]/10 text-[#C5A059]" : "text-gray-300 hover:bg-[#1A1A1C]"
+                    selectedCustomer?.id === c.id ? "bg-[#C5A059]/10 text-[#2563EB]" : "text-gray-300 hover:bg-gray-50"
                   )}
                 >
                   <div>
@@ -108,7 +107,7 @@ export default function Customers() {
           {selectedCustomer ? (
             <CustomerProfile customer={selectedCustomer} refresh={() => fetchCustomerDetails(selectedCustomer.id)} />
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-[#131315] border border-[#2D2D30] rounded-xl p-12">
+            <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-white border border-gray-200 rounded-xl p-12">
               <Users className="w-12 h-12 mb-4 opacity-50" />
               <div className="text-lg font-bold">Select a Customer</div>
               <div className="text-sm">View their order history, preferences, and loyalty points.</div>
@@ -148,7 +147,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
         const ids = new Set(loaded.map(o => o.id));
         parsed.forEach((o: any) => { if (!ids.has(o.id)) loaded.push(o); });
       }
-    } catch { }
+    } catch {}
 
     const filtered = loaded.filter((o: any) => {
       if (o.customerId && o.customerId === customer.id) return true;
@@ -190,7 +189,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
         return c;
       });
       localStorage.setItem('universal_customers', JSON.stringify(updated));
-    } catch { }
+    } catch {}
 
     window.dispatchEvent(new Event('storage'));
     setIsSettleModalOpen(false);
@@ -199,9 +198,9 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
   };
 
   const sendNotification = async (channel: string) => {
-    if (!notifyMsg) return;
+    if(!notifyMsg) return;
     await fetch(`/api/customers/${customer.id}/notify`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ channel, message: notifyMsg })
     });
     setNotifyMsg('');
@@ -211,9 +210,9 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
   return (
     <div className="space-y-6">
       {/* Profile & Credit Due Header */}
-      <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl flex flex-wrap justify-between items-start gap-4">
+      <div className="bg-white border border-gray-200 p-6 rounded-xl flex flex-wrap justify-between items-start gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white">{customer.name}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{customer.name}</h2>
           <div className="text-gray-400 mt-1 space-y-1 text-sm">
             <div>📞 {customer.mobile}</div>
             {customer.address && <div>📍 {customer.address}</div>}
@@ -227,8 +226,8 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
           {/* Outstanding Pending Balance Card */}
           <div className={cn(
             "text-center border p-4 rounded-xl shadow-lg transition-all",
-            totalPendingBalance > 0
-              ? "bg-red-500/10 border-red-500/30 text-red-400"
+            totalPendingBalance > 0 
+              ? "bg-red-500/10 border-red-500/30 text-red-400" 
               : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
           )}>
             <div className="text-[10px] font-extrabold uppercase tracking-wider opacity-80">Pending Credit Due</div>
@@ -247,9 +246,9 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
           </div>
 
           {/* Loyalty Points */}
-          <div className="text-center bg-[#1A1A1C] border border-[#2D2D30] p-4 rounded-xl min-w-[100px]">
-            <Gift className="w-6 h-6 text-[#C5A059] mx-auto mb-1" />
-            <div className="text-xl font-bold text-white">{customer.loyaltyPoints || 0}</div>
+          <div className="text-center bg-gray-50 border border-gray-200 p-4 rounded-xl min-w-[100px]">
+            <Gift className="w-6 h-6 text-[#2563EB] mx-auto mb-1" />
+            <div className="text-xl font-bold text-gray-900">{customer.loyaltyPoints || 0}</div>
             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Points</div>
           </div>
         </div>
@@ -257,9 +256,9 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
 
       {/* Orders & Favorites */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
+        <div className="bg-white border border-gray-200 p-6 rounded-xl">
           <h3 className="text-lg font-bold text-white mb-4 flex items-center justify-between">
-            <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-blue-500" /> Order History ({customerOrders.length})</span>
+            <span className="flex items-center gap-2"><Clock className="w-5 h-5 text-blue-500"/> Order History ({customerOrders.length})</span>
           </h3>
           <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
             {customerOrders.length === 0 && <div className="text-gray-500 text-sm">No past orders found.</div>}
@@ -268,12 +267,12 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
               const pending = o.balanceAmount !== undefined ? o.balanceAmount : ((o.paymentMethod || '').toUpperCase() === 'CREDIT' ? o.total : 0);
 
               return (
-                <div key={o.id} className="bg-[#0A0A0B] p-3.5 rounded-xl border border-[#2D2D30] space-y-1.5">
+                <div key={o.id} className="bg-[#F8FAFC] p-3.5 rounded-xl border border-gray-200 space-y-1.5">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-white text-xs">{o.orderNumber || 'INV-LOCAL'}</span>
-                    <span className="text-xs font-bold text-[#C5A059] font-mono">Bill Total: ₹{o.total?.toFixed(2)}</span>
+                    <span className="text-xs font-bold text-[#2563EB] font-mono">Bill Total: ₹{o.total?.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between items-center text-[11px] font-mono border-t border-[#1F1F21] pt-1.5">
+                  <div className="flex justify-between items-center text-[11px] font-mono border-t border-gray-200 pt-1.5">
                     <span className="text-emerald-400 font-bold">Paid: ₹{paid.toFixed(2)}</span>
                     {pending > 0 ? (
                       <span className="text-red-400 font-extrabold bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded">
@@ -295,12 +294,12 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
           </div>
         </div>
 
-        <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
-          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Heart className="w-5 h-5 text-red-500" /> Favorite Orders</h3>
+        <div className="bg-white border border-gray-200 p-6 rounded-xl">
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2"><Heart className="w-5 h-5 text-red-500"/> Favorite Orders</h3>
           <div className="flex flex-wrap gap-2">
             {(!customer.favoriteItems || customer.favoriteItems.length === 0) && <div className="text-gray-500 text-sm">No favorites recorded yet.</div>}
             {customer.favoriteItems?.map((f: any) => (
-              <span key={f.id} className="bg-[#0A0A0B] border border-[#2D2D30] text-gray-300 px-3 py-1.5 rounded-full text-sm font-bold">
+              <span key={f.id} className="bg-[#F8FAFC] border border-gray-200 text-gray-300 px-3 py-1.5 rounded-full text-sm font-bold">
                 {f.name}
               </span>
             ))}
@@ -311,14 +310,14 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
       {/* Settle Due Modal */}
       {isSettleModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#131315] border border-[#2D2D30] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               💳 Settle Due Balance for {customer.name}
             </h3>
             <p className="text-xs text-gray-400">Record payment received to reduce customer's pending credit balance.</p>
 
             <form onSubmit={handleConfirmSettle} className="space-y-4">
-              <div className="bg-[#0A0A0B] p-3 rounded-xl border border-[#2D2D30] flex justify-between items-center text-xs">
+              <div className="bg-[#F8FAFC] p-3 rounded-xl border border-gray-200 flex justify-between items-center text-xs">
                 <span className="text-gray-400">Total Pending Due:</span>
                 <span className="font-mono font-bold text-red-400 text-sm">₹{totalPendingBalance.toFixed(2)}</span>
               </div>
@@ -332,7 +331,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
                   max={totalPendingBalance}
                   value={settleAmount}
                   onChange={e => setSettleAmount(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-sm text-white font-mono font-bold outline-none focus:border-[#C5A059]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-900 font-mono font-bold outline-none focus:border-[#2563EB]"
                 />
               </div>
 
@@ -341,7 +340,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
                 <select
                   value={settleMethod}
                   onChange={e => setSettleMethod(e.target.value as any)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-[#C5A059]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-white font-bold outline-none focus:border-[#2563EB]"
                 >
                   <option value="CASH">💵 Cash</option>
                   <option value="UPI">📲 UPI / QR</option>
@@ -353,7 +352,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
                 <button
                   type="button"
                   onClick={() => setIsSettleModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white"
+                  className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-gray-900"
                 >
                   Cancel
                 </button>
@@ -369,7 +368,7 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
         </div>
       )}
 
-      <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
+      <div className="bg-white border border-gray-200 p-6 rounded-xl">
         <h3 className="text-lg font-bold text-white mb-4">Quick Engage</h3>
         <div className="flex gap-2">
           <input
@@ -377,13 +376,13 @@ function CustomerProfile({ customer, refresh }: { customer: any, refresh: () => 
             placeholder="Type a message (e.g. Happy Birthday discount code)..."
             value={notifyMsg}
             onChange={e => setNotifyMsg(e.target.value)}
-            className="flex-1 bg-[#0A0A0B] border border-[#2D2D30] rounded-lg px-4 text-sm text-white"
+            className="flex-1 bg-[#F8FAFC] border border-gray-200 rounded-lg px-4 text-sm text-white"
           />
           <button onClick={() => sendNotification('WHATSAPP')} className="bg-green-500/10 text-green-500 border border-green-500/20 px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-green-500/20">
-            <MessageSquare className="w-4 h-4" /> WhatsApp
+            <MessageSquare className="w-4 h-4"/> WhatsApp
           </button>
           <button onClick={() => sendNotification('SMS')} className="bg-blue-500/10 text-blue-500 border border-blue-500/20 px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-500/20">
-            <Phone className="w-4 h-4" /> SMS
+            <Phone className="w-4 h-4"/> SMS
           </button>
         </div>
       </div>
@@ -398,15 +397,10 @@ function CustomerFormModal({ onClose, onSave }: { onClose: () => void, onSave: (
     e.preventDefault();
     if (!form.name.trim() || !form.mobile.trim()) return;
 
-    if (!isValidPhone(form.mobile)) {
-      alert('Please enter a valid mobile number!');
-      return;
-    }
-
     const newCust = {
       id: `cust-${Date.now()}`,
       name: form.name.trim(),
-      mobile: cleanPhone(form.mobile) || form.mobile.trim(),
+      mobile: form.mobile.trim(),
       address: form.address.trim() || undefined,
       gstNumber: form.gstNumber.trim() || undefined,
       birthday: form.birthday || undefined,
@@ -421,72 +415,37 @@ function CustomerFormModal({ onClose, onSave }: { onClose: () => void, onSave: (
       if (saved) list = JSON.parse(saved);
       const updated = [newCust, ...list.filter(c => c.id !== newCust.id && c.mobile !== newCust.mobile)];
       localStorage.setItem('universal_customers', JSON.stringify(updated));
-    } catch { }
+    } catch {}
 
     window.dispatchEvent(new Event('storage'));
 
     try {
       await fetch('/api/customers', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(newCust)
       });
-    } catch { }
+    } catch {}
     onSave();
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-[#131315] border border-[#2D2D30] rounded-xl w-full max-w-lg p-6">
+      <div className="bg-white border border-gray-200 rounded-xl w-full max-w-lg p-6">
         <h2 className="text-xl font-bold text-white mb-4">Add Customer</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-bold text-gray-400 mb-1 block">Customer Name *</label>
-              <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#C5A059]" />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className={cn("text-xs font-bold", form.mobile.trim() && !isValidPhone(form.mobile) ? "text-red-400" : "text-gray-400")}>
-                  Mobile *
-                </label>
-                {form.mobile.trim() && isValidPhone(form.mobile) && (
-                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Valid
-                  </span>
-                )}
-              </div>
-              <input
-                required
-                type="tel"
-                maxLength={13}
-                placeholder="9876543210"
-                value={form.mobile}
-                onChange={e => setForm({ ...form, mobile: e.target.value })}
-                className={cn(
-                  "w-full rounded-xl p-2.5 text-xs font-mono outline-none transition-all",
-                  form.mobile.trim() && !isValidPhone(form.mobile)
-                    ? "bg-[#0A0A0B] border-2 border-red-500/80 text-red-300 focus:border-red-400"
-                    : form.mobile.trim() && isValidPhone(form.mobile)
-                      ? "bg-[#0A0A0B] border border-emerald-500/60 focus:border-emerald-400 text-white"
-                      : "bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] text-white"
-                )}
-              />
-              {form.mobile.trim() && !isValidPhone(form.mobile) && (
-                <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
-                  ⚠️ Please enter a valid mobile number
-                </p>
-              )}
-            </div>
+            <div><label className="text-xs font-bold text-gray-400">Name</label><input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
+            <div><label className="text-xs font-bold text-gray-400">Mobile (Unique)</label><input required value={form.mobile} onChange={e=>setForm({...form, mobile: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
           </div>
-          <div><label className="text-xs font-bold text-gray-400 mb-1 block">Address</label><input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#C5A059]" /></div>
-          <div><label className="text-xs font-bold text-gray-400 mb-1 block">GST Number</label><input value={form.gstNumber} onChange={e => setForm({ ...form, gstNumber: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]" /></div>
+          <div><label className="text-xs font-bold text-gray-400">Address</label><input value={form.address} onChange={e=>setForm({...form, address: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
+          <div><label className="text-xs font-bold text-gray-400">GST Number</label><input value={form.gstNumber} onChange={e=>setForm({...form, gstNumber: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-xs font-bold text-gray-400 mb-1 block">Birthday</label><input type="date" value={form.birthday} onChange={e => setForm({ ...form, birthday: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#C5A059] [color-scheme:dark]" /></div>
-            <div><label className="text-xs font-bold text-gray-400 mb-1 block">Anniversary</label><input type="date" value={form.anniversary} onChange={e => setForm({ ...form, anniversary: e.target.value })} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#C5A059] [color-scheme:dark]" /></div>
+            <div><label className="text-xs font-bold text-gray-400">Birthday</label><input type="date" value={form.birthday} onChange={e=>setForm({...form, birthday: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
+            <div><label className="text-xs font-bold text-gray-400">Anniversary</label><input type="date" value={form.anniversary} onChange={e=>setForm({...form, anniversary: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
           </div>
           <div className="flex gap-2 justify-end pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-gray-400 hover:text-white font-bold">Cancel</button>
-            <button type="submit" className="bg-[#C5A059] text-[#0A0A0B] px-5 py-2 rounded-xl font-bold text-xs shadow-md hover:bg-[#d6b064]">Save Customer</button>
+            <button type="button" onClick={onClose} className="px-4 py-2 text-gray-400 hover:text-gray-900 font-bold">Cancel</button>
+            <button type="submit" className="bg-[#2563EB] text-white px-4 py-2 rounded font-bold">Save</button>
           </div>
         </form>
       </div>

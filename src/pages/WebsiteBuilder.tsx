@@ -255,46 +255,46 @@ export default function WebsiteBuilder() {
       
       {/* ── TOAST NOTIFICATIONS ── */}
       {savedSuccess && (
-        <div className="fixed top-6 right-6 z-50 bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-300">
+        <div className="fixed top-6 right-6 z-50 bg-white border border-gray-200 text-gray-900 px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-300">
           <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white flex-shrink-0">
             <CheckCircle2 className="w-4 h-4" />
           </div>
           <div>
             <p className="font-semibold text-sm">Website Published Successfully!</p>
-            <p className="text-xs text-gray-300">Your live storefront is instantly updated.</p>
+            <p className="text-xs text-gray-500">Your live website is instantly updated.</p>
           </div>
         </div>
       )}
 
       {templateToast && (
-        <div className="fixed top-6 right-6 z-50 bg-gray-900 border border-gray-700 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-300">
+        <div className="fixed top-6 right-6 z-50 bg-white border border-gray-200 text-gray-900 px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-300">
           <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white flex-shrink-0">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <p className="font-semibold text-sm">{templateToast}</p>
-            <p className="text-xs text-gray-300">Review the updated content below and click Publish to go live.</p>
+            <p className="text-xs text-gray-500">Review the updated content below and click Publish to go live.</p>
           </div>
         </div>
       )}
 
       {/* ── TOP HEADER / PUBLISH BAR ── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/60 shadow-lg shadow-gray-200/50">
         <div className="flex items-center gap-3">
-          <span className="p-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <span className="p-2.5 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
             <Globe className="w-5 h-5" />
           </span>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
+              <h1 className="text-lg font-bold text-gray-900 tracking-tight">
                 Website CMS Builder
               </h1>
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                 Live Dynamic
               </span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              Universal multi-business dynamic storefront manager. Real-time updates publish instantly.
+            <p className="text-sm text-gray-500 mt-0.5">
+              Universal multi-business dynamic website manager. Real-time updates publish instantly.
             </p>
           </div>
         </div>
@@ -304,7 +304,7 @@ export default function WebsiteBuilder() {
             type="button"
             onClick={handleResetToDefaults}
             title="Reset to clean multi-business defaults"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Reset</span>
@@ -313,7 +313,7 @@ export default function WebsiteBuilder() {
           <button
             type="button"
             onClick={handleCopyLink}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
             <span>{copied ? 'Copied' : 'Copy URL'}</span>
@@ -323,7 +323,7 @@ export default function WebsiteBuilder() {
             href={publicUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
           >
             <ExternalLink className="w-4 h-4" />
             <span>Open Website</span>
@@ -332,7 +332,7 @@ export default function WebsiteBuilder() {
           <button
             type="button"
             onClick={handleSave}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow-sm transition-colors flex-shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg btn-theme-secondary font-medium text-sm shadow-sm transition-colors flex-shrink-0"
           >
             <Save className="w-4 h-4" />
             <span>Publish Website</span>
@@ -341,8 +341,8 @@ export default function WebsiteBuilder() {
       </div>
 
       {/* ── TAB NAVIGATION ── */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 shadow-sm overflow-x-auto scrollbar-none">
-        <div className="flex items-center gap-2 min-w-max border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-white border border-gray-200 rounded-xl px-4 shadow-sm overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-2 min-w-max border-b border-gray-200">
           {[
             { id: 'HERO_SLIDES', label: 'Hero & Branding', icon: Layout },
             { id: 'SHOWCASE', label: 'Featured Showcase', icon: Star },
@@ -362,11 +362,11 @@ export default function WebsiteBuilder() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-3.5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors -mb-px",
                   isActive 
-                    ? "border-blue-600 text-blue-600 dark:text-blue-400 font-semibold" 
-                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    ? "border-blue-600 text-blue-600 font-semibold" 
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
                 )}
               >
-                <Icon className={cn("w-4 h-4", isActive ? "text-blue-600 dark:text-blue-400" : "text-gray-400")} />
+                <Icon className={cn("w-4 h-4", isActive ? "text-blue-600" : "text-gray-400")} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -381,67 +381,67 @@ export default function WebsiteBuilder() {
         <div className="space-y-6">
           
           {/* Brand Identity */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="border-b border-gray-200 pb-3">
+              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-blue-600" />
                 <span>Brand Identity & Header Configuration</span>
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Configure core business naming, industry tags, and global tagline display.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Brand Name *</label>
                 <input
                   type="text"
                   value={config.brandName}
                   onChange={e => setConfig(c => ({ ...c, brandName: e.target.value }))}
                   placeholder="e.g. APEX ENTERPRISE"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subtext / Industry</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Subtext / Industry</label>
                 <input
                   type="text"
                   value={config.brandSubtext}
                   onChange={e => setConfig(c => ({ ...c, brandSubtext: e.target.value }))}
                   placeholder="e.g. MULTI-BUSINESS SOLUTIONS / RETAIL / HEALTHCARE"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand Tagline</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Brand Tagline</label>
                 <input
                   type="text"
                   value={config.brandTagline}
                   onChange={e => setConfig(c => ({ ...c, brandTagline: e.target.value }))}
                   placeholder="e.g. Excellence, Innovation & Premium Quality"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
           </div>
 
           {/* Hero Slides CRUD */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-700 pb-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
               <div>
-                <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-base font-semibold text-gray-900">
                   Hero Slides & Banners ({config.heroSlides.length})
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-sm text-gray-500 mt-0.5">
                   Configure dynamic full-bleed hero slides with custom headlines, call-to-actions, and background photography.
                 </p>
               </div>
               <button
                 onClick={handleAddSlide}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg btn-theme-secondary font-medium text-sm transition-colors shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Hero Slide</span>
@@ -457,8 +457,8 @@ export default function WebsiteBuilder() {
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium cursor-pointer transition-all max-w-[240px]",
                     selectedSlideIndex === idx
-                      ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
-                      : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
+                      ? "bg-blue-50 text-blue-700 border-blue-200 dark:text-blue-300 dark:border-blue-800"
+                      : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                   )}
                 >
                   <span className="truncate">Slide {String(idx + 1).padStart(2, '0')}: {slide.title || 'Untitled'}</span>
@@ -480,9 +480,9 @@ export default function WebsiteBuilder() {
 
             {/* Slide Editor Panel */}
             {activeSlide && (
-              <div className="p-5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <span className="font-semibold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+              <div className="p-5 bg-gray-50/50 border border-gray-200 rounded-xl space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
+                  <span className="font-semibold text-sm text-gray-900 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-600" />
                     Editing Slide {String(selectedSlideIndex + 1).padStart(2, '0')}: {activeSlide.title} {activeSlide.titleHighlight}
                   </span>
@@ -494,7 +494,7 @@ export default function WebsiteBuilder() {
                   {/* Left Column: Text Content */}
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Kicker Tagline (Top Accent Label)
                       </label>
                       <input
@@ -502,52 +502,52 @@ export default function WebsiteBuilder() {
                         value={activeSlide.kicker}
                         onChange={e => handleUpdateSlide(selectedSlideIndex, 'kicker', e.target.value)}
                         placeholder="e.g. INNOVATION & CRAFTSMANSHIP"
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Headline Part 1</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Headline Part 1</label>
                         <input
                           type="text"
                           value={activeSlide.title}
                           onChange={e => handleUpdateSlide(selectedSlideIndex, 'title', e.target.value)}
                           placeholder="e.g. Elevate Your Standard with"
-                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Headline Part 2 (Accent)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Headline Part 2 (Accent)</label>
                         <input
                           type="text"
                           value={activeSlide.titleHighlight}
                           onChange={e => handleUpdateSlide(selectedSlideIndex, 'titleHighlight', e.target.value)}
                           placeholder="e.g. Premium Quality"
-                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-serif italic"
+                          className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-serif italic"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Slide Subtitle / Description</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Slide Subtitle / Description</label>
                       <textarea
                         rows={2}
                         value={activeSlide.subtitle}
                         onChange={e => handleUpdateSlide(selectedSlideIndex, 'subtitle', e.target.value)}
                         placeholder="Short compelling description of your business offering."
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all leading-relaxed"
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all leading-relaxed"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CTA Button Text</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">CTA Button Text</label>
                       <input
                         type="text"
                         value={activeSlide.ctaText}
                         onChange={e => handleUpdateSlide(selectedSlideIndex, 'ctaText', e.target.value)}
                         placeholder="e.g. EXPLORE OFFERINGS / SHOP NOW / BOOK APPOINTMENT"
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       />
                     </div>
                   </div>
@@ -555,38 +555,38 @@ export default function WebsiteBuilder() {
                   {/* Right Column: Background & Floating Glass Box */}
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Background Image URL</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Background Image URL</label>
                       <input
                         type="text"
                         value={activeSlide.bgUrl}
                         onChange={e => handleUpdateSlide(selectedSlideIndex, 'bgUrl', e.target.value)}
                         placeholder="https://images.unsplash.com/..."
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                       />
                     </div>
 
-                    <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
-                      <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">
+                    <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm space-y-3">
+                      <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider block">
                         Floating Highlight Feature Card
                       </span>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Feature Badge</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Feature Badge</label>
                         <input
                           type="text"
                           value={activeSlide.featureBadge}
                           onChange={e => handleUpdateSlide(selectedSlideIndex, 'featureBadge', e.target.value)}
                           placeholder="e.g. SIGNATURE QUALITY"
-                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Feature Description</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Feature Description</label>
                         <input
                           type="text"
                           value={activeSlide.featureDesc}
                           onChange={e => handleUpdateSlide(selectedSlideIndex, 'featureDesc', e.target.value)}
                           placeholder="e.g. Handcrafted excellence engineered to exceed expectations."
-                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -607,67 +607,67 @@ export default function WebsiteBuilder() {
         <div className="space-y-6">
           
           {/* Section Headers Configuration */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="border-b border-gray-200 pb-3">
+              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <Star className="w-4 h-4 text-blue-600" />
                 <span>Featured Showcase & Offerings Section Headers</span>
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Customize titles and subtitles for your featured products/services section.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Section Kicker</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Section Kicker</label>
                 <input
                   type="text"
                   value={config.destinationsKicker}
                   onChange={e => setConfig(c => ({ ...c, destinationsKicker: e.target.value }))}
                   placeholder="e.g. FEATURED OFFERINGS / TOP PRODUCTS / SERVICES"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Section Headline</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Section Headline</label>
                 <input
                   type="text"
                   value={config.destinationsTitle}
                   onChange={e => setConfig(c => ({ ...c, destinationsTitle: e.target.value }))}
                   placeholder="e.g. Signature Products & Premier Services"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Section Subtitle</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Section Subtitle</label>
                 <input
                   type="text"
                   value={config.destinationsSubtitle}
                   onChange={e => setConfig(c => ({ ...c, destinationsSubtitle: e.target.value }))}
                   placeholder="e.g. Explore our handpicked selection of top-tier offerings..."
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
           </div>
 
           {/* Showcase Items CRUD */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-700 pb-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
               <div>
-                <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-base font-semibold text-gray-900">
                   Configured Offerings & Packages ({config.destinations.length})
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-sm text-gray-500 mt-0.5">
                   Create showcase cards for your top products, key services, signature packages, or projects.
                 </p>
               </div>
               <button
                 onClick={handleAddShowcaseItem}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg btn-theme-secondary font-medium text-sm transition-colors shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Item / Offering</span>
@@ -684,11 +684,11 @@ export default function WebsiteBuilder() {
                     "p-3 rounded-xl border cursor-pointer transition-all flex flex-col justify-between group",
                     (selectedShowcaseId === item.id || (!selectedShowcaseId && config.destinations[0]?.id === item.id))
                       ? "bg-blue-50/50 border-blue-600 dark:bg-blue-900/20 dark:border-blue-500 shadow-sm"
-                      : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                      : "bg-white border-gray-200 hover:border-gray-300 dark:hover:border-gray-600"
                   )}
                 >
                   <div className="space-y-2">
-                    <div className="relative h-32 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    <div className="relative h-32 rounded-lg overflow-hidden bg-gray-100">
                       <img
                         src={item.imageUrl}
                         alt={item.name}
@@ -705,20 +705,20 @@ export default function WebsiteBuilder() {
                     </div>
 
                     <div>
-                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400 block truncate">
+                      <span className="text-xs font-medium text-blue-600 block truncate">
                         {item.category}
                       </span>
-                      <h3 className="font-semibold text-sm text-gray-900 dark:text-white leading-tight line-clamp-1">
+                      <h3 className="font-semibold text-sm text-gray-900 leading-tight line-clamp-1">
                         {item.name}
                       </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
+                      <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">
                         {item.subtitle}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-gray-200 dark:border-gray-700">
-                    <span className="font-semibold text-sm text-gray-900 dark:text-white">
+                  <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-gray-200">
+                    <span className="font-semibold text-sm text-gray-900">
                       {item.priceFrom}
                     </span>
                     <button
@@ -738,127 +738,127 @@ export default function WebsiteBuilder() {
 
             {/* Selected Showcase Item Detail Editor */}
             {activeShowcase && (
-              <div className="p-5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <span className="font-semibold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+              <div className="p-5 bg-gray-50/50 border border-gray-200 rounded-xl space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
+                  <span className="font-semibold text-sm text-gray-900 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-600" />
-                    Editing Offering: <span className="text-blue-600 dark:text-blue-400">{activeShowcase.name}</span>
+                    Editing Offering: <span className="text-blue-600">{activeShowcase.name}</span>
                   </span>
                   <span className="text-xs font-mono text-gray-400 truncate max-w-[200px]">Item ID: {activeShowcase.id}</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Item Title / Name *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Item Title / Name *</label>
                     <input
                       type="text"
                       value={activeShowcase.name}
                       onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'name', e.target.value)}
                       placeholder="e.g. Signature Executive Package / Deluxe Suite"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category / Tag</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category / Tag</label>
                     <input
                       type="text"
                       value={activeShowcase.category}
                       onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'category', e.target.value)}
                       placeholder="e.g. Premium Tier / Signature / Medical Care"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Badge Tag</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Badge Tag</label>
                     <input
                       type="text"
                       value={activeShowcase.badge || ''}
                       onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'badge', e.target.value)}
                       placeholder="e.g. Best Seller / Popular / New / Exclusive"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Starting Price / Rate</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Starting Price / Rate</label>
                     <input
                       type="text"
                       value={activeShowcase.priceFrom}
                       onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'priceFrom', e.target.value)}
                       placeholder="e.g. $1,250 / ₹450 / Custom Quote"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit / Duration / Format</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Unit / Duration / Format</label>
                     <input
                       type="text"
                       value={activeShowcase.duration}
                       onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'duration', e.target.value)}
                       placeholder="e.g. Complete Package / Per Unit / 1-Hour Session"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image URL</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
                     <input
                       type="text"
                       value={activeShowcase.imageUrl}
                       onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'imageUrl', e.target.value)}
                       placeholder="https://images.unsplash.com/..."
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Short Subtitle / Tagline</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Short Subtitle / Tagline</label>
                   <input
                     type="text"
                     value={activeShowcase.subtitle}
                     onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'subtitle', e.target.value)}
                     placeholder="Short one-line description of the offering."
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Overview Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Overview Description</label>
                   <textarea
                     rows={3}
                     value={activeShowcase.description}
                     onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'description', e.target.value)}
                     placeholder="Comprehensive description of this offering."
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all leading-relaxed"
+                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all leading-relaxed"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key Features / Highlights (1 per line)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Key Features / Highlights (1 per line)</label>
                     <textarea
                       rows={4}
                       value={activeShowcase.highlights?.join('\n') || ''}
                       onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'highlights', e.target.value.split('\n').filter(Boolean))}
                       placeholder="Dedicated Specialist&#10;24/7 Priority Support&#10;Full Quality Warranty"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Inclusions / Included Benefits (1 per line)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Inclusions / Included Benefits (1 per line)</label>
                     <textarea
                       rows={4}
                       value={activeShowcase.inclusions?.join('\n') || ''}
                       onChange={e => handleUpdateShowcaseItem(activeShowcase.id, 'inclusions', e.target.value.split('\n').filter(Boolean))}
                       placeholder="Full Turnkey Delivery&#10;Quarterly Strategy Reviews&#10;Dedicated Concierge"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -876,60 +876,60 @@ export default function WebsiteBuilder() {
       {activeTab === 'PILLARS' && (
         <div className="space-y-6">
           
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="border-b border-gray-200 pb-3">
+              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <Shield className="w-4 h-4 text-blue-600" />
                 <span>Why Choose Us (Core Value Pillars) Headers</span>
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Configure your key value propositions and business differentiators.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Section Kicker</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Section Kicker</label>
                 <input
                   type="text"
                   value={config.curatedKicker}
                   onChange={e => setConfig(c => ({ ...c, curatedKicker: e.target.value }))}
                   placeholder="e.g. WHY CHOOSE US / OUR PROMISE"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Headline Part 1</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Headline Part 1</label>
                 <input
                   type="text"
                   value={config.curatedTitle}
                   onChange={e => setConfig(c => ({ ...c, curatedTitle: e.target.value }))}
                   placeholder="e.g. Excellence in Every Detail,"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Headline Part 2 (Accent)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Headline Part 2 (Accent)</label>
                 <input
                   type="text"
                   value={config.curatedTitleHighlight}
                   onChange={e => setConfig(c => ({ ...c, curatedTitleHighlight: e.target.value }))}
                   placeholder="e.g. Engineered For You"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-serif italic focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 font-serif italic focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Section Subtitle</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Section Subtitle</label>
               <input
                 type="text"
                 value={config.curatedSubtitle}
                 onChange={e => setConfig(c => ({ ...c, curatedSubtitle: e.target.value }))}
                 placeholder="Discover the core pillars that set our business apart..."
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>
           </div>
@@ -937,9 +937,9 @@ export default function WebsiteBuilder() {
           {/* 4 Pillars Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {config.curatedPillars.map((pillar, idx) => (
-              <div key={pillar.id} className="p-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm space-y-3">
-                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2.5">
-                  <span className="font-semibold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+              <div key={pillar.id} className="p-5 bg-white border border-gray-200 rounded-xl shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-gray-200 pb-2.5">
+                  <span className="font-semibold text-sm text-gray-900 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-600" />
                     Pillar 0{idx + 1}
                   </span>
@@ -948,7 +948,7 @@ export default function WebsiteBuilder() {
                     <select
                       value={pillar.iconType}
                       onChange={e => handleUpdatePillar(pillar.id, 'iconType', e.target.value)}
-                      className="px-2.5 py-1 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      className="px-2.5 py-1 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 dark:text-gray-100 text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     >
                       <option value="shield">🛡️ Shield (Security & Trust)</option>
                       <option value="heart">❤️ Heart (Customer Care)</option>
@@ -964,24 +964,24 @@ export default function WebsiteBuilder() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
                   <input
                     type="text"
                     value={pillar.title}
                     onChange={e => handleUpdatePillar(pillar.id, 'title', e.target.value)}
                     placeholder="e.g. Certified Quality"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                   <textarea
                     rows={2}
                     value={pillar.desc}
                     onChange={e => handleUpdatePillar(pillar.id, 'desc', e.target.value)}
                     placeholder="Detailed explanation of this core value..."
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all leading-relaxed"
+                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all leading-relaxed"
                   />
                 </div>
               </div>
@@ -997,56 +997,56 @@ export default function WebsiteBuilder() {
       {activeTab === 'JOURNAL' && (
         <div className="space-y-6">
           
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="border-b border-gray-200 pb-3">
+              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-blue-600" />
                 <span>News, Insights & Blog Section Headers</span>
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Manage section titles and subtitle text for your business blog / news updates.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Section Kicker</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Section Kicker</label>
                 <input
                   type="text"
                   value={config.journalKicker}
                   onChange={e => setConfig(c => ({ ...c, journalKicker: e.target.value }))}
                   placeholder="e.g. NEWS & INSIGHTS / ARTICLES / BLOG"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Section Headline</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Section Headline</label>
                 <input
                   type="text"
                   value={config.journalTitle}
                   onChange={e => setConfig(c => ({ ...c, journalTitle: e.target.value }))}
                   placeholder="e.g. Latest Updates, Articles & Stories"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
           </div>
 
           {/* Articles CRUD */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-700 pb-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
               <div>
-                <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-base font-semibold text-gray-900">
                   Published Articles ({config.journalArticles.length})
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-sm text-gray-500 mt-0.5">
                   Share company updates, expert tips, product spotlights, and industry guides.
                 </p>
               </div>
               <button
                 onClick={handleAddArticle}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg btn-theme-secondary font-medium text-sm transition-colors shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Article / Story</span>
@@ -1063,11 +1063,11 @@ export default function WebsiteBuilder() {
                     "p-3 rounded-xl border cursor-pointer transition-all flex flex-col justify-between group",
                     (selectedJournalId === article.id || (!selectedJournalId && config.journalArticles[0]?.id === article.id))
                       ? "bg-blue-50/50 border-blue-600 dark:bg-blue-900/20 dark:border-blue-500 shadow-sm"
-                      : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                      : "bg-white border-gray-200 hover:border-gray-300 dark:hover:border-gray-600"
                   )}
                 >
                   <div className="space-y-2">
-                    <div className="h-28 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    <div className="h-28 rounded-lg overflow-hidden bg-gray-100">
                       <img
                         src={article.imageUrl}
                         alt={article.title}
@@ -1075,16 +1075,16 @@ export default function WebsiteBuilder() {
                       />
                     </div>
                     <div>
-                      <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400 block truncate">
+                      <span className="text-[11px] font-medium text-blue-600 block truncate">
                         {article.category} • {article.readTime}
                       </span>
-                      <h3 className="font-semibold text-xs text-gray-900 dark:text-white leading-tight line-clamp-2 mt-0.5">
+                      <h3 className="font-semibold text-xs text-gray-900 leading-tight line-clamp-2 mt-0.5">
                         {article.title}
                       </h3>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between pt-2 mt-2 border-t border-gray-200">
                     <span className="text-xs text-gray-500">{article.date}</span>
                     <button
                       type="button"
@@ -1103,104 +1103,104 @@ export default function WebsiteBuilder() {
 
             {/* Article Editor */}
             {activeJournal && (
-              <div className="p-5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <span className="font-semibold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+              <div className="p-5 bg-gray-50/50 border border-gray-200 rounded-xl space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 pb-3">
+                  <span className="font-semibold text-sm text-gray-900 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-blue-600" />
-                    Editing Article: <span className="text-blue-600 dark:text-blue-400">{activeJournal.title}</span>
+                    Editing Article: <span className="text-blue-600">{activeJournal.title}</span>
                   </span>
                   <span className="text-xs font-mono text-gray-400 truncate max-w-[200px]">Article ID: {activeJournal.id}</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Article Title *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Article Title *</label>
                     <input
                       type="text"
                       value={activeJournal.title}
                       onChange={e => handleUpdateArticle(activeJournal.id, 'title', e.target.value)}
                       placeholder="e.g. 5 Key Standards Shaping Modern Business"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category Tag</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Category Tag</label>
                     <input
                       type="text"
                       value={activeJournal.category}
                       onChange={e => handleUpdateArticle(activeJournal.id, 'category', e.target.value)}
                       placeholder="e.g. Insights / Updates / Guides"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Author Name / Title</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Author Name / Title</label>
                     <input
                       type="text"
                       value={activeJournal.author}
                       onChange={e => handleUpdateArticle(activeJournal.id, 'author', e.target.value)}
                       placeholder="e.g. Strategy Team / Quality Lead"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Publish Date</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Publish Date</label>
                     <input
                       type="text"
                       value={activeJournal.date}
                       onChange={e => handleUpdateArticle(activeJournal.id, 'date', e.target.value)}
                       placeholder="e.g. June 10, 2024"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Read Time</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Read Time</label>
                     <input
                       type="text"
                       value={activeJournal.readTime}
                       onChange={e => handleUpdateArticle(activeJournal.id, 'readTime', e.target.value)}
                       placeholder="e.g. 4 min read"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image URL</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
                     <input
                       type="text"
                       value={activeJournal.imageUrl}
                       onChange={e => handleUpdateArticle(activeJournal.id, 'imageUrl', e.target.value)}
                       placeholder="https://images.unsplash.com/..."
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Short Excerpt / Summary</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Short Excerpt / Summary</label>
                   <textarea
                     rows={2}
                     value={activeJournal.excerpt}
                     onChange={e => handleUpdateArticle(activeJournal.id, 'excerpt', e.target.value)}
                     placeholder="Short engaging summary to preview in the card grid."
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Article Paragraphs (Separate with double enter)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Article Paragraphs (Separate with double enter)</label>
                   <textarea
                     rows={4}
                     value={activeJournal.content?.join('\n\n') || ''}
                     onChange={e => handleUpdateArticle(activeJournal.id, 'content', e.target.value.split('\n\n').filter(Boolean))}
                     placeholder="Write detailed paragraphs here. Separate paragraphs with double enter."
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all leading-relaxed"
+                    className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all leading-relaxed"
                   />
                 </div>
               </div>
@@ -1215,45 +1215,45 @@ export default function WebsiteBuilder() {
       {/* ========================================================================= */}
       {activeTab === 'CATALOG' && (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm space-y-4">
-            <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+            <div className="border-b border-gray-200 pb-3">
+              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <ShoppingBag className="w-4 h-4 text-blue-600" />
                 <span>Live POS Inventory Catalog Settings</span>
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 mt-1">
                 Configure your real-time POS product store section on your public website.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catalog Section Kicker</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Catalog Section Kicker</label>
                 <input
                   type="text"
                   value={config.catalogKicker}
                   onChange={e => setConfig(c => ({ ...c, catalogKicker: e.target.value }))}
                   placeholder="e.g. LIVE STORE & INVENTORY"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Catalog Section Headline</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Catalog Section Headline</label>
                 <input
                   type="text"
                   value={config.catalogTitle}
                   onChange={e => setConfig(c => ({ ...c, catalogTitle: e.target.value }))}
                   placeholder="e.g. Direct Catalog & Real-Time Ordering"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
 
-            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <div className="p-4 bg-gray-50/50 rounded-xl border border-gray-200 flex items-center justify-between">
               <div>
-                <span className="font-semibold text-sm text-gray-900 dark:text-white block">Display Live POS Inventory on Website</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="font-semibold text-sm text-gray-900 block">Display Live POS Inventory on Website</span>
+                <span className="text-xs text-gray-500">
                   Automatically pulls all {items.length} products & services created in your POS database with direct WhatsApp ordering.
                 </span>
               </div>
@@ -1272,96 +1272,96 @@ export default function WebsiteBuilder() {
       {/* 6. CONTACT & FOOTER TAB */}
       {/* ========================================================================= */}
       {activeTab === 'CONTACT_FOOTER' && (
-        <div className="space-y-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
-          <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+        <div className="space-y-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div className="border-b border-gray-200 pb-3">
+            <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <Phone className="w-4 h-4 text-blue-600" />
               <span>Business Contact, Operating Hours & Footer Configuration</span>
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               Set contact numbers, business address, working hours, and newsletter footer options.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
               <input
                 type="text"
                 value={config.phone}
                 onChange={e => setConfig(c => ({ ...c, phone: e.target.value }))}
                 placeholder="e.g. 9876543210"
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">WhatsApp Concierge Number</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp Concierge Number</label>
               <input
                 type="text"
                 value={config.whatsapp}
                 onChange={e => setConfig(c => ({ ...c, whatsapp: e.target.value }))}
                 placeholder="e.g. 9876543210"
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contact Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
               <input
                 type="email"
                 value={config.email}
                 onChange={e => setConfig(c => ({ ...c, email: e.target.value }))}
                 placeholder="e.g. contact@apexenterprise.com"
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Physical Business Address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Physical Business Address</label>
               <input
                 type="text"
                 value={config.address}
                 onChange={e => setConfig(c => ({ ...c, address: e.target.value }))}
                 placeholder="e.g. Main Commercial Hub, City Center, Suite 500"
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Operating Hours</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Operating Hours</label>
               <input
                 type="text"
                 value={config.workingHours}
                 onChange={e => setConfig(c => ({ ...c, workingHours: e.target.value }))}
                 placeholder="e.g. Mon - Sat: 9:00 AM - 8:00 PM"
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Newsletter Title</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Newsletter Title</label>
               <input
                 type="text"
                 value={config.newsletterTitle}
                 onChange={e => setConfig(c => ({ ...c, newsletterTitle: e.target.value }))}
                 placeholder="e.g. Stay Updated"
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Newsletter Subtitle</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Newsletter Subtitle</label>
               <input
                 type="text"
                 value={config.newsletterSubtitle}
                 onChange={e => setConfig(c => ({ ...c, newsletterSubtitle: e.target.value }))}
                 placeholder="e.g. Subscribe to our mailing list for latest product launches..."
-                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3.5 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
@@ -1372,13 +1372,13 @@ export default function WebsiteBuilder() {
       {/* 7. SECTION TOGGLES TAB */}
       {/* ========================================================================= */}
       {activeTab === 'TOGGLES' && (
-        <div className="space-y-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
-          <div className="border-b border-gray-200 dark:border-gray-700 pb-3">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+        <div className="space-y-6 bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div className="border-b border-gray-200 pb-3">
+            <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <Sliders className="w-4 h-4 text-blue-600" />
-              <span>Storefront Section Visibility Toggles</span>
+              <span>Website Section Visibility Toggles</span>
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               Toggle specific sections on or off to customize your public website experience.
             </p>
           </div>
@@ -1393,8 +1393,8 @@ export default function WebsiteBuilder() {
               { label: 'Newsletter Subscription Bar', key: 'showNewsletter' as const },
               { label: 'Floating WhatsApp Chat Widget', key: 'showWhatsAppWidget' as const },
             ].map(t => (
-              <label key={t.key} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-                <span className="font-medium text-sm text-gray-900 dark:text-white">{t.label}</span>
+              <label key={t.key} className="flex items-center justify-between p-4 bg-gray-50/50 border border-gray-200 rounded-xl cursor-pointer hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+                <span className="font-medium text-sm text-gray-900">{t.label}</span>
                 <input
                   type="checkbox"
                   checked={config[t.key] as boolean}
@@ -1412,14 +1412,14 @@ export default function WebsiteBuilder() {
       {/* ========================================================================= */}
       {activeTab === 'PREVIEW' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center gap-3">
-              <span className="font-semibold text-sm text-gray-900 dark:text-white">Device View:</span>
-              <div className="flex items-center bg-gray-100 dark:bg-gray-900 p-1 rounded-lg border border-gray-200 dark:border-gray-700">
+              <span className="font-semibold text-sm text-gray-900">Device View:</span>
+              <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200">
                 <button
                   type="button"
                   onClick={() => setPreviewDevice('DESKTOP')}
-                  className={cn("px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all", previewDevice === 'DESKTOP' ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 hover:text-gray-900 dark:text-gray-400")}
+                  className={cn("px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all", previewDevice === 'DESKTOP' ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-900")}
                 >
                   <Monitor className="w-3.5 h-3.5" />
                   <span>Desktop</span>
@@ -1427,7 +1427,7 @@ export default function WebsiteBuilder() {
                 <button
                   type="button"
                   onClick={() => setPreviewDevice('MOBILE')}
-                  className={cn("px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all", previewDevice === 'MOBILE' ? "bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm" : "text-gray-500 hover:text-gray-900 dark:text-gray-400")}
+                  className={cn("px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all", previewDevice === 'MOBILE' ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-900")}
                 >
                   <Smartphone className="w-3.5 h-3.5" />
                   <span>Mobile</span>
@@ -1439,7 +1439,7 @@ export default function WebsiteBuilder() {
               href={publicUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
+              className="inline-flex items-center gap-1.5 text-blue-600 hover:underline text-sm font-medium"
             >
               <span>Open in New Tab</span>
               <ExternalLink className="w-3.5 h-3.5" />

@@ -13,6 +13,7 @@ import {
   WebsiteConfig, HeroSlide, ShowcaseItem, DestinationItem, CuratedPillar, 
   JournalArticle, DEFAULT_WEBSITE_CONFIG 
 } from '../types/website';
+import { ThemeEngine } from '../lib/theme/themeEngine';
 
 // Helper to render icon for curated value pillars
 const renderPillarIcon = (iconType: string) => {
@@ -80,13 +81,16 @@ export default function PublicStorefront() {
   const [activeCatalogCategory, setActiveCatalogCategory] = useState<string>('ALL');
   const [catalogSearch, setCatalogSearch] = useState<string>('');
 
+  // Active theme settings
+  const [themeConfig, setThemeConfig] = useState(() => ThemeEngine.getThemeConfig());
+
   // Load Saved Config & Sync dynamically across tabs
   useEffect(() => {
     const loadDynamicData = () => {
       try {
-        const saved = localStorage.getItem('universal_website_config');
-        if (saved) {
-          const parsed = JSON.parse(saved);
+        const savedConfig = localStorage.getItem('universal_website_config');
+        if (savedConfig) {
+          const parsed = JSON.parse(savedConfig);
           setConfig(prev => ({
             ...prev,
             ...parsed,
@@ -104,11 +108,19 @@ export default function PublicStorefront() {
           setStoreItems(JSON.parse(savedItems));
         }
       } catch (e) {}
+
+      const activeTheme = ThemeEngine.getThemeConfig();
+      ThemeEngine.applyTheme(activeTheme);
+      setThemeConfig(activeTheme);
     };
 
     loadDynamicData();
     window.addEventListener('storage', loadDynamicData);
-    return () => window.removeEventListener('storage', loadDynamicData);
+    window.addEventListener('theme_changed', loadDynamicData);
+    return () => {
+      window.removeEventListener('storage', loadDynamicData);
+      window.removeEventListener('theme_changed', loadDynamicData);
+    };
   }, []);
 
   // Auto Hero Slider Timer
@@ -183,108 +195,132 @@ export default function PublicStorefront() {
   const activeSlide = config.heroSlides[currentSlide] || config.heroSlides[0] || DEFAULT_WEBSITE_CONFIG.heroSlides[0];
 
   return (
-    <div className="luxora-storefront min-h-screen bg-[#FAF9F6] text-[#121316] font-sans selection:bg-[#C5A059] selection:text-black relative overflow-x-hidden">
+    <div className="public-website min-h-screen bg-theme-primary text-theme-primary font-sans relative overflow-x-hidden transition-colors duration-300 pt-20">
 
       {/* ── TOAST NOTIFICATIONS ── */}
       {inquirySuccessToast && (
-        <div className="fixed top-6 right-6 z-50 bg-[#16171A] border border-[#C5A059] text-white p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300">
-          <div className="w-9 h-9 rounded-xl bg-[#C5A059] flex items-center justify-center text-black flex-shrink-0">
-            <Check className="w-5 h-5" />
+        <div className="fixed top-24 right-6 z-50 bg-theme-surface/95 backdrop-blur-xl text-theme-primary p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300 max-w-sm border border-theme-accent/20">
+          <div className="w-9 h-9 rounded-xl btn-theme-secondary flex items-center justify-center flex-shrink-0">
+            <Check className="w-5 h-5 text-white" />
           </div>
           <div>
-            <p className="font-bold text-sm font-luxury">Inquiry Received!</p>
-            <p className="text-xs text-gray-300">Our representative will reach out to you shortly.</p>
+            <p className="font-bold text-sm">Inquiry Received!</p>
+            <p className="text-xs text-theme-muted">Our representative will reach out to you shortly.</p>
           </div>
         </div>
       )}
 
       {newsletterToast && (
-        <div className="fixed top-6 right-6 z-50 bg-[#16171A] border border-emerald-500 text-white p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center text-black flex-shrink-0">
+        <div className="fixed top-24 right-6 z-50 bg-theme-surface/95 backdrop-blur-xl text-theme-primary p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300 max-w-sm border border-emerald-500/20">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
             <Check className="w-5 h-5" />
           </div>
           <div>
-            <p className="font-bold text-sm">Welcome to {config.brandName} Updates</p>
-            <p className="text-xs text-gray-300">You are now subscribed to our newsletter dispatch.</p>
+            <p className="font-bold text-sm">Subscribed Successfully!</p>
+            <p className="text-xs text-theme-muted">You are now subscribed to {config.brandName} updates.</p>
           </div>
         </div>
       )}
 
-      {/* ── 1. LUXURY TOP NAVIGATION BAR ── */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-[#090A0C]/85 backdrop-blur-xl border-b border-white/10 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          
-          {/* Logo on Left */}
-          <a href="#" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#E2B755] to-[#8C6D2B] p-0.5 shadow-lg shadow-[#C5A059]/20 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-black" />
+      {/* ── 1. ULTRA-MODERN FLOATING CAPSULE NAVIGATION BAR ── */}
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 max-w-6xl w-[94%] z-50 bg-theme-surface/85 backdrop-blur-2xl rounded-full shadow-2xl shadow-black/5 ring-1 ring-white/40 px-5 sm:px-7 py-3.5 flex items-center justify-between transition-all duration-300">
+        
+        {/* Brand Logo & Name */}
+        <a href="#" className="flex items-center gap-3 group min-w-0">
+          {config.logoUrl ? (
+            <img src={config.logoUrl} alt="Logo" className="w-9 h-9 rounded-full object-contain bg-theme-surface shadow-sm flex-shrink-0 ring-2 ring-theme-accent/20" />
+          ) : (
+            <div className="w-9 h-9 rounded-full btn-theme-secondary flex items-center justify-center font-bold text-base shadow-md flex-shrink-0">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <div className="leading-tight">
-              <span className="font-luxury font-bold text-base sm:text-xl tracking-[0.25em] text-white uppercase block">
-                {config.brandName}
-              </span>
-              <span className="text-[9px] tracking-[0.35em] text-[#C5A059] uppercase font-mono block -mt-0.5">
-                {config.brandSubtext || 'ENTERPRISE'}
-              </span>
-            </div>
-          </a>
-
-          {/* Center Navigation Links (Desktop) */}
-          <nav className="hidden lg:flex items-center gap-8 text-[11px] font-bold tracking-[0.2em] uppercase text-white/90">
-            {config.showDestinations && <a href="#showcase" className="hover:text-[#C5A059] transition-colors">Offerings</a>}
-            {config.showCurated && <a href="#why-us" className="hover:text-[#C5A059] transition-colors">Why Choose Us</a>}
-            {config.showCatalog && <a href="#catalog" className="hover:text-[#C5A059] transition-colors">Live Store</a>}
-            {config.showJournal && <a href="#insights" className="hover:text-[#C5A059] transition-colors">Insights</a>}
-            <a href="#contact" className="hover:text-[#C5A059] transition-colors">Contact</a>
-          </nav>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-3 sm:gap-4">
-            <button
-              onClick={() => setIsInquiryModalOpen(true)}
-              className="hidden sm:inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-[#C5A059] hover:bg-[#b08d4a] text-black font-bold text-xs tracking-widest uppercase shadow-lg shadow-[#C5A059]/20 transition-all transform active:scale-95"
-            >
-              Get in Touch
-            </button>
-
-            {/* Mobile Hamburger Toggle */}
-            <button
-              onClick={() => setIsMobileMenuOpen(prev => !prev)}
-              className="lg:hidden p-2 text-white hover:text-[#C5A059] transition-colors"
-              aria-label="Toggle navigation menu"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+          )}
+          <div className="leading-tight min-w-0">
+            <span className="font-extrabold text-sm sm:text-base text-theme-primary tracking-tight truncate block group-hover:text-theme-accent transition-colors">
+              {config.brandName}
+            </span>
+            <span className="text-[10px] text-theme-accent font-bold tracking-widest uppercase block -mt-0.5 truncate">
+              {config.brandSubtext || config.brandTagline || 'Enterprise Platform'}
+            </span>
           </div>
+        </a>
 
+        {/* Center Navigation Links (Desktop Capsule Pills) */}
+        <nav className="hidden lg:flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase text-theme-primary/80 bg-theme-primary/20 p-1.5 rounded-full backdrop-blur-md">
+          {config.showHero && (
+            <a href="#hero" className="px-4 py-1.5 rounded-full hover:bg-theme-surface hover:text-theme-accent transition-all shadow-sm">
+              Home
+            </a>
+          )}
+          {config.showDestinations && (
+            <a href="#showcase" className="px-4 py-1.5 rounded-full hover:bg-theme-surface hover:text-theme-accent transition-all shadow-sm">
+              Offerings
+            </a>
+          )}
+          {config.showCurated && (
+            <a href="#why-us" className="px-4 py-1.5 rounded-full hover:bg-theme-surface hover:text-theme-accent transition-all shadow-sm">
+              Why Us
+            </a>
+          )}
+          {config.showCatalog && (
+            <a href="#catalog" className="px-4 py-1.5 rounded-full hover:bg-theme-surface hover:text-theme-accent transition-all shadow-sm">
+              Live Store
+            </a>
+          )}
+          {config.showJournal && (
+            <a href="#insights" className="px-4 py-1.5 rounded-full hover:bg-theme-surface hover:text-theme-accent transition-all shadow-sm">
+              Insights
+            </a>
+          )}
+          <a href="#contact" className="px-4 py-1.5 rounded-full hover:bg-theme-surface hover:text-theme-accent transition-all shadow-sm">
+            Contact
+          </a>
+        </nav>
+
+        {/* Right Action CTA */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsInquiryModalOpen(true)}
+            className="hidden sm:inline-flex items-center justify-center px-5 py-2.5 rounded-full btn-theme-secondary font-bold text-xs tracking-wider uppercase shadow-lg shadow-theme-accent/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          >
+            <span>Get in Touch</span>
+          </button>
+
+          {/* Mobile Navigation Toggle */}
+          <button
+            onClick={() => setIsMobileMenuOpen(prev => !prev)}
+            className="lg:hidden p-2 rounded-full bg-theme-primary/20 text-theme-primary hover:text-theme-accent transition-colors"
+            aria-label="Toggle navigation menu"
+          >
+            {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
 
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden bg-[#090A0C] border-b border-white/10 px-6 py-6 space-y-4 animate-in slide-in-from-top-4 duration-300">
-            <nav className="flex flex-col gap-4 text-xs font-bold tracking-widest uppercase text-gray-300">
+          <div className="absolute top-full left-0 right-0 mt-3 bg-theme-surface/95 backdrop-blur-2xl rounded-3xl p-6 space-y-4 animate-in slide-in-from-top-4 duration-300 shadow-2xl border border-white/20">
+            <nav className="flex flex-col gap-2 text-xs font-bold tracking-wider uppercase text-theme-primary">
               {config.showDestinations && (
-                <a href="#showcase" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#C5A059] py-1 border-b border-white/5">
+                <a href="#showcase" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-theme-accent p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
                   Featured Offerings
                 </a>
               )}
               {config.showCurated && (
-                <a href="#why-us" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#C5A059] py-1 border-b border-white/5">
+                <a href="#why-us" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-theme-accent p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
                   Why Choose Us
                 </a>
               )}
               {config.showCatalog && (
-                <a href="#catalog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#C5A059] py-1 border-b border-white/5">
+                <a href="#catalog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-theme-accent p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
                   Live Store Catalog
                 </a>
               )}
               {config.showJournal && (
-                <a href="#insights" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#C5A059] py-1 border-b border-white/5">
+                <a href="#insights" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-theme-accent p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
                   News & Insights
                 </a>
               )}
-              <a href="#contact" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#C5A059] py-1">
-                Contact & Location
+              <a href="#contact" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-theme-accent p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
+                Contact & Support
               </a>
             </nav>
             <div className="pt-2">
@@ -293,7 +329,7 @@ export default function PublicStorefront() {
                   setIsMobileMenuOpen(false);
                   setIsInquiryModalOpen(true);
                 }}
-                className="w-full py-3 rounded-xl bg-[#C5A059] text-black font-bold text-xs uppercase tracking-widest text-center"
+                className="w-full py-3.5 rounded-2xl btn-theme-secondary font-bold text-xs uppercase tracking-wider text-center shadow-lg"
               >
                 Get in Touch / Inquire
               </button>
@@ -302,337 +338,374 @@ export default function PublicStorefront() {
         )}
       </header>
 
-      {/* ── 2. HERO SLIDESHOW SECTION (DYNAMIC CMS) ── */}
-      {config.showHero && (
-        <section className="relative min-h-[85vh] lg:min-h-[92vh] flex items-center justify-center bg-[#060709] text-white pt-20 overflow-hidden">
+      {/* ── 2. NEXT-GEN HERO BANNER WITH AMBIENT GLOW & TRUST PROOF ── */}
+      {config.showHero && config.heroSlides && config.heroSlides.length > 0 && (
+        <section id="hero" className="relative py-16 sm:py-24 lg:py-28 overflow-hidden">
           
-          {/* Background Image Carousel with Cinematic Ken Burns & Gradient Overlays */}
-          {config.heroSlides.map((slide, idx) => (
-            <div
-              key={slide.id}
-              className={cn(
-                "absolute inset-0 transition-opacity duration-1000 ease-in-out",
-                idx === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
-              )}
-            >
-              <img
-                src={slide.bgUrl}
-                alt={slide.title}
-                className="w-full h-full object-cover object-center scale-105 animate-pulse duration-[10000ms]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/40" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#FAF9F6] via-transparent to-black/40" />
-            </div>
-          ))}
+          {/* Ambient Glowing Background Mesh Halos */}
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-theme-accent/20 via-theme-primary/10 to-transparent rounded-full blur-[130px] pointer-events-none -z-10" />
 
-          {/* Hero Content Grid */}
-          <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
-            {/* Left Content Column */}
-            <div className="lg:col-span-8 space-y-6 max-w-3xl">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
               
-              {/* Dynamic Kicker */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
-                <span className="w-2 h-2 rounded-full bg-[#C5A059] animate-ping" />
-                <span className="text-[10px] sm:text-xs font-mono font-bold tracking-[0.25em] text-[#E2B755] uppercase">
-                  {activeSlide.kicker || config.brandTagline}
-                </span>
-              </div>
+              {/* Left Column: Hero Text & CTAs */}
+              <div className="lg:col-span-7 space-y-7 text-left">
+                
+                {/* Dynamic Kicker Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-theme-accent/10 backdrop-blur-md text-theme-accent text-xs font-bold tracking-wider uppercase border border-theme-accent/20 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-theme-accent animate-pulse" />
+                  <span>{activeSlide?.kicker || config.brandTagline || 'Welcome to Our Store'}</span>
+                </div>
 
-              {/* Dynamic Headline */}
-              <h1 className="font-luxury text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.08]">
-                <span>{activeSlide.title} </span>
-                <span className="font-serif italic font-normal text-[#E2B755] block sm:inline">
-                  {activeSlide.titleHighlight}
-                </span>
-              </h1>
+                {/* Modern Display Headline */}
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-theme-primary leading-[1.12]">
+                  <span>{activeSlide?.title || config.brandName} </span>
+                  {activeSlide?.titleHighlight && (
+                    <span className="bg-gradient-to-r from-theme-accent via-blue-500 to-theme-accent bg-clip-text text-transparent font-black block sm:inline">
+                      {activeSlide.titleHighlight}
+                    </span>
+                  )}
+                </h1>
 
-              {/* Dynamic Subtitle */}
-              <p className="text-base sm:text-lg text-gray-300 font-light max-w-2xl leading-relaxed">
-                {activeSlide.subtitle}
-              </p>
+                {/* Subtitle */}
+                <p className="text-base sm:text-lg text-theme-muted font-normal max-w-2xl leading-relaxed">
+                  {activeSlide?.subtitle || 'Explore premium products, services, and seamless digital ordering engineered for exceptional quality.'}
+                </p>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-4 pt-4">
-                <button
-                  onClick={() => {
-                    const el = document.getElementById('showcase');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-[#C5A059] hover:bg-[#b08d4a] text-black font-bold text-xs sm:text-sm tracking-widest uppercase shadow-xl shadow-[#C5A059]/25 transition-all transform active:scale-95 group"
-                >
-                  <span>{activeSlide.ctaText || 'EXPLORE OFFERINGS'}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
+                {/* Action CTA Buttons */}
+                <div className="flex flex-wrap items-center gap-4 pt-2">
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('showcase');
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl btn-theme-secondary font-bold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-theme-accent/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    <span>{activeSlide?.ctaText || 'Explore Offerings'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
 
-              {/* Slide Counter Stepper */}
-              {config.heroSlides.length > 1 && (
-                <div className="flex items-center gap-4 pt-6">
-                  <span className="text-xs font-mono font-bold text-white tracking-widest">
-                    {String(currentSlide + 1).padStart(2, '0')}
-                  </span>
-                  <div className="w-20 h-0.5 bg-white/20 relative overflow-hidden rounded-full">
-                    <div 
-                      className="absolute top-0 bottom-0 left-0 bg-[#C5A059] transition-all duration-500"
-                      style={{ width: `${((currentSlide + 1) / config.heroSlides.length) * 100}%` }}
-                    />
+                  <button
+                    onClick={() => handleWhatsAppInquiry()}
+                    className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm tracking-wider uppercase shadow-lg shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>WhatsApp Inquiry</span>
+                  </button>
+                </div>
+
+                {/* Live Social Proof / Trust Indicators */}
+                <div className="pt-6 grid grid-cols-3 gap-4 border-t border-theme-primary/10 max-w-lg">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1 text-amber-500">
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                      <span className="text-xs font-bold font-mono text-theme-primary">4.9 / 5</span>
+                    </div>
+                    <p className="text-[10px] text-theme-muted">Verified Client Rating</p>
                   </div>
-                  <span className="text-xs font-mono text-gray-400">
-                    {String(config.heroSlides.length).padStart(2, '0')}
-                  </span>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1 text-emerald-600">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span className="text-xs font-bold font-mono text-theme-primary">100% Quality</span>
+                    </div>
+                    <p className="text-[10px] text-theme-muted">Enterprise Certified</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1 text-theme-accent">
+                      <Zap className="w-3.5 h-3.5" />
+                      <span className="text-xs font-bold font-mono text-theme-primary">Instant Response</span>
+                    </div>
+                    <p className="text-[10px] text-theme-muted">24/7 Support Desk</p>
+                  </div>
+                </div>
 
-                  <div className="flex items-center gap-1.5 ml-4">
+                {/* Hero Slide Indicator Pills */}
+                {config.heroSlides.length > 1 && (
+                  <div className="flex items-center gap-2 pt-2">
                     {config.heroSlides.map((_, i) => (
                       <button
                         key={i}
                         onClick={() => setCurrentSlide(i)}
                         className={cn(
-                          "w-2 h-2 rounded-full transition-all",
-                          i === currentSlide ? "bg-[#C5A059] w-5" : "bg-white/30 hover:bg-white/60"
+                          "h-2 rounded-full transition-all duration-300",
+                          i === currentSlide ? "w-8 btn-theme-secondary" : "w-2 bg-theme-secondary/20 hover:bg-theme-secondary/40"
                         )}
-                        aria-label={`Go to slide ${i + 1}`}
+                        aria-label={`Slide ${i + 1}`}
                       />
                     ))}
                   </div>
-                </div>
-              )}
-
-            </div>
-
-            {/* Right Floating Glass Highlight Card */}
-            <div className="hidden lg:block lg:col-span-4">
-              <div className="bg-[#121316]/75 backdrop-blur-2xl border border-white/15 rounded-3xl p-6 shadow-2xl text-white space-y-3 transform hover:-translate-y-1 transition-transform duration-300">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-[#C5A059] uppercase">
-                    {activeSlide.featureBadge || 'SIGNATURE HIGHLIGHT'}
-                  </span>
-                  <Sparkles className="w-4 h-4 text-[#C5A059]" />
-                </div>
-                <p className="text-xs sm:text-sm text-gray-200 font-light leading-relaxed">
-                  {activeSlide.featureDesc}
-                </p>
-                <button
-                  onClick={() => {
-                    const el = document.getElementById('showcase');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="inline-flex items-center gap-2 text-xs font-bold text-white hover:text-[#C5A059] tracking-widest uppercase pt-2 group transition-colors"
-                >
-                  <span>EXPLORE COLLECTION</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform text-[#C5A059]" />
-                </button>
+                )}
               </div>
-            </div>
 
+              {/* Right Column: Aspect-Locked Visual Preview Frame */}
+              <div className="lg:col-span-5">
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-theme-surface aspect-[4/3] group ring-1 ring-white/30">
+                  {activeSlide?.bgUrl ? (
+                    <img
+                      src={activeSlide.bgUrl}
+                      alt={activeSlide.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-theme-surface via-theme-primary/5 to-theme-accent/10">
+                      <div className="w-16 h-16 rounded-3xl bg-theme-accent/15 flex items-center justify-center text-theme-accent mb-4 shadow-lg">
+                        <Sparkles className="w-8 h-8" />
+                      </div>
+                      <h3 className="font-extrabold text-xl text-theme-primary">{config.brandName}</h3>
+                      <p className="text-xs text-theme-muted mt-1 max-w-xs">{config.brandTagline}</p>
+                    </div>
+                  )}
+
+                  {activeSlide?.featureBadge && (
+                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-theme-surface/90 backdrop-blur-xl shadow-xl flex items-center justify-between gap-3 border border-white/20">
+                      <div>
+                        <span className="text-[10px] font-bold tracking-wider text-theme-accent uppercase block">
+                          {activeSlide.featureBadge}
+                        </span>
+                        <p className="text-xs text-theme-primary font-bold line-clamp-1">
+                          {activeSlide.featureDesc}
+                        </p>
+                      </div>
+                      <ArrowUpRight className="w-4 h-4 text-theme-accent flex-shrink-0" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
           </div>
         </section>
       )}
 
-      {/* ── 3. FEATURED SHOWCASE & OFFERINGS SECTION ── */}
+      {/* ── 3. FEATURED OFFERINGS & PRODUCTS SECTION ── */}
       {config.showDestinations && (
         <section id="showcase" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           
           {/* Section Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div className="space-y-2">
-              <span className="text-[11px] font-mono font-bold tracking-[0.25em] text-[#C5A059] uppercase block">
+            <div className="space-y-3">
+              <span className="inline-block text-xs font-bold tracking-widest text-theme-accent uppercase bg-theme-accent/10 px-3.5 py-1.5 rounded-full">
                 {config.destinationsKicker || 'FEATURED OFFERINGS'}
               </span>
-              <h2 className="font-luxury text-3xl sm:text-5xl font-bold text-[#111827] tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-theme-primary tracking-tight">
                 {config.destinationsTitle || 'Signature Products & Premier Services'}
               </h2>
             </div>
 
-            <div className="max-w-md space-y-3">
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed font-normal">
-                {config.destinationsSubtitle || 'Explore our handpicked selection of top-tier offerings, engineered with precision and designed to deliver outstanding results.'}
-              </p>
-            </div>
+            <p className="text-sm text-theme-muted max-w-md font-normal leading-relaxed">
+              {config.destinationsSubtitle || 'Explore our handpicked selection of top-tier offerings, engineered for maximum value and performance.'}
+            </p>
           </div>
 
           {/* Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {config.destinations.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => setSelectedItem(item)}
-                className="group cursor-pointer bg-white rounded-3xl overflow-hidden border border-gray-200/80 shadow-sm hover:shadow-2xl hover:border-[#C5A059]/40 transition-all duration-500 flex flex-col justify-between"
-              >
-                <div>
-                  {/* Card Image Container */}
-                  <div className="relative h-64 overflow-hidden bg-gray-900">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    
-                    {/* Top Badges */}
-                    <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                      {item.badge && (
-                        <span className="px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-mono font-bold uppercase tracking-wider text-black shadow-md">
-                          {item.badge}
-                        </span>
+          {config.destinations && config.destinations.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {config.destinations.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => setSelectedItem(item)}
+                  className="group cursor-pointer glass-card rounded-3xl overflow-hidden flex flex-col justify-between hover:-translate-y-2 hover:shadow-2xl transition-all duration-500"
+                >
+                  <div>
+                    {/* Locked Aspect Image Container */}
+                    <div className="relative aspect-[4/3] overflow-hidden bg-theme-primary/10">
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-theme-secondary/5 text-theme-accent">
+                          <Box className="w-12 h-12" />
+                        </div>
                       )}
-                      <div className="w-8 h-8 rounded-full bg-black/50 backdrop-blur-md text-white flex items-center justify-center group-hover:bg-[#C5A059] group-hover:text-black transition-colors ml-auto">
-                        <ArrowUpRight className="w-4 h-4" />
+                      
+                      {/* Top Pill Badges */}
+                      <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                        {item.badge ? (
+                          <span className="px-3 py-1 rounded-full bg-theme-surface/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-theme-accent shadow-md">
+                            {item.badge}
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full bg-theme-surface/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-theme-primary shadow-md">
+                            {item.category || 'Featured'}
+                          </span>
+                        )}
+
+                        <div className="w-8 h-8 rounded-full bg-theme-surface/80 backdrop-blur-md text-theme-primary flex items-center justify-center group-hover:bg-theme-secondary group-hover:text-white transition-colors shadow-md ml-auto">
+                          <ArrowUpRight className="w-4 h-4" />
+                        </div>
                       </div>
                     </div>
 
-                    {/* Bottom Info Overlay on Image */}
-                    <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <span className="text-[10px] font-mono font-bold tracking-widest text-[#E2B755] uppercase block mb-0.5">
+                    {/* Card Content Body */}
+                    <div className="p-6 space-y-2">
+                      <span className="text-xs font-bold text-theme-accent uppercase tracking-wider block">
                         {item.category}
                       </span>
-                      <h3 className="font-luxury text-xl font-bold leading-tight">
+                      <h3 className="text-lg font-extrabold text-theme-primary leading-snug group-hover:text-theme-accent transition-colors">
                         {item.name}
                       </h3>
+                      <p className="text-xs text-theme-muted line-clamp-2 leading-relaxed">
+                        {item.subtitle || item.description}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Body description */}
-                  <div className="p-5 space-y-2">
-                    <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-                      {item.subtitle || item.description}
-                    </p>
-                  </div>
-                </div>
+                  {/* Card Footer: Pricing & Action */}
+                  <div className="p-6 pt-0 flex items-center justify-between mt-3">
+                    <div>
+                      {item.priceFrom ? (
+                        <span className="text-base font-extrabold text-theme-primary font-mono">
+                          {item.priceFrom}
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold text-theme-accent">
+                          Available on Request
+                        </span>
+                      )}
+                    </div>
 
-                {/* Card Footer: Price & Duration / Unit */}
-                <div className="px-5 pb-5 pt-3 border-t border-gray-100 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-mono text-gray-500 uppercase block font-semibold">
-                      {item.duration || 'Offering'}
-                    </span>
-                    <span className="font-serif text-lg font-bold text-[#111827]">
-                      {item.priceFrom}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openItemInquiry(item);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-[#C5A059] hover:text-black text-gray-800 text-[11px] font-bold tracking-wider uppercase transition-colors"
-                  >
-                    Inquire
-                  </button>
-                </div>
-
-              </div>
-            ))}
-          </div>
-
-        </section>
-      )}
-
-      {/* ── 4. WHY CHOOSE US (CORE VALUE PILLARS) ── */}
-      {config.showCurated && (
-        <section id="why-us" className="bg-[#0A0B0E] text-white py-20 sm:py-28 relative overflow-hidden">
-          
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#C5A059_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
-
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            {/* Section Header */}
-            <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
-              <span className="text-[11px] font-mono font-bold tracking-[0.25em] text-[#C5A059] uppercase block">
-                {config.curatedKicker || 'WHY CHOOSE US'}
-              </span>
-              <h2 className="font-luxury text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
-                <span>{config.curatedTitle} </span>
-                <span className="font-serif italic font-normal text-[#E2B755]">
-                  {config.curatedTitleHighlight}
-                </span>
-              </h2>
-              <p className="text-xs sm:text-sm text-gray-400 max-w-xl mx-auto leading-relaxed">
-                {config.curatedSubtitle}
-              </p>
-            </div>
-
-            {/* 4 Pillars Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {config.curatedPillars.map((pillar, idx) => (
-                <div
-                  key={pillar.id}
-                  className="bg-[#141519] border border-white/10 hover:border-[#C5A059]/60 rounded-3xl p-6 sm:p-7 space-y-4 transition-all duration-300 hover:-translate-y-1 group"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-[#C5A059]/10 border border-[#C5A059]/25 text-[#C5A059] flex items-center justify-center group-hover:bg-[#C5A059] group-hover:text-black transition-colors">
-                    {renderPillarIcon(pillar.iconType)}
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block font-bold">
-                      PILLAR 0{idx + 1}
-                    </span>
-                    <h3 className="font-luxury font-bold text-lg text-white">
-                      {pillar.title}
-                    </h3>
-                    <p className="text-xs text-gray-400 leading-relaxed font-light">
-                      {pillar.desc}
-                    </p>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openItemInquiry(item);
+                      }}
+                      className="btn-theme-secondary text-xs font-bold px-4 py-2 rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Inquire</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
+          ) : (
+            <div className="text-center py-12 px-6 rounded-3xl glass-card-static max-w-md mx-auto space-y-3">
+              <Box className="w-10 h-10 text-theme-muted mx-auto" />
+              <p className="text-sm font-semibold text-theme-primary">No Featured Offerings Yet</p>
+              <p className="text-xs text-theme-muted">Configure your top products via CMS Builder in Settings.</p>
+            </div>
+          )}
 
-            {/* Bottom Inquire Banner */}
-            <div className="mt-14 text-center">
-              <button
-                onClick={() => setIsInquiryModalOpen(true)}
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#C5A059] hover:bg-[#b08d4a] text-black font-bold text-xs tracking-widest uppercase shadow-lg shadow-[#C5A059]/20 transition-all transform active:scale-95"
-              >
-                <span>{config.curatedCtaText || 'Get in Touch with Our Team'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+        </section>
+      )}
+
+      {/* ── 4. BENTO BOX GRID: WHY CHOOSE US / VALUE PILLARS ── */}
+      {config.showCurated && config.curatedPillars?.length > 0 && (
+        <section id="why-us" className="py-16 sm:py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            
+            {/* Header */}
+            <div className="max-w-2xl space-y-3">
+              <span className="inline-block text-xs font-bold tracking-widest uppercase text-theme-accent bg-theme-accent/10 px-3.5 py-1.5 rounded-full">
+                {config.curatedKicker || 'WHY CHOOSE US'}
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-theme-primary tracking-tight">
+                {config.curatedTitle || 'Engineered for Excellence & Customer Satisfaction'}
+              </h2>
+            </div>
+
+            {/* Bento Grid Layout System */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              {config.curatedPillars.map((pillar, idx) => {
+                const isLarge = idx === 0;
+                return (
+                  <div
+                    key={pillar.id}
+                    className={cn(
+                      "p-8 rounded-3xl glass-card flex flex-col justify-between hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden group",
+                      isLarge ? "md:col-span-8 bg-gradient-to-br from-theme-surface via-theme-surface to-theme-accent/5" : "md:col-span-4"
+                    )}
+                  >
+                    <div className="space-y-4">
+                      <div className="w-14 h-14 rounded-2xl bg-theme-accent/15 text-theme-accent flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                        {renderPillarIcon(pillar.iconType)}
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-xl font-extrabold text-theme-primary tracking-tight">
+                          {pillar.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-theme-muted leading-relaxed mt-2">
+                          {pillar.desc}
+                        </p>
+                      </div>
+
+                      {/* Flagship Bento Extra Features Checklist */}
+                      {isLarge && (
+                        <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-semibold text-theme-primary">
+                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-theme-primary/10">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                            <span>100% Quality Verified & Tested</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-theme-primary/10">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                            <span>Direct Concierge Support</span>
+                          </div>
+                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-theme-primary/10">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                            <span>Seamless Digital Billing</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {(pillar as any).highlightBadge && (
+                      <span className="inline-block text-[10px] font-bold font-mono tracking-wider text-theme-accent bg-theme-accent/10 px-3 py-1 rounded-full w-fit mt-6">
+                        {(pillar as any).highlightBadge}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
           </div>
         </section>
       )}
 
-      {/* ── 5. LIVE POS CATALOG STOREFRONT ── */}
-      {config.showCatalog && storeItems.length > 0 && (
+      {/* ── 5. LIVE STORE & POS CATALOG INTEGRATION ── */}
+      {config.showCatalog && (
         <section id="catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           
+          {/* Header & Search Capsule Bar */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-            <div>
-              <span className="text-[11px] font-mono font-bold tracking-[0.25em] text-[#C5A059] uppercase block">
-                {config.catalogKicker || 'LIVE STORE & INVENTORY'}
+            <div className="space-y-3">
+              <span className="inline-block text-xs font-bold tracking-widest text-theme-accent uppercase bg-theme-accent/10 px-3.5 py-1.5 rounded-full">
+                INTEGRATED POS CATALOG
               </span>
-              <h2 className="font-luxury text-3xl sm:text-4xl font-bold text-[#111827] tracking-tight mt-1">
-                {config.catalogTitle || 'Direct Catalog & Real-Time Ordering'}
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-theme-primary tracking-tight">
+                Live Store Products
               </h2>
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full md:w-72">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            {/* Rounded Pill Search Input */}
+            <div className="relative w-full md:w-80">
+              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-theme-muted" />
               <input
                 type="text"
-                placeholder="Search products & items..."
                 value={catalogSearch}
-                onChange={(e) => setCatalogSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl text-xs font-semibold text-[#111827] outline-none focus:border-[#C5A059] shadow-sm"
+                onChange={e => setCatalogSearch(e.target.value)}
+                placeholder="Search live items..."
+                className="w-full pl-11 pr-5 py-3 rounded-full glass-card-static text-xs text-theme-primary outline-none focus:ring-2 focus:ring-theme-accent shadow-md transition-all"
               />
             </div>
           </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none">
-            {catalogCategories.map((cat) => (
+          {/* Category Filter Pills Bar */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 no-scrollbar">
+            {catalogCategories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setActiveCatalogCategory(cat)}
                 className={cn(
-                  "px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase whitespace-nowrap transition-all border",
+                  "px-5 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer",
                   activeCatalogCategory === cat
-                    ? "bg-[#C5A059] text-black border-[#C5A059] shadow-sm"
-                    : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
+                    ? "btn-theme-secondary shadow-lg shadow-theme-accent/25 scale-105"
+                    : "glass-card-static text-theme-primary hover:shadow-md"
                 )}
               >
                 {cat}
@@ -640,135 +713,157 @@ export default function PublicStorefront() {
             ))}
           </div>
 
-          {/* POS Store Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {filteredCatalogItems.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"
-              >
-                <div className="space-y-3">
-                  <div className="h-36 rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 relative">
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                    ) : (
-                      <ShoppingBag className="w-10 h-10 text-gray-300" />
-                    )}
-                    {item.stock !== undefined && (
+          {/* Products Grid */}
+          {filteredCatalogItems.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredCatalogItems.map(item => (
+                <div
+                  key={item.id}
+                  className="glass-card rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:-translate-y-1.5 transition-all"
+                >
+                  <div className="space-y-3">
+                    {/* Item Image */}
+                    <div className="aspect-square rounded-2xl overflow-hidden bg-theme-primary/10 relative">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-theme-accent">
+                          <ShoppingBag className="w-10 h-10" />
+                        </div>
+                      )}
                       <span className={cn(
-                        "absolute top-2 right-2 px-2 py-0.5 rounded text-[9px] font-mono font-bold",
-                        item.stock > 0 ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
+                        "absolute top-2 right-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono shadow-sm",
+                        (item.stock ?? 1) > 0 
+                          ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/30" 
+                          : "bg-red-500/15 text-red-600 border border-red-500/30"
                       )}>
-                        {item.stock > 0 ? `${item.stock} in stock` : 'Out of Stock'}
+                        {(item.stock ?? 1) > 0 ? 'In Stock' : 'Out of Stock'}
                       </span>
-                    )}
+                    </div>
+
+                    {/* Title & Category */}
+                    <div>
+                      <span className="text-[10px] font-bold text-theme-accent uppercase tracking-wider block">
+                        {getCategoryName(item.category)}
+                      </span>
+                      <h4 className="font-extrabold text-sm text-theme-primary line-clamp-1 mt-0.5">
+                        {item.name}
+                      </h4>
+                    </div>
                   </div>
 
-                  <div>
-                    <span className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block">
-                      {getCategoryName(item.category)}
+                  {/* Price & Quick Inquiry */}
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-base font-extrabold text-theme-primary font-mono">
+                      ₹{item.price || 0}
                     </span>
-                    <h4 className="font-bold text-sm text-[#111827] line-clamp-1">
-                      {item.name}
-                    </h4>
+                    <button
+                      onClick={() => handleWhatsAppInquiry(`Hi, I am interested in buying ${item.name} (Price: ₹${item.price}).`)}
+                      className="p-2.5 rounded-xl bg-theme-accent/15 text-theme-accent hover:bg-theme-accent hover:text-white transition-all shadow-sm cursor-pointer"
+                      title="Inquire on WhatsApp"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-
-                <div className="pt-3 mt-3 border-t border-gray-100 flex items-center justify-between">
-                  <span className="font-serif font-bold text-base text-[#111827]">
-                    ${Number(item.price || 0).toLocaleString()}
-                  </span>
-
-                  <button
-                    onClick={() => handleWhatsAppInquiry(`Hello, I would like to order "${item.name}" (Price: $${item.price}).`)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold tracking-wider uppercase transition-colors"
-                  >
-                    <MessageSquare className="w-3 h-3" />
-                    <span>WhatsApp</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </section>
-      )}
-
-      {/* ── 6. NEWS & INSIGHTS ARTICLES SECTION ── */}
-      {config.showJournal && (
-        <section id="insights" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 border-t border-gray-200">
-          
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div className="space-y-2">
-              <span className="text-[11px] font-mono font-bold tracking-[0.25em] text-[#C5A059] uppercase block">
-                {config.journalKicker || 'NEWS & INSIGHTS'}
-              </span>
-              <h2 className="font-luxury text-3xl sm:text-5xl font-bold text-[#111827] tracking-tight">
-                {config.journalTitle || 'Latest Updates, Articles & Stories'}
-              </h2>
+              ))}
             </div>
-            <p className="text-xs sm:text-sm text-gray-600 max-w-md leading-relaxed font-normal">
-              {config.journalSubtitle || 'Stay informed with industry analysis, practical advice, product announcements, and company news.'}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {config.journalArticles.map((article) => (
-              <article
-                key={article.id}
-                onClick={() => setSelectedStory(article)}
-                className="group cursor-pointer space-y-4"
-              >
-                <div className="relative h-64 rounded-3xl overflow-hidden bg-gray-900 border border-gray-200/80 shadow-sm">
-                  <img
-                    src={article.imageUrl}
-                    alt={article.title}
-                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out"
-                  />
-                  <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-mono font-bold uppercase tracking-wider text-black">
-                    {article.category}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                    <span>{article.date}</span>
-                    <span>•</span>
-                    <span>{article.readTime}</span>
-                  </div>
-                  <h3 className="font-luxury font-bold text-xl text-[#111827] group-hover:text-[#C5A059] transition-colors leading-snug">
-                    {article.title}
-                  </h3>
-                  <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-                    {article.excerpt}
-                  </p>
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#C5A059] uppercase tracking-wider pt-1 group-hover:translate-x-1 transition-transform">
-                    <span>Read Article</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </article>
-            ))}
-          </div>
+          ) : (
+            <div className="text-center py-12 px-6 rounded-3xl glass-card-static max-w-md mx-auto space-y-2">
+              <ShoppingBag className="w-10 h-10 text-theme-muted mx-auto" />
+              <p className="text-sm font-semibold text-theme-primary">No Products Found</p>
+              <p className="text-xs text-theme-muted">No catalog items match your search or filter category.</p>
+            </div>
+          )}
 
         </section>
       )}
 
-      {/* ── 7. FOOTER & CONTACT SECTION ── */}
-      <footer id="contact" className="bg-[#0A0B0E] text-white pt-20 pb-12 border-t border-white/10">
+      {/* ── 6. NEWS & INSIGHTS (JOURNAL ARTICLES) ── */}
+      {config.showJournal && config.journalArticles && config.journalArticles.length > 0 && (
+        <section id="insights" className="py-16 sm:py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+              <div className="space-y-3">
+                <span className="inline-block text-xs font-bold tracking-widest text-theme-accent uppercase bg-theme-accent/10 px-3.5 py-1.5 rounded-full">
+                  {config.journalKicker || 'NEWS & INSIGHTS'}
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-theme-primary tracking-tight">
+                  {config.journalTitle || 'Industry Stories & Updates'}
+                </h2>
+              </div>
+
+              <p className="text-sm text-theme-muted max-w-md font-normal leading-relaxed">
+                {config.journalSubtitle || 'Stay informed with our latest news, operational guides, and industry insights.'}
+              </p>
+            </div>
+
+            {/* Articles Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {config.journalArticles.map((article) => (
+                <div
+                  key={article.id}
+                  onClick={() => setSelectedStory(article)}
+                  className="group cursor-pointer glass-card rounded-3xl overflow-hidden flex flex-col justify-between hover:-translate-y-2 transition-all duration-500"
+                >
+                  <div>
+                    {/* Article Cover Image */}
+                    <div className="aspect-[16/9] overflow-hidden bg-theme-primary/10 relative">
+                      {article.imageUrl ? (
+                        <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-theme-accent">
+                          <Sparkles className="w-10 h-10" />
+                        </div>
+                      )}
+                      <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-theme-surface/90 backdrop-blur-md text-[10px] font-bold text-theme-accent shadow-md">
+                        {article.readTime || '3 min read'}
+                      </span>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6 space-y-2">
+                      <span className="text-[10px] font-bold text-theme-accent uppercase tracking-wider block">
+                        {article.date || 'Latest Article'}
+                      </span>
+                      <h3 className="text-base font-extrabold text-theme-primary line-clamp-2 leading-snug group-hover:text-theme-accent transition-colors">
+                        {article.title}
+                      </h3>
+                      <p className="text-xs text-theme-muted line-clamp-2 leading-relaxed">
+                        {article.excerpt}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-6 pt-0 flex items-center gap-1.5 text-xs font-bold text-theme-accent group-hover:translate-x-1 transition-transform">
+                    <span>Read Full Story</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </section>
+      )}
+
+      {/* ── 7. FOOTER & FLOATING NEWSLETTER DISPATCH ── */}
+      <footer id="contact" className="bg-theme-surface text-theme-primary pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           
-          {/* Newsletter Bar */}
+          {/* Newsletter Capsule Bar */}
           {config.showNewsletter && (
-            <div className="bg-[#141519] border border-white/10 rounded-3xl p-8 sm:p-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="bg-gradient-to-r from-theme-bg-secondary/80 via-theme-surface to-theme-bg-secondary/80 rounded-3xl p-8 sm:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 shadow-2xl ring-1 ring-white/30">
               <div className="space-y-2 max-w-xl text-center lg:text-left">
-                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-[#C5A059] uppercase block">
+                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-theme-accent uppercase block">
                   NEWSLETTER DISPATCH
                 </span>
-                <h3 className="font-luxury text-2xl sm:text-3xl font-bold text-white">
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-theme-primary tracking-tight">
                   {config.newsletterTitle || 'Stay Updated with Latest Releases'}
                 </h3>
-                <p className="text-xs text-gray-400 font-light leading-relaxed">
+                <p className="text-xs text-theme-muted font-normal leading-relaxed">
                   {config.newsletterSubtitle || 'Subscribe to receive announcements, exclusive promotions, and seasonal specials.'}
                 </p>
               </div>
@@ -779,11 +874,11 @@ export default function PublicStorefront() {
                   placeholder="Enter your email address..."
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="w-full sm:w-72 px-4 py-3 bg-[#1A1A1E] border border-white/15 rounded-full text-xs text-white placeholder-gray-500 outline-none focus:border-[#C5A059]"
+                  className="w-full sm:w-72 px-5 py-3.5 bg-theme-surface rounded-full text-xs text-theme-primary placeholder:text-theme-muted outline-none focus:ring-2 focus:ring-theme-accent shadow-md transition-all"
                 />
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-6 py-3 rounded-full bg-[#C5A059] hover:bg-[#b08d4a] text-black font-bold text-xs tracking-widest uppercase transition-all whitespace-nowrap"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-full btn-theme-secondary text-white font-bold text-xs tracking-widest uppercase transition-all whitespace-nowrap shadow-lg shadow-theme-accent/25 hover:scale-105 active:scale-95"
                 >
                   Subscribe
                 </button>
@@ -797,56 +892,60 @@ export default function PublicStorefront() {
             {/* Col 1: Brand Story */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#E2B755] to-[#8C6D2B] p-0.5 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-black" />
-                </div>
+                {config.logoUrl ? (
+                  <img src={config.logoUrl} alt="Logo" className="w-10 h-10 rounded-full object-contain bg-theme-surface shadow-sm flex-shrink-0 ring-2 ring-theme-accent/20" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full btn-theme-secondary flex items-center justify-center font-bold text-lg shadow-md flex-shrink-0">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                )}
                 <div>
-                  <span className="font-luxury font-bold text-lg tracking-[0.2em] text-white uppercase block">
+                  <span className="font-extrabold text-lg tracking-tight text-theme-primary uppercase block">
                     {config.brandName}
                   </span>
-                  <span className="text-[9px] tracking-[0.35em] text-[#C5A059] uppercase font-mono block">
+                  <span className="text-[9px] tracking-[0.25em] text-theme-accent uppercase font-mono block">
                     {config.brandSubtext || 'ENTERPRISE'}
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-gray-400 leading-relaxed font-light">
+              <p className="text-xs text-theme-muted leading-relaxed font-normal">
                 {config.brandTagline || 'Delivering world-class products, expert services, and bespoke solutions.'}
               </p>
             </div>
 
             {/* Col 2: Navigation Links */}
             <div className="space-y-3">
-              <h4 className="text-xs font-mono font-bold tracking-[0.2em] text-[#C5A059] uppercase">
+              <h4 className="text-xs font-bold tracking-widest text-theme-accent uppercase">
                 Navigation
               </h4>
-              <ul className="space-y-2 text-xs text-gray-400 font-medium">
-                {config.showDestinations && <li><a href="#showcase" className="hover:text-white transition-colors">Featured Offerings</a></li>}
-                {config.showCurated && <li><a href="#why-us" className="hover:text-white transition-colors">Why Choose Us</a></li>}
-                {config.showCatalog && <li><a href="#catalog" className="hover:text-white transition-colors">Live Store Catalog</a></li>}
-                {config.showJournal && <li><a href="#insights" className="hover:text-white transition-colors">News & Insights</a></li>}
+              <ul className="space-y-2 text-xs text-theme-muted font-medium">
+                {config.showDestinations && <li><a href="#showcase" className="hover:text-theme-accent transition-colors">Featured Offerings</a></li>}
+                {config.showCurated && <li><a href="#why-us" className="hover:text-theme-accent transition-colors">Why Choose Us</a></li>}
+                {config.showCatalog && <li><a href="#catalog" className="hover:text-theme-accent transition-colors">Live Store Catalog</a></li>}
+                {config.showJournal && <li><a href="#insights" className="hover:text-theme-accent transition-colors">News & Insights</a></li>}
               </ul>
             </div>
 
             {/* Col 3: Contact & Concierge */}
             <div className="space-y-3">
-              <h4 className="text-xs font-mono font-bold tracking-[0.2em] text-[#C5A059] uppercase">
+              <h4 className="text-xs font-bold tracking-widest text-theme-accent uppercase">
                 Contact & Support
               </h4>
-              <ul className="space-y-2.5 text-xs text-gray-400">
+              <ul className="space-y-2.5 text-xs text-theme-muted">
                 <li className="flex items-center gap-2">
-                  <Phone className="w-3.5 h-3.5 text-[#C5A059]" />
+                  <Phone className="w-3.5 h-3.5 text-theme-accent" />
                   <span>{config.phone || '+1 (555) 019-2834'}</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Mail className="w-3.5 h-3.5 text-[#C5A059]" />
+                  <Mail className="w-3.5 h-3.5 text-theme-accent" />
                   <span>{config.email || 'contact@apexenterprise.com'}</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5 text-[#C5A059]" />
+                  <MapPin className="w-3.5 h-3.5 text-theme-accent" />
                   <span>{config.address || 'Main Commercial Hub, City Center'}</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Clock className="w-3.5 h-3.5 text-[#C5A059]" />
+                  <Clock className="w-3.5 h-3.5 text-theme-accent" />
                   <span>{config.workingHours || 'Mon - Sat: 9:00 AM - 8:00 PM'}</span>
                 </li>
               </ul>
@@ -854,15 +953,15 @@ export default function PublicStorefront() {
 
             {/* Col 4: Direct WhatsApp Chat */}
             <div className="space-y-4">
-              <h4 className="text-xs font-mono font-bold tracking-[0.2em] text-[#C5A059] uppercase">
+              <h4 className="text-xs font-bold tracking-widest text-theme-accent uppercase">
                 Instant WhatsApp Chat
               </h4>
-              <p className="text-xs text-gray-400 leading-relaxed font-light">
+              <p className="text-xs text-theme-muted leading-relaxed font-normal">
                 Connect directly with our team for instant quotes, inquiries, and orders.
               </p>
               <button
                 onClick={() => handleWhatsAppInquiry()}
-                className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-600/20"
+                className="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-600/20 hover:scale-105 active:scale-95"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>Chat on WhatsApp</span>
@@ -872,9 +971,9 @@ export default function PublicStorefront() {
           </div>
 
           {/* Copyright Bar */}
-          <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-theme-muted opacity-80">
             <p>© {new Date().getFullYear()} {config.brandName}. {config.copyrightText || 'All rights reserved.'}</p>
-            <p className="text-[11px] font-mono text-gray-600">Powered by Universal Multi-Business CMS Platform</p>
+            <p className="text-[11px] font-mono text-theme-muted/80">Powered by Universal Multi-Business CMS Platform</p>
           </div>
 
         </div>
@@ -884,7 +983,7 @@ export default function PublicStorefront() {
       {config.showWhatsAppWidget && (
         <button
           onClick={() => handleWhatsAppInquiry()}
-          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all group"
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-2xl hover:scale-110 transition-all group cursor-pointer"
           title="Direct WhatsApp Inquiry"
         >
           <MessageSquare className="w-7 h-7" />
@@ -896,57 +995,57 @@ export default function PublicStorefront() {
 
       {/* ── 9. OFFERING / SHOWCASE DETAIL MODAL ── */}
       {selectedItem && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-[#141519] border border-white/15 rounded-3xl max-w-2xl w-full text-white overflow-hidden shadow-2xl my-8">
-            <div className="relative h-64 sm:h-72 bg-gray-900">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-theme-surface rounded-3xl max-w-2xl w-full text-theme-primary overflow-hidden shadow-2xl my-8">
+            <div className="relative h-64 sm:h-72 bg-theme-primary/10">
               <img src={selectedItem.imageUrl} alt={selectedItem.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#141519] via-transparent to-black/40" />
+              <div className="absolute inset-0 bg-gradient-to-t from-theme-surface via-transparent to-black/30" />
               <button
                 onClick={() => setSelectedItem(null)}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 text-white hover:bg-black flex items-center justify-center transition-colors"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-theme-surface/80 backdrop-blur-md text-theme-primary hover:bg-theme-surface flex items-center justify-center transition-colors shadow-md cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
               <div className="absolute bottom-4 left-6 right-6">
-                <span className="px-3 py-1 rounded-full bg-[#C5A059] text-black text-[10px] font-mono font-bold uppercase tracking-wider">
+                <span className="px-3 py-1 rounded-full bg-theme-accent/20 border border-theme-accent/30 text-theme-accent text-[10px] font-mono font-bold uppercase tracking-wider">
                   {selectedItem.category}
                 </span>
-                <h3 className="font-luxury text-2xl sm:text-3xl font-bold text-white mt-1">
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-theme-primary mt-1">
                   {selectedItem.name}
                 </h3>
               </div>
             </div>
 
             <div className="p-6 sm:p-8 space-y-6 max-h-[60vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-theme-bg-secondary/40">
                 <div>
-                  <span className="text-[10px] font-mono text-gray-400 uppercase">Rate / Price</span>
-                  <p className="font-serif text-2xl font-bold text-[#E2B755]">{selectedItem.priceFrom}</p>
+                  <span className="text-[10px] font-mono text-theme-muted uppercase">Rate / Price</span>
+                  <p className="font-mono text-2xl font-extrabold text-theme-primary">{selectedItem.priceFrom}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] font-mono text-gray-400 uppercase">Format</span>
-                  <p className="text-xs font-bold text-white">{selectedItem.duration || 'Complete'}</p>
+                  <span className="text-[10px] font-mono text-theme-muted uppercase">Format</span>
+                  <p className="text-xs font-bold text-theme-accent">{selectedItem.duration || 'Complete'}</p>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-xs font-mono font-bold uppercase text-[#C5A059] tracking-wider mb-2">
+                <h4 className="text-xs font-bold uppercase text-theme-accent tracking-wider mb-2">
                   Overview
                 </h4>
-                <p className="text-xs sm:text-sm text-gray-300 font-light leading-relaxed">
+                <p className="text-xs sm:text-sm text-theme-muted font-normal leading-relaxed">
                   {selectedItem.description}
                 </p>
               </div>
 
               {selectedItem.highlights?.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-mono font-bold uppercase text-[#C5A059] tracking-wider mb-2">
+                  <h4 className="text-xs font-bold uppercase text-theme-accent tracking-wider mb-2">
                     Key Features & Highlights
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {selectedItem.highlights.map((h, i) => (
-                      <div key={i} className="flex items-center gap-2 p-2.5 rounded-xl bg-white/5 text-xs text-gray-200">
-                        <Sparkles className="w-3.5 h-3.5 text-[#C5A059] flex-shrink-0" />
+                      <div key={i} className="flex items-center gap-2 p-2.5 rounded-xl bg-theme-surface border border-theme-secondary/15 text-xs text-theme-primary shadow-sm">
+                        <Sparkles className="w-3.5 h-3.5 text-theme-accent flex-shrink-0" />
                         <span>{h}</span>
                       </div>
                     ))}
@@ -956,13 +1055,13 @@ export default function PublicStorefront() {
 
               {selectedItem.inclusions?.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-mono font-bold uppercase text-[#C5A059] tracking-wider mb-2">
+                  <h4 className="text-xs font-bold uppercase text-theme-accent tracking-wider mb-2">
                     Included Benefits
                   </h4>
                   <div className="space-y-1.5">
                     {selectedItem.inclusions.map((inc, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs text-gray-300">
-                        <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                      <div key={i} className="flex items-center gap-2 text-xs text-theme-muted">
+                        <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                         <span>{inc}</span>
                       </div>
                     ))}
@@ -970,16 +1069,16 @@ export default function PublicStorefront() {
                 </div>
               )}
 
-              <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center gap-3">
+              <div className="pt-4 flex flex-col sm:flex-row items-center gap-3">
                 <button
                   onClick={() => openItemInquiry(selectedItem)}
-                  className="w-full sm:flex-1 py-3.5 rounded-2xl bg-[#C5A059] hover:bg-[#b08d4a] text-black font-bold text-xs uppercase tracking-widest transition-all text-center"
+                  className="w-full sm:flex-1 py-3.5 rounded-2xl btn-theme-secondary text-white font-bold text-xs uppercase tracking-widest transition-all text-center shadow-md hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   Inquire / Book Now
                 </button>
                 <button
                   onClick={() => handleWhatsAppInquiry(`Hello, I would like to inquire about "${selectedItem.name}" (${selectedItem.priceFrom}).`)}
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>WhatsApp</span>
@@ -992,43 +1091,43 @@ export default function PublicStorefront() {
 
       {/* ── 10. ARTICLE / STORY READER MODAL ── */}
       {selectedStory && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-[#141519] border border-white/15 rounded-3xl max-w-2xl w-full text-white overflow-hidden shadow-2xl my-8">
-            <div className="relative h-64 bg-gray-900">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-theme-surface rounded-3xl max-w-2xl w-full text-theme-primary overflow-hidden shadow-2xl my-8">
+            <div className="relative h-64 bg-theme-primary/10">
               <img src={selectedStory.imageUrl} alt={selectedStory.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#141519] via-transparent to-black/40" />
+              <div className="absolute inset-0 bg-gradient-to-t from-theme-surface via-transparent to-black/30" />
               <button
                 onClick={() => setSelectedStory(null)}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 text-white hover:bg-black flex items-center justify-center transition-colors"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-theme-surface/80 backdrop-blur-md text-theme-primary hover:bg-theme-surface flex items-center justify-center transition-colors shadow-md cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
               <div className="absolute bottom-4 left-6 right-6">
-                <span className="px-3 py-1 rounded-full bg-[#C5A059] text-black text-[10px] font-mono font-bold uppercase tracking-wider">
+                <span className="px-3 py-1 rounded-full bg-theme-accent/20 border border-theme-accent/30 text-theme-accent text-[10px] font-mono font-bold uppercase tracking-wider">
                   {selectedStory.category}
                 </span>
-                <h3 className="font-luxury text-xl sm:text-2xl font-bold text-white mt-1">
+                <h3 className="text-xl sm:text-2xl font-extrabold text-theme-primary mt-1">
                   {selectedStory.title}
                 </h3>
               </div>
             </div>
 
             <div className="p-6 sm:p-8 space-y-4 max-h-[60vh] overflow-y-auto">
-              <div className="flex items-center justify-between text-xs text-gray-400 border-b border-white/10 pb-3">
+              <div className="flex items-center justify-between text-xs text-theme-muted pb-3">
                 <span>By {selectedStory.author}</span>
                 <span>{selectedStory.date} • {selectedStory.readTime}</span>
               </div>
 
-              <div className="space-y-4 text-xs sm:text-sm text-gray-300 font-light leading-relaxed">
+              <div className="space-y-4 text-xs sm:text-sm text-theme-muted font-normal leading-relaxed">
                 {selectedStory.content?.map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
               </div>
 
-              <div className="pt-4 border-t border-white/10">
+              <div className="pt-4">
                 <button
                   onClick={() => setSelectedStory(null)}
-                  className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition-colors"
+                  className="w-full py-3 rounded-2xl bg-theme-surface border border-theme-secondary/20 hover:bg-theme-secondary/10 text-theme-primary font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Close Article
                 </button>
@@ -1040,99 +1139,99 @@ export default function PublicStorefront() {
 
       {/* ── 11. GENERAL INQUIRY / GET IN TOUCH MODAL ── */}
       {isInquiryModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-[#141519] border border-white/15 rounded-3xl max-w-lg w-full text-white p-6 sm:p-8 shadow-2xl relative my-8">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-theme-surface rounded-3xl max-w-lg w-full text-theme-primary p-6 sm:p-8 shadow-2xl relative my-8">
             <button
               onClick={() => setIsInquiryModalOpen(false)}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 text-white hover:bg-white/20 flex items-center justify-center transition-colors"
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-theme-bg-secondary text-theme-primary hover:bg-theme-secondary/20 flex items-center justify-center transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="space-y-1 mb-6">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-[#C5A059] uppercase block">
+              <span className="text-[10px] font-mono font-bold tracking-widest text-theme-accent uppercase block">
                 DIRECT INQUIRY
               </span>
-              <h3 className="font-luxury text-2xl font-bold text-white">
+              <h3 className="text-2xl font-extrabold text-theme-primary">
                 Get in Touch with {config.brandName}
               </h3>
-              <p className="text-xs text-gray-400 font-light">
+              <p className="text-xs text-theme-muted font-normal">
                 Fill out the details below and our team will get back to you promptly.
               </p>
             </div>
 
             <form onSubmit={handleInquirySubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block text-gray-400 font-bold mb-1">Your Full Name *</label>
+                <label className="block text-theme-primary font-bold mb-1">Your Full Name *</label>
                 <input
                   type="text"
                   required
                   value={inquiryForm.name}
                   onChange={e => setInquiryForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="e.g. John Doe"
-                  className="w-full px-3.5 py-2.5 bg-[#1A1A1E] border border-white/15 rounded-xl text-white outline-none focus:border-[#C5A059]"
+                  className="w-full px-3.5 py-2.5 bg-theme-bg-primary border border-theme-secondary/30 rounded-xl text-theme-primary outline-none focus:ring-2 focus:ring-theme-accent"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-400 font-bold mb-1">Phone Number *</label>
+                  <label className="block text-theme-primary font-bold mb-1">Phone Number *</label>
                   <input
                     type="tel"
                     required
                     value={inquiryForm.phone}
                     onChange={e => setInquiryForm(f => ({ ...f, phone: e.target.value }))}
                     placeholder="e.g. 9876543210"
-                    className="w-full px-3.5 py-2.5 bg-[#1A1A1E] border border-white/15 rounded-xl text-white outline-none focus:border-[#C5A059]"
+                    className="w-full px-3.5 py-2.5 bg-theme-bg-primary border border-theme-secondary/30 rounded-xl text-theme-primary outline-none focus:ring-2 focus:ring-theme-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 font-bold mb-1">Email Address</label>
+                  <label className="block text-theme-primary font-bold mb-1">Email Address</label>
                   <input
                     type="email"
                     value={inquiryForm.email}
                     onChange={e => setInquiryForm(f => ({ ...f, email: e.target.value }))}
                     placeholder="e.g. john@example.com"
-                    className="w-full px-3.5 py-2.5 bg-[#1A1A1E] border border-white/15 rounded-xl text-white outline-none focus:border-[#C5A059]"
+                    className="w-full px-3.5 py-2.5 bg-theme-bg-primary border border-theme-secondary/30 rounded-xl text-theme-primary outline-none focus:ring-2 focus:ring-theme-accent"
                   />
                 </div>
               </div>
 
               {inquiryForm.offeringName && (
                 <div>
-                  <label className="block text-gray-400 font-bold mb-1">Interested Offering / Product</label>
+                  <label className="block text-theme-primary font-bold mb-1">Interested Offering / Product</label>
                   <input
                     type="text"
                     disabled
                     value={inquiryForm.offeringName}
-                    className="w-full px-3.5 py-2.5 bg-[#111215] border border-white/10 rounded-xl text-[#C5A059] font-bold outline-none cursor-not-allowed"
+                    className="w-full px-3.5 py-2.5 bg-theme-surface border border-theme-secondary/20 rounded-xl text-theme-accent font-bold outline-none cursor-not-allowed"
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-gray-400 font-bold mb-1">Your Message / Requirements</label>
+                <label className="block text-theme-primary font-bold mb-1">Your Message / Requirements</label>
                 <textarea
                   rows={3}
                   value={inquiryForm.notes}
                   onChange={e => setInquiryForm(f => ({ ...f, notes: e.target.value }))}
                   placeholder="Tell us about your requirements, questions, or desired timeline..."
-                  className="w-full px-3.5 py-2.5 bg-[#1A1A1E] border border-white/15 rounded-xl text-white outline-none focus:border-[#C5A059]"
+                  className="w-full px-3.5 py-2.5 bg-theme-bg-primary border border-theme-secondary/30 rounded-xl text-theme-primary outline-none focus:ring-2 focus:ring-theme-accent"
                 />
               </div>
 
               <div className="pt-2 flex items-center gap-3">
                 <button
                   type="submit"
-                  className="flex-1 py-3.5 rounded-xl bg-[#C5A059] hover:bg-[#b08d4a] text-black font-bold text-xs uppercase tracking-widest transition-colors"
+                  className="flex-1 py-3.5 rounded-xl btn-theme-secondary text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   Send Inquiry
                 </button>
                 <button
                   type="button"
                   onClick={() => handleWhatsAppInquiry(`Inquiry from ${inquiryForm.name || 'Customer'}: ${inquiryForm.notes || 'Please provide more details.'}`)}
-                  className="px-4 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors"
+                  className="px-4 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>WhatsApp</span>

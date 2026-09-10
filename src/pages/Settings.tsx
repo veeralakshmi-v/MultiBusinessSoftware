@@ -7,14 +7,7 @@ import {
   Image as ImageIcon, Upload, Plus, X, Monitor, ExternalLink, Lock, KeyRound, ShieldCheck, Eye, EyeOff, Palette
 } from 'lucide-react';
 import ThemeCustomizer from '../components/theme/ThemeCustomizer';
-import {
-  PROJECT_MENU_ITEMS, parseAppAccess,
-  CATEGORY_ROLE_MAP, STANDARD_CATEGORIES, getRolesForCategory, getDefaultRoleForCategory
-} from './EmployeeDirectory';
-import {
-  isValidPhone, isValidAadhar, cleanPhone, cleanAadhar, formatAadhar,
-  getPhoneValidationError, getAadharValidationError
-} from '../utils/validation';
+import { PROJECT_MENU_ITEMS, parseAppAccess } from './EmployeeDirectory';
 
 export interface StaffUser {
   id: string;
@@ -42,7 +35,7 @@ const DEFAULT_STAFF: StaffUser[] = [
     name: 'Administrator',
     username: 'admin',
     role: 'ADMIN',
-    category: 'Management & Admin',
+    category: 'Management/Admin',
     applicationAccess: 'Full Access (All Modules & POS)',
     phone: '9876543210',
     familyPhone: '9876543211',
@@ -144,7 +137,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
   const [staffRole, setStaffRole] = useState<string>('CASHIER');
   const [customRoleTitle, setCustomRoleTitle] = useState('');
   const [isCustomRole, setIsCustomRole] = useState(false);
-  const [staffCategory, setStaffCategory] = useState('Management & Admin');
+  const [staffCategory, setStaffCategory] = useState('Management/Admin');
   const [customCategoryTitle, setCustomCategoryTitle] = useState('');
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [selectedAppAccess, setSelectedAppAccess] = useState<string[]>([]);
@@ -271,16 +264,11 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
   // Handle Save Profile & Billing
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone.trim() && !isValidPhone(phone)) {
-      alert('Please enter a valid Business Phone number!');
-      return;
-    }
-
     updateBusinessProfile({
       businessName,
       legalName,
       tagline,
-      phone: cleanPhone(phone) || phone,
+      phone,
       email,
       address,
       city,
@@ -335,7 +323,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         setIsCustomRole(true);
       }
 
-      const catVal = st.category || 'Management & Admin';
+      const STANDARD_CATEGORIES = ['Management/Admin', 'Accounts & Finance', 'Sales & Marketing', 'HouseKeeping', 'General'];
+      const catVal = st.category || 'Management/Admin';
       if (STANDARD_CATEGORIES.includes(catVal)) {
         setStaffCategory(catVal);
         setCustomCategoryTitle('');
@@ -346,7 +335,6 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         setIsCustomCategory(true);
       }
       setSelectedAppAccess(parseAppAccess(st.applicationAccess));
-      setStaffPhone(st.phone || '');
       setStaffFamilyPhone(st.familyPhone || '');
       setStaffEmail(st.email || '');
       setStaffPin(st.pinCode || '1234');
@@ -361,11 +349,10 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       setEditingStaff(null);
       setStaffName('');
       setStaffUsername('');
-      const defaultCat = 'Management & Admin';
-      setStaffCategory(defaultCat);
-      setStaffRole(getDefaultRoleForCategory(defaultCat));
+      setStaffRole('CASHIER');
       setCustomRoleTitle('');
       setIsCustomRole(false);
+      setStaffCategory('Management/Admin');
       setCustomCategoryTitle('');
       setIsCustomCategory(false);
       setSelectedAppAccess([]);
@@ -404,24 +391,12 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       alert('Contact Number (Mobile Number) is required as the default username!');
       return;
     }
-    if (!isValidPhone(staffPhone)) {
-      alert('Please enter a valid mobile number for Contact Number!');
-      return;
-    }
-    if (staffFamilyPhone.trim() && !isValidPhone(staffFamilyPhone)) {
-      alert('Please enter a valid mobile number for Family Contact Number!');
-      return;
-    }
     if (isStaffPhoneDuplicate) {
       alert('this number is already exits, give another number');
       return;
     }
     if (!staffAadhar.trim()) {
       alert('Aadhar Number is required!');
-      return;
-    }
-    if (!isValidAadhar(staffAadhar)) {
-      alert('Please enter a valid Aadhar Number!');
       return;
     }
 
@@ -528,13 +503,13 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#131315] border border-[#1F1F21] p-5 rounded-2xl shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-gray-200 p-5 rounded-2xl shadow-lg">
         <div>
           <div className="flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-[#C5A059]" />
-            <h1 className="text-xl font-bold text-white tracking-tight">Business & System Settings</h1>
+            <Building2 className="w-6 h-6 text-[#2563EB]" />
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Business & System Settings</h1>
           </div>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             Configure your business profile, receipt layouts, taxes, currency, and staff logins.
           </p>
         </div>
@@ -548,14 +523,14 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       </div>
 
       {/* Tabs Row */}
-      <div className="flex items-center gap-1.5 border-b border-[#1F1F21] pb-2 overflow-x-auto no-scrollbar touch-pan-x">
+      <div className="flex items-center gap-1.5 border-b border-gray-200 pb-2 overflow-x-auto no-scrollbar touch-pan-x">
         <button
           onClick={() => setActiveTab('profile')}
           className={cn(
             "px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0",
             activeTab === 'profile'
-              ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20 font-extrabold"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 font-extrabold"
+              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
           )}
         >
           <Building2 className="w-4 h-4" />
@@ -567,8 +542,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'billing'
-              ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
+              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
           )}
         >
           <Printer className="w-4 h-4" />
@@ -580,8 +555,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'staff'
-              ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
+              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
           )}
         >
           <Users className="w-4 h-4" />
@@ -593,8 +568,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'landing'
-              ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
+              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
           )}
         >
           <Monitor className="w-4 h-4" />
@@ -607,7 +582,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'security'
               ? "btn-theme-secondary shadow-md"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
+              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
           )}
         >
           <Lock className="w-4 h-4" />
@@ -620,7 +595,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'theme'
               ? "btn-theme-secondary shadow-md"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
+              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
           )}
         >
           <Palette className="w-4 h-4" />
@@ -633,142 +608,119 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
 
       {/* TAB 1: BUSINESS PROFILE */}
       {activeTab === 'profile' && (
-        <form onSubmit={handleSaveSettings} className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-6 shadow-xl space-y-6">
-          <h3 className="font-bold text-white text-base border-b border-[#1F1F21] pb-3 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-[#C5A059]" />
+        <form onSubmit={handleSaveSettings} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+          <h3 className="font-bold text-gray-900 text-base border-b border-gray-200 pb-3 flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-[#2563EB]" />
             <span>Store / Business Details</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Business Name *</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Business Name *</label>
               <input
                 type="text"
                 required
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Legal / Registered Name</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Legal / Registered Name</label>
               <input
                 type="text"
                 value={legalName}
                 onChange={(e) => setLegalName(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Tagline / Slogan</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Tagline / Slogan</label>
               <input
                 type="text"
                 value={tagline}
                 onChange={(e) => setTagline(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400"
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className={cn("text-xs font-semibold", phone.trim() && !isValidPhone(phone) ? "text-red-400 font-bold" : "text-gray-300")}>
-                  Phone Number *
-                </label>
-                {phone.trim() && isValidPhone(phone) && (
-                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Valid
-                  </span>
-                )}
-              </div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Phone Number *</label>
               <input
                 type="tel"
                 required
-                maxLength={13}
-                placeholder="9876543210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className={cn(
-                  "w-full rounded-xl px-3.5 py-2.5 text-xs font-mono outline-none transition-all",
-                  phone.trim() && !isValidPhone(phone)
-                    ? "bg-[#1A1A1C] border-2 border-red-500/80 text-red-200 focus:border-red-400"
-                    : phone.trim() && isValidPhone(phone)
-                      ? "bg-[#1A1A1C] border border-emerald-500/60 focus:border-emerald-400 text-white"
-                      : "bg-[#1A1A1C] border border-[#2D2D30] focus:border-[#C5A059] text-white"
-                )}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
               />
-              {phone.trim() && !isValidPhone(phone) && (
-                <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
-                  ⚠️ Please enter a valid phone number
-                </p>
-              )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Email Address</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Email Address</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Physical Store / Office Address</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Physical Store / Office Address</label>
               <input
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">GSTIN / Tax ID Number</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">GSTIN / Tax ID Number</label>
               <input
                 type="text"
                 value={gstin}
                 onChange={(e) => setGstin(e.target.value)}
                 placeholder="33AAAAA0000A1Z5"
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">FSSAI / Trade License (Optional)</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">FSSAI / Trade License (Optional)</label>
               <input
                 type="text"
                 value={fssai}
                 onChange={(e) => setFssai(e.target.value)}
                 placeholder="12421001000543"
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Currency Symbol</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Currency Symbol</label>
               <input
                 type="text"
                 value={currencySymbol}
                 onChange={(e) => setCurrencySymbol(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Currency Code</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Currency Code</label>
               <input
                 type="text"
                 value={currencyCode}
                 onChange={(e) => setCurrencyCode(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
               />
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-[#1F1F21]">
+          <div className="flex justify-end pt-4 border-t border-gray-200">
             <button
               type="submit"
               className="px-6 py-2.5 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:brightness-110 flex items-center gap-2"
@@ -782,40 +734,40 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
 
       {/* TAB 2: BILLING & INVOICE SETTINGS */}
       {activeTab === 'billing' && (
-        <form onSubmit={handleSaveSettings} className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-6 shadow-xl space-y-6">
-          <h3 className="font-bold text-white text-base border-b border-[#1F1F21] pb-3 flex items-center gap-2">
-            <Printer className="w-5 h-5 text-[#C5A059]" />
+        <form onSubmit={handleSaveSettings} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-6">
+          <h3 className="font-bold text-gray-900 text-base border-b border-gray-200 pb-3 flex items-center gap-2">
+            <Printer className="w-5 h-5 text-[#2563EB]" />
             <span>Invoice & Print Configuration</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Invoice Number Prefix</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Invoice Number Prefix</label>
               <input
                 type="text"
                 value={invoicePrefix}
                 onChange={(e) => setInvoicePrefix(e.target.value)}
                 placeholder="INV/2026/"
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Next Starting Number</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Next Starting Number</label>
               <input
                 type="number"
                 value={nextInvoiceNumber}
                 onChange={(e) => setNextInvoiceNumber(Number(e.target.value))}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Default Tax / GST Rate (%)</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Default Tax / GST Rate (%)</label>
               <select
                 value={defaultTaxRate}
                 onChange={(e) => setDefaultTaxRate(Number(e.target.value))}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400"
               >
                 <option value={0}>0% (Tax Exempt)</option>
                 <option value={5}>5% (Standard Essential)</option>
@@ -826,11 +778,11 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Default Paper Format</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Default Paper Format</label>
               <select
                 value={paperSize}
                 onChange={(e) => setPaperSize(e.target.value as any)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400"
               >
                 <option value="80MM">80mm Thermal Receipt (Standard POS)</option>
                 <option value="58MM">58mm Thermal Receipt (Compact POS)</option>
@@ -839,27 +791,27 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Terms & Conditions (Printed on Invoice)</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Terms & Conditions (Printed on Invoice)</label>
               <textarea
                 rows={2}
                 value={termsText}
                 onChange={(e) => setTermsText(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl p-3 text-xs text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 outline-none focus:border-blue-400"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-xs font-semibold text-gray-300 mb-1.5">Thank You Note</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Thank You Note</label>
               <input
                 type="text"
                 value={thankYouNote}
                 onChange={(e) => setThankYouNote(e.target.value)}
-                className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400"
               />
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-[#1F1F21]">
+          <div className="flex justify-end pt-4 border-t border-gray-200">
             <button
               type="submit"
               className="px-6 py-2.5 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:brightness-110 flex items-center gap-2"
@@ -873,11 +825,11 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
 
       {/* TAB 3: STAFF & CASHIERS */}
       {activeTab === 'staff' && (
-        <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-6 shadow-xl space-y-5">
-          <div className="flex items-center justify-between border-b border-[#1F1F21] pb-3">
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-5">
+          <div className="flex items-center justify-between border-b border-gray-200 pb-3">
             <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-[#C5A059]" />
-              <h3 className="font-bold text-white text-base">Cashier & Staff Accounts</h3>
+              <Users className="w-5 h-5 text-[#2563EB]" />
+              <h3 className="font-bold text-gray-900 text-base">Cashier & Staff Accounts</h3>
             </div>
             <button
               onClick={() => handleOpenStaffModal()}
@@ -888,9 +840,9 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
             </button>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-[#1F1F21] bg-[#0E0E10] shadow-xl">
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-xl">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#161618] text-gray-400 font-bold uppercase text-[10px] border-b border-[#1F1F21]">
+              <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200">
                 <tr>
                   <th className="p-3.5 whitespace-nowrap">Employee</th>
                   <th className="p-3.5 whitespace-nowrap">Category</th>
@@ -906,7 +858,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
               </thead>
               <tbody className="divide-y divide-[#1F1F21]">
                 {staffList.map(st => (
-                  <tr key={st.id} className="hover:bg-[#18181A] transition-colors">
+                  <tr key={st.id} className="hover:bg-gray-50 transition-colors">
                     <td className="p-3.5">
                       <div className="flex items-center gap-3">
                         {st.photoUrl ? (
@@ -963,14 +915,14 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenStaffModal(st)}
-                          className="p-1.5 bg-[#1A1A1C] hover:bg-[#252528] text-gray-300 hover:text-[#C5A059] border border-[#2D2D30] rounded-lg"
+                          className="p-1.5 bg-gray-50 hover:bg-[#252528] text-gray-300 hover:text-[#C5A059] border border-gray-200 rounded-lg"
                           title="Edit Staff"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteStaff(st.id)}
-                          className="p-1.5 bg-[#1A1A1C] hover:bg-red-500/10 text-gray-400 hover:text-red-400 border border-[#2D2D30] rounded-lg"
+                          className="p-1.5 bg-gray-50 hover:bg-red-500/10 text-gray-400 hover:text-red-400 border border-gray-200 rounded-lg"
                           title="Delete Staff"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -988,11 +940,11 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       {/* Staff Add/Edit Modal */}
       {isStaffModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in overflow-y-auto">
-          <div className="bg-[#141416] border border-[#2D2D30] rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#222225] pb-3">
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#C5A059]" />
-                <h3 className="font-bold text-white text-base">
+                <Users className="w-5 h-5 text-[#2563EB]" />
+                <h3 className="font-bold text-gray-900 text-base">
                   {editingStaff ? 'Edit Staff Details' : 'New Employee Details'}
                 </h3>
               </div>
@@ -1003,7 +955,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
 
             <form onSubmit={handleSaveStaff} className="space-y-4">
               {/* Employee Photo Upload Card */}
-              <div className="flex items-center gap-4 p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl">
+              <div className="flex items-center gap-4 p-3 bg-gray-50 border border-gray-200 rounded-xl">
                 {staffPhoto ? (
                   <img src={staffPhoto} alt="" className="w-14 h-14 rounded-xl object-cover border-2 border-[#C5A059]/40 flex-shrink-0" />
                 ) : (
@@ -1020,7 +972,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                       onClick={() => staffPhotoInputRef.current?.click()}
                       className="px-3 py-1 bg-[#252528] hover:bg-[#303035] border border-[#3D3D40] text-gray-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all"
                     >
-                      <Upload className="w-3.5 h-3.5 text-[#C5A059]" />
+                      <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
                       <span>{staffPhoto ? 'Change Photo' : 'Upload Photo'}</span>
                     </button>
                     {staffPhoto && (
@@ -1045,7 +997,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     placeholder="e.g. Ramesh Kumar"
                     value={staffName}
                     onChange={(e) => setStaffName(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
                   />
                 </div>
 
@@ -1077,23 +1029,18 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                       if (val === 'CUSTOM') {
                         setIsCustomCategory(true);
                         setStaffCategory('CUSTOM');
-                        setIsCustomRole(true);
-                        setStaffRole('CUSTOM');
                       } else {
                         setIsCustomCategory(false);
                         setStaffCategory(val);
-                        const matchedRole = getDefaultRoleForCategory(val);
-                        setStaffRole(matchedRole);
-                        setIsCustomRole(false);
-                        setCustomRoleTitle('');
-                        if (matchedRole === 'ADMIN') setStaffStatus('ACTIVE');
                       }
                     }}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
                   >
-                    {STANDARD_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
+                    <option value="Management/Admin">Management/Admin</option>
+                    <option value="Accounts & Finance">Accounts & Finance</option>
+                    <option value="Sales & Marketing">Sales & Marketing</option>
+                    <option value="HouseKeeping">HouseKeeping</option>
+                    <option value="General">General</option>
                     <option value="CUSTOM">⚡ CUSTOM CATEGORY (Enter custom department)</option>
                   </select>
 
@@ -1106,19 +1053,14 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                         placeholder="e.g. IT & Security, Quality Control, Logistics"
                         value={customCategoryTitle}
                         onChange={(e) => setCustomCategoryTitle(e.target.value)}
-                        className="w-full bg-[#1A1A1C] border border-[#C5A059]/40 focus:border-[#C5A059] rounded-xl px-3 py-2 text-xs text-white outline-none font-medium"
+                        className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-white outline-none font-medium"
                       />
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="block text-xs font-semibold text-gray-300">Role *</label>
-                    <span className="text-[10px] text-[#C5A059] font-medium">
-                      Matched for {isCustomCategory ? 'Custom' : staffCategory}
-                    </span>
-                  </div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Role *</label>
                   <select
                     value={isCustomRole ? 'CUSTOM' : staffRole}
                     onChange={(e) => {
@@ -1132,14 +1074,12 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                         if (val === 'ADMIN') setStaffStatus('ACTIVE');
                       }
                     }}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
                   >
-                    {getRolesForCategory(isCustomCategory ? 'CUSTOM' : staffCategory).map((r) => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                    {staffRole && staffRole !== 'CUSTOM' && !getRolesForCategory(staffCategory).includes(staffRole) && (
-                      <option value={staffRole}>{staffRole}</option>
-                    )}
+                    <option value="CASHIER">CASHIER</option>
+                    <option value="MANAGER">MANAGER</option>
+                    <option value="ADMIN">ADMIN</option>
+                    <option value="STAFF">STAFF</option>
                     <option value="CUSTOM">⚡ CUSTOM ROLE</option>
                   </select>
 
@@ -1152,7 +1092,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                         placeholder="e.g. Supervisor, Storekeeper, Delivery Executive"
                         value={customRoleTitle}
                         onChange={(e) => setCustomRoleTitle(e.target.value)}
-                        className="w-full bg-[#1A1A1C] border border-[#C5A059]/40 focus:border-[#C5A059] rounded-xl px-3 py-2 text-xs text-white outline-none font-medium"
+                        className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-white outline-none font-medium"
                       />
                     </div>
                   )}
@@ -1187,28 +1127,28 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Billing POS', 'Customers', 'Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-300 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
                     >
                       POS Cashier
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Dashboard', 'Billing POS', 'Categories & Items', 'Inventory', 'Sales Reports', 'Customers', 'Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-300 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
                     >
                       Store Manager
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-300 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
                     >
                       Attendance Only
                     </button>
                   </div>
 
                   {/* Checklist Multi-Select Container */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl max-h-56 overflow-y-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl max-h-56 overflow-y-auto">
                     {PROJECT_MENU_ITEMS.map((item) => {
                       const isChecked = selectedAppAccess.includes(item);
                       return (
@@ -1246,7 +1186,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                       ) : selectedAppAccess.length === 0 ? (
                         <span className="text-red-400 font-semibold">⚠️ No access selected (Please check at least 1 menu module)</span>
                       ) : (
-                        <span>Selected <strong className="text-[#C5A059]">{selectedAppAccess.length}</strong> of {PROJECT_MENU_ITEMS.length} menu modules</span>
+                        <span>Selected <strong className="text-[#2563EB]">{selectedAppAccess.length}</strong> of {PROJECT_MENU_ITEMS.length} menu modules</span>
                       )}
                     </span>
                   </div>
@@ -1259,45 +1199,20 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     type="date"
                     value={staffDob}
                     onChange={(e) => setStaffDob(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059] [color-scheme:dark]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400 [color-scheme:dark]"
                   />
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className={cn("text-xs font-semibold", staffAadhar.trim() && !isValidAadhar(staffAadhar) ? "text-red-400" : "text-[#C5A059]")}>
-                      Aadhar Number *
-                    </label>
-                    {staffAadhar.trim() && isValidAadhar(staffAadhar) && (
-                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Valid
-                      </span>
-                    )}
-                  </div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1 text-[#2563EB]">Aadhar Number *</label>
                   <input
                     type="text"
                     required
-                    maxLength={14}
                     placeholder="1234 5678 9012"
                     value={staffAadhar}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^\d\s-]/g, '');
-                      setStaffAadhar(val);
-                    }}
-                    className={cn(
-                      "w-full bg-[#1A1A1C] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none transition-all",
-                      staffAadhar.trim() && !isValidAadhar(staffAadhar)
-                        ? "border-2 border-red-500/80 focus:border-red-400"
-                        : staffAadhar.trim() && isValidAadhar(staffAadhar)
-                          ? "border border-emerald-500/60 focus:border-emerald-400"
-                          : "border border-[#C5A059]/40 focus:border-[#C5A059]"
-                    )}
+                    onChange={(e) => setStaffAadhar(e.target.value)}
+                    className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none"
                   />
-                  {staffAadhar.trim() && !isValidAadhar(staffAadhar) && (
-                    <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-medium animate-in fade-in">
-                      ⚠️ Please enter a valid Aadhar number
-                    </p>
-                  )}
                 </div>
 
                 <div>
@@ -1306,7 +1221,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     type="date"
                     value={staffDoj}
                     onChange={(e) => setStaffDoj(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059] [color-scheme:dark]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400 [color-scheme:dark]"
                   />
                 </div>
 
@@ -1316,26 +1231,18 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     type="date"
                     value={staffDor}
                     onChange={(e) => setStaffDor(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059] [color-scheme:dark]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400 [color-scheme:dark]"
                   />
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className={cn("text-xs font-semibold", isStaffPhoneDuplicate || (staffPhone.trim() && !isValidPhone(staffPhone)) ? "text-red-400 font-bold" : "text-[#C5A059]")}>
-                      Contact Number (Default Username) *
-                    </label>
-                    {staffPhone.trim() && isValidPhone(staffPhone) && !isStaffPhoneDuplicate && (
-                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Valid
-                      </span>
-                    )}
-                  </div>
+                  <label className={cn("block text-xs font-semibold mb-1", isStaffPhoneDuplicate ? "text-red-400 font-bold" : "text-[#2563EB]")}>
+                    Contact Number (Default Username) *
+                  </label>
                   <input
                     type="tel"
                     required
-                    maxLength={13}
-                    placeholder="9876543210"
+                    placeholder="+91 98765 00000"
                     value={staffPhone}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -1343,52 +1250,28 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                       setStaffUsername(val);
                     }}
                     className={cn(
-                      "w-full bg-[#1A1A1C] rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
-                      isStaffPhoneDuplicate || (staffPhone.trim() && !isValidPhone(staffPhone))
+                      "w-full bg-gray-50 rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
+                      isStaffPhoneDuplicate
                         ? "border-2 border-red-500 text-red-300 focus:border-red-400"
-                        : staffPhone.trim() && isValidPhone(staffPhone)
-                          ? "border border-emerald-500/60 focus:border-emerald-400 text-white"
-                          : "border border-[#C5A059]/40 focus:border-[#C5A059] text-white"
+                        : "border border-[#C5A059]/40 focus:border-blue-400 text-white"
                     )}
                   />
-                  {isStaffPhoneDuplicate ? (
+                  {isStaffPhoneDuplicate && (
                     <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-bold animate-in fade-in">
                       ⚠️ this number is already exits, give another number
                     </p>
-                  ) : staffPhone.trim() && !isValidPhone(staffPhone) ? (
-                    <p className="text-[11px] text-amber-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
-                      ⚠️ Please enter a valid contact number
-                    </p>
-                  ) : null}
+                  )}
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-gray-300">Family Contact Number</label>
-                    {staffFamilyPhone.trim() && isValidPhone(staffFamilyPhone) && (
-                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Valid
-                      </span>
-                    )}
-                  </div>
+                  <label className="block text-xs font-semibold text-gray-300 mb-1">Family Contact Number</label>
                   <input
                     type="tel"
-                    maxLength={13}
-                    placeholder="9876543211"
+                    placeholder="+91 98765 11111"
                     value={staffFamilyPhone}
                     onChange={(e) => setStaffFamilyPhone(e.target.value)}
-                    className={cn(
-                      "w-full bg-[#1A1A1C] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]",
-                      staffFamilyPhone.trim() && !isValidPhone(staffFamilyPhone)
-                        ? "border-2 border-amber-500/80 focus:border-amber-400"
-                        : "border border-[#2D2D30]"
-                    )}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
                   />
-                  {staffFamilyPhone.trim() && !isValidPhone(staffFamilyPhone) && (
-                    <p className="text-[11px] text-amber-400 mt-1 flex items-center gap-1 font-semibold animate-in fade-in">
-                      ⚠️ Please enter a valid contact number
-                    </p>
-                  )}
                 </div>
 
                 <div>
@@ -1398,7 +1281,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     placeholder="staff@business.com"
                     value={staffEmail}
                     onChange={(e) => setStaffEmail(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
                   />
                 </div>
 
@@ -1411,7 +1294,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     placeholder="1234"
                     value={staffPin}
                     onChange={(e) => setStaffPin(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
                   />
                 </div>
 
@@ -1422,11 +1305,11 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     placeholder="Full residential address..."
                     value={staffAddress}
                     onChange={(e) => setStaffAddress(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl p-3 text-xs text-white outline-none focus:border-[#C5A059] resize-none"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 outline-none focus:border-blue-400 resize-none"
                   />
                 </div>
 
-                <div className="sm:col-span-2 flex items-center justify-between p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl">
+                <div className="sm:col-span-2 flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl">
                   <div>
                     <p className="text-xs font-semibold text-white">Employment Status</p>
                     <p className="text-[10px] text-gray-400">
@@ -1475,7 +1358,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                 <button
                   type="button"
                   onClick={() => setIsStaffModalOpen(false)}
-                  className="px-4 py-2 bg-[#1A1A1C] text-gray-400 hover:text-white rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 bg-gray-50 text-gray-400 hover:text-white rounded-xl text-xs font-semibold"
                 >
                   Cancel
                 </button>
@@ -1495,9 +1378,9 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         <form onSubmit={handleSaveLanding} className="space-y-6">
 
           {/* Logo Upload */}
-          <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-6 shadow-xl">
-            <h3 className="font-bold text-white text-base border-b border-[#1F1F21] pb-3 flex items-center gap-2 mb-5">
-              <ImageIcon className="w-5 h-5 text-[#C5A059]" />
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl">
+            <h3 className="font-bold text-gray-900 text-base border-b border-gray-200 pb-3 flex items-center gap-2 mb-5">
+              <ImageIcon className="w-5 h-5 text-[#2563EB]" />
               <span>Business Logo</span>
             </h3>
 
@@ -1508,7 +1391,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                   <img
                     src={businessProfile.logoUrl}
                     alt="logo"
-                    className="w-24 h-24 rounded-2xl object-contain border-2 border-[#2D2D30] bg-[#1A1A1C]"
+                    className="w-24 h-24 rounded-2xl object-contain border-2 border-gray-200 bg-gray-50"
                   />
                 ) : (
                   <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#C5A059] to-[#8C6D2B] flex items-center justify-center text-[#0A0A0B] font-bold text-4xl font-serif">
@@ -1523,7 +1406,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                 <button
                   type="button"
                   onClick={() => logoInputRef.current?.click()}
-                  className="px-4 py-2.5 bg-[#1A1A1C] hover:bg-[#252528] border border-[#2D2D30] hover:border-[#C5A059] text-gray-200 hover:text-[#C5A059] text-xs font-bold rounded-xl flex items-center gap-2 transition-all"
+                  className="px-4 py-2.5 bg-gray-50 hover:bg-[#252528] border border-gray-200 hover:border-[#C5A059] text-gray-200 hover:text-[#C5A059] text-xs font-bold rounded-xl flex items-center gap-2 transition-all"
                 >
                   <Upload className="w-4 h-4" />
                   Choose Logo File
@@ -1543,9 +1426,9 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           </div>
 
           {/* Tagline */}
-          <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-6 shadow-xl">
-            <h3 className="font-bold text-white text-base border-b border-[#1F1F21] pb-3 flex items-center gap-2 mb-5">
-              <FileText className="w-5 h-5 text-[#C5A059]" />
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl">
+            <h3 className="font-bold text-gray-900 text-base border-b border-gray-200 pb-3 flex items-center gap-2 mb-5">
+              <FileText className="w-5 h-5 text-[#2563EB]" />
               <span>Landing Page Tagline</span>
             </h3>
             <label className="block text-xs font-semibold text-gray-300 mb-2">
@@ -1556,15 +1439,15 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
               value={landingTagline}
               onChange={e => setLandingTagline(e.target.value)}
               placeholder="e.g. Your trusted store for quality products and fast billing since 2010."
-              className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-[#C5A059] resize-none"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-400 resize-none"
             />
           </div>
 
           {/* Image Carousel */}
-          <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[#1F1F21] pb-3 mb-5">
-              <h3 className="font-bold text-white text-base flex items-center gap-2">
-                <Monitor className="w-5 h-5 text-[#C5A059]" />
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-5">
+              <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                <Monitor className="w-5 h-5 text-[#2563EB]" />
                 <span>Image Carousel Slides</span>
               </h3>
               <span className="text-xs text-gray-500">{landingSlides.length} slide{landingSlides.length !== 1 ? 's' : ''}</span>
@@ -1576,7 +1459,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
 
             <div className="space-y-3 mb-4">
               {landingSlides.map((slide, idx) => (
-                <div key={slide.id} className="flex items-start gap-3 p-3.5 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl">
+                <div key={slide.id} className="flex items-start gap-3 p-3.5 bg-gray-50 border border-gray-200 rounded-xl">
                   {/* Image Thumbnail */}
                   <label className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 border-dashed border-[#3D3D40] hover:border-[#C5A059] transition-colors cursor-pointer">
                     {slide.imageUrl ? (
@@ -1604,7 +1487,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                         placeholder="Caption (e.g. Our Founder — Mr. Ramesh Kumar)"
                         value={slide.caption}
                         onChange={e => updateSlide(slide.id, { caption: e.target.value })}
-                        className="flex-1 bg-[#141416] border border-[#2D2D30] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#C5A059]"
+                        className="flex-1 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-blue-400"
                       />
                     </div>
                     <input
@@ -1612,7 +1495,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                       placeholder="Sub-caption (e.g. Founded in 2010, serving 5000+ customers)"
                       value={slide.subCaption || ''}
                       onChange={e => updateSlide(slide.id, { subCaption: e.target.value })}
-                      className="w-full bg-[#141416] border border-[#2D2D30] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-[#C5A059]"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-blue-400"
                     />
                   </div>
 
@@ -1628,7 +1511,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
               ))}
 
               {landingSlides.length === 0 && (
-                <div className="text-center py-8 border-2 border-dashed border-[#2D2D30] rounded-xl">
+                <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">
                   <ImageIcon className="w-8 h-8 text-gray-700 mx-auto mb-2" />
                   <p className="text-xs text-gray-500">No slides yet — click Add Slide to upload your first image</p>
                 </div>
@@ -1638,7 +1521,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
             <button
               type="button"
               onClick={addSlide}
-              className="w-full py-2.5 border-2 border-dashed border-[#2D2D30] hover:border-[#C5A059]/60 rounded-xl text-xs text-gray-400 hover:text-[#C5A059] font-semibold flex items-center justify-center gap-2 transition-all"
+              className="w-full py-2.5 border-2 border-dashed border-gray-200 hover:border-[#C5A059]/60 rounded-xl text-xs text-gray-400 hover:text-[#C5A059] font-semibold flex items-center justify-center gap-2 transition-all"
             >
               <Plus className="w-4 h-4" />
               Add New Slide
@@ -1679,13 +1562,13 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       {/* TAB 5: SECURITY & CHANGE PASSWORD */}
       {activeTab === 'security' && (
         <div className="space-y-6">
-          <form onSubmit={handleChangeAdminPassword} className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-6 shadow-xl space-y-5 max-w-2xl">
-            <div className="flex items-center gap-3 border-b border-[#1F1F21] pb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059]">
+          <form onSubmit={handleChangeAdminPassword} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl space-y-5 max-w-2xl">
+            <div className="flex items-center gap-3 border-b border-gray-200 pb-3">
+              <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/30 flex items-center justify-center text-[#2563EB]">
                 <KeyRound className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-base font-serif">Change Administrator Password</h3>
+                <h3 className="font-bold text-gray-900 text-base font-serif">Change Administrator Password</h3>
                 <p className="text-xs text-gray-400">Update your Admin login credentials for system access security</p>
               </div>
             </div>
@@ -1714,7 +1597,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     placeholder="Enter current password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none focus:border-[#C5A059] font-mono"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400 font-mono"
                   />
                   <button
                     type="button"
@@ -1735,7 +1618,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     placeholder="Enter new strong password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none focus:border-[#C5A059] font-mono"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-3 pr-10 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400 font-mono"
                   />
                   <button
                     type="button"
@@ -1755,7 +1638,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                   placeholder="Re-enter new password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-[#C5A059] font-mono"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400 font-mono"
                 />
               </div>
             </div>
@@ -1772,17 +1655,17 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           </form>
 
           {/* Security Information Card */}
-          <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-5 shadow-xl max-w-2xl space-y-3">
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xl max-w-2xl space-y-3">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-300">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Administrator Account Security Status</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl">
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
                 <p className="text-[10px] text-gray-500 font-semibold uppercase">Admin Username</p>
-                <p className="font-bold text-white font-mono text-xs mt-0.5">admin</p>
+                <p className="font-bold text-gray-900 font-mono text-xs mt-0.5">admin</p>
               </div>
-              <div className="p-3 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl">
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
                 <p className="text-[10px] text-gray-500 font-semibold uppercase">Security Level</p>
                 <p className="font-bold text-emerald-400 text-xs mt-0.5 flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Protected

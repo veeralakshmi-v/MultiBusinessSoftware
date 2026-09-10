@@ -25,8 +25,8 @@ const PublicStorefront  = lazy(() => import('./pages/PublicStorefront'));
 
 function PageLoader() {
   return (
-    <div className="h-screen flex items-center justify-center bg-[#0A0A0B]">
-      <Loader2 className="w-8 h-8 animate-spin text-[#C5A059]" />
+    <div className="h-screen flex items-center justify-center bg-[#F8FAFC]">
+      <Loader2 className="w-8 h-8 animate-spin text-[#2563EB]" />
     </div>
   );
 }

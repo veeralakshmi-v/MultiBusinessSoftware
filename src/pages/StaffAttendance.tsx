@@ -208,16 +208,16 @@ export default function StaffAttendance() {
   const pendingCount = allLeaves.filter(l => l.status === 'PENDING').length;
 
   return (
-    <div className="flex flex-col h-full bg-[#0A0A0B] text-white overflow-hidden">
+    <div className="flex flex-col h-full bg-[#F8FAFC] text-gray-900 overflow-hidden">
 
       {/* Page header */}
-      <div className="px-6 py-5 border-b border-[#1F1F21] flex-shrink-0">
-        <h1 className="text-lg font-bold text-white">Staff Attendance</h1>
+      <div className="px-6 py-5 border-b border-gray-200 flex-shrink-0">
+        <h1 className="text-lg font-bold text-gray-900">Staff Attendance</h1>
         <p className="text-xs text-gray-500 mt-0.5">Track daily attendance, status and manage leave requests</p>
       </div>
 
       {/* Tabs */}
-      <div className="px-6 pt-4 flex items-center gap-2 flex-shrink-0 border-b border-[#1F1F21] overflow-x-auto">
+      <div className="px-6 pt-4 flex items-center gap-2 flex-shrink-0 border-b border-gray-200 overflow-x-auto">
         {[
           { id: 'calendar',       label: 'My Attendance Calendar', icon: CalendarDays },
           { id: 'my_attendance',  label: 'Mark Attendance (Punch IN/OUT)', icon: Clock },
@@ -229,7 +229,7 @@ export default function StaffAttendance() {
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 -mb-px transition-all whitespace-nowrap ${
-                active ? 'border-[#C5A059] text-[#C5A059]' : 'border-transparent text-gray-400 hover:text-white'
+                active ? 'border-[#2563EB] text-[#2563EB]' : 'border-transparent text-gray-400 hover:text-gray-900'
               }`}>
               <Icon className="w-4 h-4" /> {tab.label}
             </button>
@@ -291,13 +291,13 @@ export default function StaffAttendance() {
 
           return (
             <div className="space-y-5">
-              <div className="bg-[#111113] border border-[#222225] rounded-2xl p-6 shadow-xl max-w-xl mx-auto space-y-5">
-                <div className="flex items-center gap-3 border-b border-[#222225] pb-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/30 flex items-center justify-center text-[#C5A059] font-bold">
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xl max-w-xl mx-auto space-y-5">
+                <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB] font-bold">
                     {user?.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">{user?.username || 'User'}</h3>
+                    <h3 className="text-base font-bold text-gray-900">{user?.username || 'User'}</h3>
                     <p className="text-xs text-gray-400 font-mono">Role: {user?.role || 'Staff'} · Today: {todayStr}</p>
                   </div>
                 </div>
@@ -309,13 +309,13 @@ export default function StaffAttendance() {
                 )}
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-[#18181A] border border-[#252528] rounded-xl text-center">
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
                     <p className="text-[11px] text-gray-500 font-semibold uppercase">Punch IN</p>
                     <p className="text-lg font-bold text-emerald-400 font-mono mt-1">
                       {myRec?.punchIn || '—'}
                     </p>
                   </div>
-                  <div className="p-4 bg-[#18181A] border border-[#252528] rounded-xl text-center">
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
                     <p className="text-[11px] text-gray-500 font-semibold uppercase">Punch OUT</p>
                     <p className="text-lg font-bold text-red-400 font-mono mt-1">
                       {myRec?.punchOut || '—'}
@@ -353,12 +353,12 @@ export default function StaffAttendance() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input type="text" placeholder="Search staff..."
                   value={searchQ} onChange={e => setSearchQ(e.target.value)}
-                  className="w-full bg-[#131315] border border-[#1F1F21] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]/50" />
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400/50" />
               </div>
-              <div className="flex items-center gap-2 px-3 py-2.5 bg-[#131315] border border-[#1F1F21] rounded-xl">
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl">
                 <CalendarDays className="w-4 h-4 text-gray-500" />
                 <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
-                  className="bg-transparent text-xs text-white outline-none [color-scheme:dark] cursor-pointer" />
+                  className="bg-transparent text-xs text-gray-900 outline-none [color-scheme:light] cursor-pointer" />
               </div>
             </div>
 
@@ -374,7 +374,7 @@ export default function StaffAttendance() {
                         <Icon className={`w-4 h-4 ${cfg.color}`} />
                         <span className={`text-xs font-semibold ${cfg.color}`}>{cfg.label}</span>
                       </div>
-                      <p className="text-2xl font-bold text-white">{summary[status]}</p>
+                      <p className="text-2xl font-bold text-gray-900">{summary[status]}</p>
                       <p className="text-[10px] text-gray-600 mt-0.5">of {staffList.length} staff</p>
                     </div>
                   );
@@ -383,16 +383,16 @@ export default function StaffAttendance() {
 
             {/* Attendance table */}
             {staffList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 bg-[#0F0F10] border border-[#1F1F21] rounded-2xl">
+              <div className="flex flex-col items-center justify-center py-16 bg-gray-50 border border-gray-200 rounded-2xl">
                 <Users className="w-10 h-10 text-gray-700 mb-3" />
                 <p className="text-sm font-semibold text-gray-400">No active staff found</p>
                 <p className="text-xs text-gray-600 mt-1">Add staff members in Settings to track attendance</p>
               </div>
             ) : (
-              <div className="bg-[#0F0F10] border border-[#1F1F21] rounded-2xl overflow-hidden">
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-[#1F1F21] bg-[#131315]">
+                    <tr className="border-b border-gray-200 bg-gray-50">
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Employee</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Status</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Punch IN</th>
@@ -406,16 +406,16 @@ export default function StaffAttendance() {
                     {dailyAttendance.map(({ staff, rec, status, worked }) => (
                       <React.Fragment key={staff.id}>
                         <tr
-                          className="border-b border-[#1A1A1C] hover:bg-[#131315] cursor-pointer transition-colors"
+                          className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
                           onClick={() => setExpandedRow(expandedRow === staff.id ? null : staff.id)}
                         >
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-lg bg-[#C5A059]/15 border border-[#C5A059]/20 flex items-center justify-center text-[10px] font-bold text-[#C5A059]">
+                              <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-[10px] font-bold text-[#2563EB]">
                                 {staff.name.charAt(0)}
                               </div>
                               <div>
-                                <p className="text-white font-semibold text-xs">{staff.name}</p>
+                                <p className="text-gray-900 font-semibold text-xs">{staff.name}</p>
                                 <p className="text-[9px] text-gray-500 font-mono">{staff.role}</p>
                               </div>
                             </div>
@@ -456,7 +456,7 @@ export default function StaffAttendance() {
                         </tr>
                         {/* Expanded detail row */}
                         {expandedRow === staff.id && rec && (
-                          <tr className="bg-[#0D0D0F]">
+                          <tr className="bg-blue-50/30">
                             <td colSpan={7} className="px-6 py-4">
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
@@ -509,17 +509,17 @@ export default function StaffAttendance() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input type="text" placeholder="Search employee or leave type..."
                   value={searchQ} onChange={e => setSearchQ(e.target.value)}
-                  className="w-full bg-[#131315] border border-[#1F1F21] rounded-xl pl-10 pr-4 py-2.5 text-xs text-white outline-none focus:border-[#C5A059]/50" />
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400/50" />
               </div>
               {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(f => (
                 <button key={f} onClick={() => setLeaveFilter(f)}
                   className={`px-3.5 py-2 rounded-xl text-[11px] font-bold border transition-all ${
                     leaveFilter === f
-                      ? f === 'ALL'      ? 'bg-[#C5A059]/20 border-[#C5A059]/50 text-[#C5A059]'
+                      ? f === 'ALL'      ? 'bg-blue-50 border-blue-300 text-[#2563EB]'
                       : f === 'PENDING'  ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
                       : f === 'APPROVED' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                       :                    'bg-red-500/20 border-red-500/50 text-red-400'
-                      : 'bg-[#131315] border-[#1F1F21] text-gray-400 hover:text-white'
+                      : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-gray-900'
                   }`}>
                   {f === 'ALL' ? 'All' : f.charAt(0) + f.slice(1).toLowerCase()}
                   {f === 'PENDING' && pendingCount > 0 && (
@@ -531,7 +531,7 @@ export default function StaffAttendance() {
 
             {/* Leave requests */}
             {filteredLeaves.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 bg-[#0F0F10] border border-[#1F1F21] rounded-2xl">
+              <div className="flex flex-col items-center justify-center py-16 bg-gray-50 border border-gray-200 rounded-2xl">
                 <CalendarDays className="w-10 h-10 text-gray-700 mb-3" />
                 <p className="text-sm font-semibold text-gray-400">No leave requests found</p>
               </div>
@@ -539,17 +539,17 @@ export default function StaffAttendance() {
               <div className="space-y-3">
                 {filteredLeaves.map(leave => (
                   <div key={leave.id}
-                    className={`bg-[#0F0F10] border rounded-2xl p-5 transition-all ${
+                    className={`bg-gray-50 border rounded-2xl p-5 transition-all ${
                       leave.status === 'PENDING'  ? 'border-yellow-500/20'  :
                       leave.status === 'APPROVED' ? 'border-emerald-500/20' : 'border-red-500/15'
                     }`}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <div className="w-9 h-9 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/20 flex items-center justify-center text-sm font-bold text-[#C5A059] flex-shrink-0">
+                        <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-sm font-bold text-[#2563EB] flex-shrink-0">
                           {(leave.employeeName || '?').charAt(0)}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-sm text-white">{leave.employeeName || 'Staff Member'}</p>
+                          <p className="font-semibold text-sm text-gray-900">{leave.employeeName || 'Staff Member'}</p>
                           <div className="flex flex-wrap items-center gap-2 mt-1">
                             <span className="text-[10px] font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-full">
                               {leave.type}

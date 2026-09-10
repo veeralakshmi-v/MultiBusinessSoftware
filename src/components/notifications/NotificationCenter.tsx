@@ -151,7 +151,7 @@ export default function NotificationCenter() {
         );
       case 'IN_APP':
         return (
-          <span className="px-1.5 py-0.5 rounded bg-[#C5A059]/10 text-[#C5A059] border border-[#C5A059]/30 text-[9px] font-bold flex items-center gap-1 font-mono">
+          <span className="px-1.5 py-0.5 rounded bg-[#2563EB]/10 text-[#2563EB] border border-blue-400/30 text-[9px] font-bold flex items-center gap-1 font-mono">
             <Bell className="w-2.5 h-2.5" /> App
           </span>
         );
@@ -167,7 +167,7 @@ export default function NotificationCenter() {
       case 'CUSTOMER_CREATED': return <UserPlus className="w-4 h-4 text-teal-400" />;
       case 'STAFF_PUNCHED_IN': return <Clock className="w-4 h-4 text-emerald-400" />;
       case 'STAFF_PUNCHED_OUT': return <Clock className="w-4 h-4 text-cyan-400" />;
-      case 'LEAVE_REQUESTED': return <MessageSquare className="w-4 h-4 text-[#C5A059]" />;
+      case 'LEAVE_REQUESTED': return <MessageSquare className="w-4 h-4 text-[#2563EB]" />;
       case 'LEAVE_STATUS_CHANGED': return <CheckCheck className="w-4 h-4 text-purple-400" />;
     }
   };
@@ -185,12 +185,12 @@ export default function NotificationCenter() {
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-xl text-gray-400 hover:text-white hover:bg-[#1A1A1C] border border-[#1F1F21] transition-all"
+        className="relative p-2 rounded-xl text-gray-400 hover:text-gray-900 hover:bg-gray-50 border border-gray-200 transition-all"
         title="Notification Center"
       >
-        <Bell className="w-5 h-5 text-gray-300 hover:text-[#C5A059] transition-colors" />
+        <Bell className="w-5 h-5 text-gray-300 hover:text-[#2563EB] transition-colors" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#C5A059] text-[#0A0A0B] text-[10px] font-bold flex items-center justify-center animate-pulse shadow-lg shadow-[#C5A059]/40">
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#2563EB] text-[#0A0A0B] text-[10px] font-bold flex items-center justify-center animate-pulse shadow-lg shadow-blue-500/40">
             {unreadCount}
           </span>
         )}
@@ -198,15 +198,15 @@ export default function NotificationCenter() {
 
       {/* Notification Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-[#131315] border border-[#2D2D30] rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150 text-gray-200">
+        <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150 text-gray-200">
           
           {/* Header */}
-          <div className="p-3.5 border-b border-[#1F1F21] bg-[#161618] flex items-center justify-between">
+          <div className="p-3.5 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#C5A059]" />
-              <h3 className="font-bold text-white text-xs tracking-tight">Notification Engine</h3>
+              <Sparkles className="w-4 h-4 text-[#2563EB]" />
+              <h3 className="font-bold text-gray-900 text-xs tracking-tight">Notification Engine</h3>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-[#C5A059]/10 border border-[#C5A059]/30 text-[10px] text-[#C5A059] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-[#2563EB]/10 border border-blue-400/30 text-[10px] text-[#2563EB] font-bold">
                   {unreadCount} New
                 </span>
               )}
@@ -214,7 +214,7 @@ export default function NotificationCenter() {
             <div className="flex items-center gap-1.5 text-xs">
               <button
                 onClick={handleMarkAllAsRead}
-                className="p-1 text-gray-400 hover:text-white rounded hover:bg-[#252528]"
+                className="p-1 text-gray-400 hover:text-gray-900 rounded hover:bg-[#252528]"
                 title="Mark all as read"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
@@ -230,7 +230,7 @@ export default function NotificationCenter() {
           </div>
 
           {/* Quick Filter Tabs */}
-          <div className="flex border-b border-[#1F1F21] bg-[#0A0A0B] text-[10px] font-bold">
+          <div className="flex border-b border-gray-200 bg-[#F8FAFC] text-[10px] font-bold">
             {[
               { id: 'ALL', label: 'All' },
               { id: 'INVOICES', label: 'Invoices' },
@@ -243,8 +243,8 @@ export default function NotificationCenter() {
                 className={cn(
                   "flex-1 py-2 text-center transition-colors border-b-2",
                   activeTab === tab.id
-                    ? "text-[#C5A059] border-[#C5A059] bg-[#141416]"
-                    : "text-gray-400 border-transparent hover:text-white"
+                    ? "text-[#2563EB] border-blue-400 bg-white"
+                    : "text-gray-400 border-transparent hover:text-gray-900"
                 )}
               >
                 {tab.label}
@@ -262,10 +262,10 @@ export default function NotificationCenter() {
                   onClick={() => handleMarkAsRead(notif.id)}
                   className={cn(
                     "p-3 transition-colors cursor-pointer flex items-start gap-3 text-xs",
-                    isUnread ? "bg-[#1A1A1D]/60 hover:bg-[#1A1A1D]" : "hover:bg-[#161618] opacity-75"
+                    isUnread ? "bg-[#1A1A1D]/60 hover:bg-[#1A1A1D]" : "hover:bg-gray-50 opacity-75"
                   )}
                 >
-                  <div className="mt-0.5 p-2 rounded-xl bg-[#0A0A0B] border border-[#2D2D30] flex-shrink-0">
+                  <div className="mt-0.5 p-2 rounded-xl bg-[#F8FAFC] border border-gray-200 flex-shrink-0">
                     {getEventIcon(notif.event)}
                   </div>
                   <div className="flex-1 min-w-0 space-y-1">
@@ -295,44 +295,44 @@ export default function NotificationCenter() {
           </div>
 
           {/* Test Event Dispatch Simulator Footer */}
-          <div className="p-3 border-t border-[#1F1F21] bg-[#0A0A0B] space-y-2">
+          <div className="p-3 border-t border-gray-200 bg-[#F8FAFC] space-y-2">
             <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center justify-between">
               <span>Trigger Test Event Dispatch</span>
-              <Send className="w-3 h-3 text-[#C5A059]" />
+              <Send className="w-3 h-3 text-[#2563EB]" />
             </div>
             <div className="grid grid-cols-3 gap-1 text-[10px] font-semibold">
               <button
                 disabled={isSimulating}
                 onClick={() => simulateEventDispatch('INVOICE_CREATED')}
-                className="p-1.5 bg-[#141416] border border-[#2D2D30] hover:border-emerald-500/50 rounded-lg text-emerald-400 truncate"
+                className="p-1.5 bg-white border border-gray-200 hover:border-emerald-500/50 rounded-lg text-emerald-400 truncate"
               >
                 🧾 Bill Created
               </button>
               <button
                 disabled={isSimulating}
                 onClick={() => simulateEventDispatch('PAYMENT_DUE')}
-                className="p-1.5 bg-[#141416] border border-[#2D2D30] hover:border-amber-500/50 rounded-lg text-amber-400 truncate"
+                className="p-1.5 bg-white border border-gray-200 hover:border-amber-500/50 rounded-lg text-amber-400 truncate"
               >
                 ⚠️ Pay Due
               </button>
               <button
                 disabled={isSimulating}
                 onClick={() => simulateEventDispatch('LOW_STOCK')}
-                className="p-1.5 bg-[#141416] border border-[#2D2D30] hover:border-rose-500/50 rounded-lg text-rose-400 truncate"
+                className="p-1.5 bg-white border border-gray-200 hover:border-rose-500/50 rounded-lg text-rose-400 truncate"
               >
                 🚨 Low Stock
               </button>
               <button
                 disabled={isSimulating}
                 onClick={() => simulateEventDispatch('PURCHASE_RECEIVED')}
-                className="p-1.5 bg-[#141416] border border-[#2D2D30] hover:border-sky-500/50 rounded-lg text-sky-400 truncate"
+                className="p-1.5 bg-white border border-gray-200 hover:border-sky-500/50 rounded-lg text-sky-400 truncate"
               >
                 📦 PO GRN
               </button>
               <button
                 disabled={isSimulating}
                 onClick={() => simulateEventDispatch('CUSTOMER_CREATED')}
-                className="p-1.5 bg-[#141416] border border-[#2D2D30] hover:border-teal-500/50 rounded-lg text-teal-400 truncate col-span-2"
+                className="p-1.5 bg-white border border-gray-200 hover:border-teal-500/50 rounded-lg text-teal-400 truncate col-span-2"
               >
                 🎉 Customer Enrolled
               </button>

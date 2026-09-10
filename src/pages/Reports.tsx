@@ -328,11 +328,11 @@ export default function Reports() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-[#131315] border border-[#1F1F21] p-4 sm:p-5 rounded-2xl shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white border border-gray-200 p-4 sm:p-5 rounded-2xl shadow-lg">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-[#C5A059] flex-shrink-0" />
-            <h1 className="text-lg sm:text-xl font-bold text-white tracking-tight truncate">Sales & Revenue Reports</h1>
+            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-[#2563EB] flex-shrink-0" />
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight truncate">Sales & Revenue Reports</h1>
           </div>
           <p className="text-xs text-gray-400 mt-1 truncate">
             Complete business sales analytics, invoice register, and item & category performance breakdown.
@@ -342,21 +342,21 @@ export default function Reports() {
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-shrink-0">
           <button
             onClick={fetchOrders}
-            className="p-2 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl hover:border-[#C5A059] text-gray-400 hover:text-[#C5A059] transition-colors flex-shrink-0"
+            className="p-2 bg-gray-50 border border-gray-200 rounded-xl hover:border-[#2563EB] text-gray-400 hover:text-[#2563EB] transition-colors flex-shrink-0"
             title="Refresh Report Data"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleExportCSV}
-            className="px-3 sm:px-4 py-2 bg-[#1A1A1C] hover:bg-[#252528] text-white border border-[#2D2D30] rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+            className="px-3 sm:px-4 py-2 bg-gray-50 hover:bg-gray-100 text-white border border-gray-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
           >
-            <Download className="w-4 h-4 text-[#C5A059]" />
+            <Download className="w-4 h-4 text-[#2563EB]" />
             <span>Export CSV</span>
           </button>
           <button
             onClick={() => window.print()}
-            className="px-3 sm:px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:brightness-110 transition-all flex items-center gap-1.5"
+            className="px-3 sm:px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#DFBA73] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 hover:brightness-110 transition-all flex items-center gap-1.5"
           >
             <Printer className="w-4 h-4" />
             <span>Print Report</span>
@@ -365,7 +365,7 @@ export default function Reports() {
       </div>
 
       {/* Date Range & Search Filter Bar */}
-      <div className="bg-[#131315] border border-[#1F1F21] p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="bg-white border border-gray-200 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Date Presets */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar touch-pan-x pb-1 sm:pb-0">
           {[
@@ -381,8 +381,8 @@ export default function Reports() {
               className={cn(
                 "px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0",
                 dateRangePreset === p.id
-                  ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20 font-extrabold"
-                  : "bg-[#1A1A1C] text-gray-400 hover:text-white border border-[#262629]"
+                  ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 font-extrabold"
+                  : "bg-gray-50 text-gray-400 hover:text-gray-900 border border-[#262629]"
               )}
             >
               {p.label}
@@ -398,7 +398,7 @@ export default function Reports() {
               type="date"
               value={startDate}
               onChange={(e) => { setStartDate(e.target.value); setDateRangePreset('CUSTOM'); }}
-              className="bg-[#1A1A1C] border border-[#2D2D30] text-white px-2 py-1.5 rounded-xl outline-none focus:border-[#C5A059] font-mono text-xs w-28 sm:w-auto"
+              className="bg-gray-50 border border-gray-200 text-white px-2 py-1.5 rounded-xl outline-none focus:border-[#2563EB] font-mono text-xs w-28 sm:w-auto"
             />
           </div>
           <div className="flex items-center gap-1">
@@ -407,7 +407,7 @@ export default function Reports() {
               type="date"
               value={endDate}
               onChange={(e) => { setEndDate(e.target.value); setDateRangePreset('CUSTOM'); }}
-              className="bg-[#1A1A1C] border border-[#2D2D30] text-white px-2 py-1.5 rounded-xl outline-none focus:border-[#C5A059] font-mono text-xs w-28 sm:w-auto"
+              className="bg-gray-50 border border-gray-200 text-white px-2 py-1.5 rounded-xl outline-none focus:border-[#2563EB] font-mono text-xs w-28 sm:w-auto"
             />
           </div>
         </div>
@@ -415,7 +415,7 @@ export default function Reports() {
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-[#131315] border border-[#1F1F21] p-3.5 rounded-2xl shadow-md">
+        <div className="bg-white border border-gray-200 p-3.5 rounded-2xl shadow-md">
           <div className="text-[11px] text-gray-400 font-medium">Total Gross Sales</div>
           <div className="text-xl font-bold text-white mt-1 font-mono">
             {currency}{summaryMetrics.totalGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -424,7 +424,7 @@ export default function Reports() {
         </div>
 
         {/* Amount Paid Collected */}
-        <div className="bg-[#131315] border border-emerald-500/30 p-3.5 rounded-2xl shadow-md">
+        <div className="bg-white border border-emerald-500/30 p-3.5 rounded-2xl shadow-md">
           <div className="text-[11px] text-emerald-400 font-medium">Paid Collected</div>
           <div className="text-xl font-bold text-emerald-400 mt-1 font-mono">
             {currency}{summaryMetrics.totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -433,7 +433,7 @@ export default function Reports() {
         </div>
 
         {/* Pending Due Sales */}
-        <div className="bg-[#131315] border border-red-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
+        <div className="bg-white border border-red-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
           <div className="absolute top-0 right-0 px-2 py-0.5 bg-red-500/20 text-red-400 text-[9px] font-bold rounded-bl-lg">
             ⏳ Pending Due
           </div>
@@ -445,7 +445,7 @@ export default function Reports() {
         </div>
 
         {/* GST Bills Summary Column */}
-        <div className="bg-[#131315] border border-emerald-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
+        <div className="bg-white border border-emerald-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
           <div className="absolute top-0 right-0 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[9px] font-bold rounded-bl-lg">
             📄 GST Column
           </div>
@@ -459,7 +459,7 @@ export default function Reports() {
         </div>
 
         {/* Non-GST Bills Summary Column */}
-        <div className="bg-[#131315] border border-amber-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
+        <div className="bg-white border border-amber-500/30 p-3.5 rounded-2xl shadow-md relative overflow-hidden">
           <div className="absolute top-0 right-0 px-2 py-0.5 bg-amber-500/20 text-amber-400 text-[9px] font-bold rounded-bl-lg">
             📝 Non-GST Column
           </div>
@@ -474,7 +474,7 @@ export default function Reports() {
       </div>
 
       {/* Navigation Report Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#1F1F21] pb-2">
+      <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
         {[
           { id: 'SUMMARY', label: 'Overview & Payments' },
           { id: 'INVOICES', label: 'Detailed Invoices Ledger' },
@@ -487,8 +487,8 @@ export default function Reports() {
             className={cn(
               "px-4 py-2 rounded-xl text-xs font-bold transition-all",
               activeTab === t.id
-                ? "bg-[#C5A059] text-[#0A0A0B] shadow-md shadow-[#C5A059]/20"
-                : "bg-[#131315] text-gray-400 hover:text-white border border-[#1F1F21]"
+                ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
+                : "bg-white text-gray-400 hover:text-gray-900 border border-gray-200"
             )}
           >
             {t.label}
@@ -500,20 +500,20 @@ export default function Reports() {
       {activeTab === 'SUMMARY' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Payment Method Breakdown */}
-          <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-5 space-y-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
             <h3 className="font-bold text-white text-sm">Payment Methods Breakdown</h3>
             <div className="space-y-3">
               {Object.entries(summaryMetrics.paymentMap).map(([mode, val]) => {
                 const pct = summaryMetrics.totalGross > 0 ? (val.total / summaryMetrics.totalGross) * 100 : 0;
                 return (
-                  <div key={mode} className="bg-[#1A1A1C] border border-[#262629] p-3.5 rounded-xl space-y-2">
+                  <div key={mode} className="bg-gray-50 border border-[#262629] p-3.5 rounded-xl space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-white">{mode}</span>
-                      <span className="font-mono font-bold text-[#C5A059]">
+                      <span className="font-mono font-bold text-[#2563EB]">
                         {currency}{val.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ({val.count} bills)
                       </span>
                     </div>
-                    <div className="w-full bg-[#131315] rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-white rounded-full h-2 overflow-hidden">
                       <div
                         style={{ width: `${pct}%` }}
                         className="bg-[#C5A059] h-full rounded-full transition-all"
@@ -527,7 +527,7 @@ export default function Reports() {
           </div>
 
           {/* Quick Item Performance Highlight */}
-          <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl p-5 space-y-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 space-y-4">
             <h3 className="font-bold text-white text-sm">Top Selling Products</h3>
             <div className="divide-y divide-[#1F1F21]">
               {itemWiseReport.slice(0, 5).map((it, idx) => (
@@ -551,17 +551,17 @@ export default function Reports() {
 
       {/* TAB 2: DETAILED INVOICES LEDGER WITH GST vs NON-GST COLUMNS */}
       {activeTab === 'INVOICES' && (
-        <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl overflow-hidden shadow-xl space-y-3">
-          <div className="p-4 border-b border-[#1F1F21] flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl space-y-3">
+          <div className="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
             {/* GST vs Non-GST Column Filter */}
-            <div className="flex items-center gap-1.5 bg-[#161618] p-1 rounded-xl border border-[#262629]">
+            <div className="flex items-center gap-1.5 bg-gray-50 p-1 rounded-xl border border-[#262629]">
               <button
                 onClick={() => setBillTypeFilter('ALL')}
                 className={cn(
                   "px-3 py-1 text-xs font-bold rounded-lg transition-all",
                   billTypeFilter === 'ALL'
-                    ? "bg-[#C5A059] text-[#0A0A0B] shadow"
-                    : "text-gray-400 hover:text-white"
+                    ? "bg-[#2563EB] text-white shadow"
+                    : "text-gray-400 hover:text-gray-900"
                 )}
               >
                 All Bills ({orders.length})
@@ -597,14 +597,14 @@ export default function Reports() {
                 placeholder="Search invoice or customer..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl text-xs text-white placeholder-gray-500 outline-none focus:border-[#C5A059]"
+                className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-white placeholder-gray-500 outline-none focus:border-[#2563EB]"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-xs min-w-[900px]">
-              <thead className="bg-[#161618] text-gray-400 font-bold uppercase text-[10px] border-b border-[#1F1F21]">
+              <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200">
                 <tr>
                   <th className="p-3.5 whitespace-nowrap">Bill Type</th>
                   <th className="p-3.5 whitespace-nowrap">Invoice No</th>
@@ -631,7 +631,7 @@ export default function Reports() {
                     : ((order.paymentMethod || '').toUpperCase() === 'CREDIT' ? order.total : 0);
 
                   return (
-                    <tr key={order.id} className="hover:bg-[#18181A] transition-colors">
+                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                       <td className="p-3.5 whitespace-nowrap">
                         <span className={cn(
                           "px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase border whitespace-nowrap",
@@ -651,7 +651,7 @@ export default function Reports() {
                         {order.customerMobile && <div className="text-[10px] text-gray-500 font-mono">{order.customerMobile}</div>}
                       </td>
                       <td className="p-3.5 whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 whitespace-nowrap inline-block">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-gray-50 border border-gray-200 text-gray-300 whitespace-nowrap inline-block">
                           {order.paymentMethod || 'CASH'}
                         </span>
                       </td>
@@ -682,7 +682,7 @@ export default function Reports() {
                       <td className="p-3.5 text-right">
                         <button
                           onClick={() => handlePrintOrder(order)}
-                          className="px-2.5 py-1 bg-[#1A1A1C] hover:bg-[#252528] text-[#C5A059] border border-[#2D2D30] rounded-lg text-[10px] font-bold inline-flex items-center gap-1"
+                          className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-[#2563EB] border border-gray-200 rounded-lg text-[10px] font-bold inline-flex items-center gap-1"
                         >
                           <Printer className="w-3 h-3" />
                           <span>Print</span>
@@ -705,10 +705,10 @@ export default function Reports() {
 
       {/* TAB 3: ITEM-WISE SALES */}
       {activeTab === 'ITEMS' && (
-        <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#161618] text-gray-400 font-bold uppercase text-[10px] border-b border-[#1F1F21]">
+              <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200">
                 <tr>
                   <th className="p-3.5">Product Name</th>
                   <th className="p-3.5">Category</th>
@@ -718,10 +718,10 @@ export default function Reports() {
               </thead>
               <tbody className="divide-y divide-[#1F1F21]">
                 {itemWiseReport.map((it, idx) => (
-                  <tr key={idx} className="hover:bg-[#18181A] transition-colors">
+                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
                     <td className="p-3.5 font-bold text-white">{it.name}</td>
                     <td className="p-3.5 text-gray-400">{it.category}</td>
-                    <td className="p-3.5 text-center font-mono font-bold text-[#C5A059]">{it.qty}</td>
+                    <td className="p-3.5 text-center font-mono font-bold text-[#2563EB]">{it.qty}</td>
                     <td className="p-3.5 text-right font-mono font-bold text-white text-sm">
                       {currency}{it.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </td>
@@ -741,10 +741,10 @@ export default function Reports() {
 
       {/* TAB 4: CATEGORY-WISE SALES */}
       {activeTab === 'CATEGORIES' && (
-        <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#161618] text-gray-400 font-bold uppercase text-[10px] border-b border-[#1F1F21]">
+              <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200">
                 <tr>
                   <th className="p-3.5">Category Name</th>
                   <th className="p-3.5 text-center">Total Units</th>
@@ -754,9 +754,9 @@ export default function Reports() {
               </thead>
               <tbody className="divide-y divide-[#1F1F21]">
                 {categoryWiseReport.map((cat, idx) => (
-                  <tr key={idx} className="hover:bg-[#18181A] transition-colors">
+                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
                     <td className="p-3.5 font-bold text-white">{cat.category}</td>
-                    <td className="p-3.5 text-center font-mono font-bold text-[#C5A059]">{cat.qty}</td>
+                    <td className="p-3.5 text-center font-mono font-bold text-[#2563EB]">{cat.qty}</td>
                     <td className="p-3.5 text-right font-mono font-bold text-white text-sm">
                       {currency}{cat.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </td>

@@ -57,6 +57,7 @@ export interface SocialLinks {
 }
 
 export interface WebsiteConfig {
+  logoUrl?: string;
   published: boolean;
   brandName: string;
   brandTagline: string;

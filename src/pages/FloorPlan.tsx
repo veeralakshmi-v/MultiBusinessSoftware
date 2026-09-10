@@ -21,8 +21,8 @@ interface Table {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string; badge: string }> = {
-  VACANT:   { label: 'Available', color: 'bg-[#131315] border-[#2D2D30] hover:border-[#C5A059]', dot: 'bg-gray-500', badge: 'text-gray-500' },
-  AVAILABLE:{ label: 'Available', color: 'bg-[#131315] border-[#2D2D30] hover:border-[#C5A059]', dot: 'bg-gray-500', badge: 'text-gray-500' },
+  VACANT:   { label: 'Available', color: 'bg-white border-gray-200 hover:border-[#2563EB]', dot: 'bg-gray-500', badge: 'text-gray-500' },
+  AVAILABLE:{ label: 'Available', color: 'bg-white border-gray-200 hover:border-[#2563EB]', dot: 'bg-gray-500', badge: 'text-gray-500' },
   OCCUPIED: { label: 'Occupied',  color: 'bg-orange-500/10 border-orange-500/50',                dot: 'bg-orange-500 animate-pulse', badge: 'text-orange-400' },
   RESERVED: { label: 'Reserved',  color: 'bg-blue-500/10 border-blue-500/50',                   dot: 'bg-blue-500',   badge: 'text-blue-400' },
   CLEANING: { label: 'Cleaning',  color: 'bg-yellow-500/10 border-yellow-500/50',               dot: 'bg-yellow-400', badge: 'text-yellow-400' },
@@ -194,8 +194,8 @@ export default function FloorPlan() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
-            <Utensils className="w-6 h-6 text-[#C5A059]" />
+          <h1 className="text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
+            <Utensils className="w-6 h-6 text-[#2563EB]" />
             Floor Plan & Tables
           </h1>
           <p className="text-gray-400 text-sm mt-1">
@@ -206,14 +206,14 @@ export default function FloorPlan() {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchTables}
-            className="p-2 bg-[#1A1A1C] border border-[#2D2D30] rounded-xl hover:border-[#C5A059] text-gray-400 hover:text-[#C5A059] transition-colors"
+            className="p-2 bg-gray-50 border border-gray-200 rounded-xl hover:border-[#2563EB] text-gray-400 hover:text-[#2563EB] transition-colors"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold text-sm tracking-wider rounded-xl hover:bg-[#b08d4a] transition-all shadow-lg shadow-[#C5A059]/20"
+            className="flex items-center gap-2 px-4 py-2 bg-[#2563EB] text-white font-bold text-sm tracking-wider rounded-xl hover:bg-[#b08d4a] transition-all shadow-lg shadow-blue-500/20"
           >
             <Plus className="w-4 h-4" /> Add Table
           </button>
@@ -229,8 +229,8 @@ export default function FloorPlan() {
             className={cn(
               'px-3 py-1.5 rounded-xl text-xs font-bold border transition-all',
               filterStatus === s
-                ? 'bg-[#C5A059] text-[#0A0A0B] border-[#C5A059]'
-                : 'bg-[#131315] text-gray-400 border-[#1F1F21] hover:border-[#C5A059]/50 hover:text-white'
+                ? 'bg-[#2563EB] text-white border-[#2563EB]'
+                : 'bg-white text-gray-400 border-gray-200 hover:border-[#2563EB]/50 hover:text-gray-900'
             )}
           >
             {s === 'ALL' ? `All (${tables.length})` : `${STATUS_CONFIG[s]?.label} (${counts[s as keyof typeof counts]})`}
@@ -240,7 +240,7 @@ export default function FloorPlan() {
 
       {/* Shift/Merge Mode Banner */}
       {actionMode && selectedTable && (
-        <div className="flex items-center justify-between bg-[#C5A059]/10 border border-[#C5A059]/40 text-[#C5A059] px-4 py-3 rounded-xl">
+        <div className="flex items-center justify-between bg-[#C5A059]/10 border border-[#2563EB]/40 text-[#2563EB] px-4 py-3 rounded-xl">
           <div className="font-bold text-sm flex items-center gap-2">
             {actionMode === 'SHIFT' ? <ArrowRightLeft className="w-4 h-4" /> : <Combine className="w-4 h-4" />}
             {actionMode === 'SHIFT'
@@ -257,16 +257,16 @@ export default function FloorPlan() {
       {/* Table Grid */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-500">
-          <RefreshCw className="w-8 h-8 text-[#C5A059] animate-spin" />
+          <RefreshCw className="w-8 h-8 text-[#2563EB] animate-spin" />
           <span className="text-sm">Loading tables...</span>
         </div>
       ) : filteredTables.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-500 border-2 border-dashed border-[#1F1F21] rounded-2xl">
-          <Utensils className="w-10 h-10 opacity-20 text-[#C5A059]" />
+        <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-500 border-2 border-dashed border-gray-200 rounded-2xl">
+          <Utensils className="w-10 h-10 opacity-20 text-[#2563EB]" />
           <p className="text-sm text-gray-400">No tables found</p>
           <button
             onClick={() => setShowAddModal(true)}
-            className="mt-2 px-4 py-2 bg-[#C5A059] text-[#0A0A0B] rounded-xl text-xs font-bold uppercase tracking-widest"
+            className="mt-2 px-4 py-2 bg-[#2563EB] text-white rounded-xl text-xs font-bold uppercase tracking-widest"
           >
             Add First Table
           </button>
@@ -324,9 +324,9 @@ export default function FloorPlan() {
       {/* Status Modal */}
       {showStatusModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowStatusModal(null)}>
-          <div className="bg-[#131315] border border-[#2D2D30] rounded-2xl w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-[#1F1F21]">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div>
                 <h3 className="font-bold text-white text-lg">{showStatusModal.name}</h3>
                 <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
@@ -336,7 +336,7 @@ export default function FloorPlan() {
                   </span>
                 </p>
               </div>
-              <button onClick={() => setShowStatusModal(null)} className="text-gray-500 hover:text-white">
+              <button onClick={() => setShowStatusModal(null)} className="text-gray-500 hover:text-gray-900">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -352,13 +352,13 @@ export default function FloorPlan() {
                   className={cn(
                     'w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold transition-all',
                     showStatusModal.status === s
-                      ? 'bg-[#C5A059]/10 border-[#C5A059]/40 text-[#C5A059] cursor-default'
-                      : 'bg-[#0A0A0B] border-[#1F1F21] text-gray-300 hover:border-[#C5A059]/40 hover:text-white'
+                      ? 'bg-[#C5A059]/10 border-[#2563EB]/40 text-[#2563EB] cursor-default'
+                      : 'bg-[#F8FAFC] border-gray-200 text-gray-300 hover:border-[#2563EB]/40 hover:text-gray-900'
                   )}
                 >
                   <div className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', STATUS_CONFIG[s].dot)} />
                   {STATUS_CONFIG[s].label}
-                  {showStatusModal.status === s && <span className="ml-auto text-[10px] text-[#C5A059]">Current</span>}
+                  {showStatusModal.status === s && <span className="ml-auto text-[10px] text-[#2563EB]">Current</span>}
                 </button>
               ))}
             </div>
@@ -370,13 +370,13 @@ export default function FloorPlan() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => startAction('SHIFT', showStatusModal)}
-                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 hover:border-blue-500/50 hover:text-blue-400 transition-all"
+                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-gray-50 border border-gray-200 text-gray-300 hover:border-blue-500/50 hover:text-blue-400 transition-all"
                   >
                     <ArrowRightLeft className="w-3.5 h-3.5" /> Shift Table
                   </button>
                   <button
                     onClick={() => startAction('MERGE', showStatusModal)}
-                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-[#1A1A1C] border border-[#2D2D30] text-gray-300 hover:border-purple-500/50 hover:text-purple-400 transition-all"
+                    className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold bg-gray-50 border border-gray-200 text-gray-300 hover:border-purple-500/50 hover:text-purple-400 transition-all"
                   >
                     <Combine className="w-3.5 h-3.5" /> Merge Table
                   </button>
@@ -385,7 +385,7 @@ export default function FloorPlan() {
             )}
 
             {/* Delete */}
-            <div className="px-4 pb-4 pt-2 border-t border-[#1F1F21] mt-2">
+            <div className="px-4 pb-4 pt-2 border-t border-gray-200 mt-2">
               <button
                 onClick={() => handleDeleteTable(showStatusModal)}
                 className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/30 transition-all"
@@ -400,12 +400,12 @@ export default function FloorPlan() {
       {/* Add Table Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowAddModal(false)}>
-          <div className="bg-[#131315] border border-[#2D2D30] rounded-2xl w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b border-[#1F1F21]">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                <Plus className="w-5 h-5 text-[#C5A059]" /> Add New Table
+                <Plus className="w-5 h-5 text-[#2563EB]" /> Add New Table
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-white">
+              <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-gray-900">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -418,7 +418,7 @@ export default function FloorPlan() {
                   value={newTableName}
                   onChange={e => setNewTableName(e.target.value)}
                   placeholder="e.g. Table 16"
-                  className="w-full bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] text-white rounded-xl px-3 py-2.5 text-sm outline-none transition-colors"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] text-white rounded-xl px-3 py-2.5 text-sm outline-none transition-colors"
                   autoFocus
                   onKeyDown={e => e.key === 'Enter' && handleAddTable()}
                 />
@@ -433,8 +433,8 @@ export default function FloorPlan() {
                       className={cn(
                         'py-2 rounded-xl text-sm font-bold border transition-all',
                         newTableCapacity === String(n)
-                          ? 'bg-[#C5A059] text-[#0A0A0B] border-[#C5A059]'
-                          : 'bg-[#0A0A0B] text-gray-400 border-[#2D2D30] hover:border-[#C5A059]/50'
+                          ? 'bg-[#2563EB] text-white border-[#2563EB]'
+                          : 'bg-[#F8FAFC] text-gray-400 border-gray-200 hover:border-[#2563EB]/50'
                       )}
                     >
                       {n}
@@ -448,13 +448,13 @@ export default function FloorPlan() {
                   value={newTableCapacity}
                   onChange={e => setNewTableCapacity(e.target.value)}
                   placeholder="Or enter custom capacity"
-                  className="w-full bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] text-white rounded-xl px-3 py-2 text-sm outline-none transition-colors"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] text-white rounded-xl px-3 py-2 text-sm outline-none transition-colors"
                 />
               </div>
               <button
                 onClick={handleAddTable}
                 disabled={!newTableName.trim() || isSaving}
-                className="w-full py-2.5 bg-[#C5A059] text-[#0A0A0B] font-bold rounded-xl hover:bg-[#b08d4a] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-2.5 bg-[#2563EB] text-white font-bold rounded-xl hover:bg-[#b08d4a] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 Add Table
