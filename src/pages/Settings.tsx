@@ -581,7 +581,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'security'
-              ? "btn-theme-secondary shadow-md"
+              ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md"
               : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
           )}
         >
@@ -594,7 +594,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'theme'
-              ? "btn-theme-secondary shadow-md"
+              ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md"
               : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
           )}
         >
@@ -723,7 +723,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           <div className="flex justify-end pt-4 border-t border-gray-200">
             <button
               type="submit"
-              className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:brightness-110 flex items-center gap-2"
+              className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 hover:brightness-110 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               <span>Save Business Profile</span>
@@ -814,7 +814,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
           <div className="flex justify-end pt-4 border-t border-gray-200">
             <button
               type="submit"
-              className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-lg shadow-[#C5A059]/20 hover:brightness-110 flex items-center gap-2"
+              className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/20 hover:brightness-110 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               <span>Save Billing Settings</span>
@@ -959,7 +959,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                 {staffPhoto ? (
                   <img src={staffPhoto} alt="" className="w-14 h-14 rounded-xl object-cover border-2 border-[#C5A059]/40 flex-shrink-0" />
                 ) : (
-                  <div className="w-14 h-14 rounded-xl bg-[#252528] border border-[#3D3D40] flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-semibold">
+                  <div className="w-14 h-14 rounded-xl bg-[#252528] border border-gray-200 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-semibold">
                     No Photo
                   </div>
                 )}
@@ -970,7 +970,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                     <button
                       type="button"
                       onClick={() => staffPhotoInputRef.current?.click()}
-                      className="px-3 py-1 bg-[#252528] hover:bg-[#303035] border border-[#3D3D40] text-gray-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all"
+                      className="px-3 py-1 bg-[#252528] hover:bg-gray-200 border border-gray-200 text-gray-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all"
                     >
                       <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
                       <span>{staffPhoto ? 'Change Photo' : 'Upload Photo'}</span>
@@ -1053,7 +1053,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                         placeholder="e.g. IT & Security, Quality Control, Logistics"
                         value={customCategoryTitle}
                         onChange={(e) => setCustomCategoryTitle(e.target.value)}
-                        className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-white outline-none font-medium"
+                        className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none font-medium"
                       />
                     </div>
                   )}
@@ -1092,7 +1092,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
                         placeholder="e.g. Supervisor, Storekeeper, Delivery Executive"
                         value={customRoleTitle}
                         onChange={(e) => setCustomRoleTitle(e.target.value)}
-                        className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-white outline-none font-medium"
+                        className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none font-medium"
                       />
                     </div>
                   )}
@@ -1461,7 +1461,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
               {landingSlides.map((slide, idx) => (
                 <div key={slide.id} className="flex items-start gap-3 p-3.5 bg-gray-50 border border-gray-200 rounded-xl">
                   {/* Image Thumbnail */}
-                  <label className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 border-dashed border-[#3D3D40] hover:border-[#C5A059] transition-colors cursor-pointer">
+                  <label className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 border-dashed border-gray-200 hover:border-[#C5A059] transition-colors cursor-pointer">
                     {slide.imageUrl ? (
                       <img src={slide.imageUrl} className="w-full h-full object-cover" alt="slide" />
                     ) : (
@@ -1549,7 +1549,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
               )}
               <button
                 type="submit"
-                className="px-6 py-3 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#b08d4a] hover:to-[#8C6D2B] text-[#0A0A0B] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-[#C5A059]/20 flex items-center gap-2"
+                className="px-6 py-3 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#b08d4a] hover:to-[#8C6D2B] text-[#0A0A0B] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Landing Page</span>
@@ -1646,7 +1646,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
             <div className="pt-2 flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#d4b06a] hover:to-[#b08d4a] text-[#080809] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-[#C5A059]/20 flex items-center gap-2 transition-all"
+                className="px-6 py-2.5 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#d4b06a] hover:to-[#b08d4a] text-[#080809] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 flex items-center gap-2 transition-all"
               >
                 <Save className="w-4 h-4" />
                 <span>Update Admin Password</span>

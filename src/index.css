@@ -4,11 +4,11 @@
   --theme-font: 'Outfit', sans-serif;
   --theme-bg-primary: #F8FAFC;
   --theme-bg-surface: #FFFFFF;
-  --theme-bg-card: #F1F5F9;
+  --theme-bg-card: #F8FAFC;
   --theme-btn-secondary: #2563EB;
   --theme-btn-secondary-hover: #1D4ED8;
   --theme-btn-text: #FFFFFF;
-  --theme-btn-outline-bg: #F1F5F9;
+  --theme-btn-outline-bg: #FFFFFF;
   --theme-btn-outline-text: #0F172A;
   --theme-input-bg: #FFFFFF;
   --theme-text-primary: #0F172A;
@@ -20,6 +20,10 @@
   --theme-primary-hover: #1D4ED8;
   --theme-primary-bg: rgba(37, 99, 235, 0.12);
   --theme-primary-border: rgba(37, 99, 235, 0.25);
+}
+
+*, ::before, ::after {
+  border-color: #E2E8F0;
 }
 
 /* Global Typography Font Family Override */

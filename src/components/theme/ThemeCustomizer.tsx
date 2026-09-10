@@ -164,7 +164,7 @@ export default function ThemeCustomizer() {
               value={config.brandTitle}
               onChange={e => setConfig({ ...config, brandTitle: e.target.value })}
               placeholder="e.g. Apex Luxury Diner"
-              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-theme-secondary"
+              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-gray-100"
             />
           </div>
 
@@ -175,7 +175,7 @@ export default function ThemeCustomizer() {
               value={config.brandTagline}
               onChange={e => setConfig({ ...config, brandTagline: e.target.value })}
               placeholder="e.g. Premium Food & Beverages Experience"
-              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-theme-secondary"
+              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-gray-100"
             />
           </div>
 
@@ -187,7 +187,7 @@ export default function ThemeCustomizer() {
                 value={config.logoUrl || ''}
                 onChange={e => setConfig({ ...config, logoUrl: e.target.value })}
                 placeholder="https://your-domain.com/logo.png"
-                className="flex-1 bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-theme-secondary"
+                className="flex-1 bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-gray-100"
               />
               <div className="w-10 h-10 rounded-xl bg-[#F8FAFC] border border-gray-200 flex items-center justify-center text-theme-secondary font-serif font-bold text-base flex-shrink-0">
                 {config.logoUrl ? (
@@ -376,7 +376,7 @@ export default function ThemeCustomizer() {
                   value={config.primaryBgColor || '#0A0A0B'}
                   onChange={e => handleCustomPrimaryBg(e.target.value)}
                   placeholder="#0A0A0B"
-                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-theme-secondary"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-900 font-mono outline-none focus:border-gray-100"
                 />
               </div>
             </div>
@@ -399,7 +399,7 @@ export default function ThemeCustomizer() {
                   value={config.secondaryBtnColor || '#C5A059'}
                   onChange={e => handleCustomSecondaryBtn(e.target.value)}
                   placeholder="#C5A059"
-                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-theme-secondary"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-900 font-mono outline-none focus:border-gray-100"
                 />
               </div>
             </div>
@@ -422,7 +422,7 @@ export default function ThemeCustomizer() {
                   value={config.textColor || '#FFFFFF'}
                   onChange={e => handleCustomTextColor(e.target.value)}
                   placeholder="#FFFFFF"
-                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-theme-secondary"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-900 font-mono outline-none focus:border-gray-100"
                 />
               </div>
             </div>
@@ -445,7 +445,7 @@ export default function ThemeCustomizer() {
                   value={config.textAccentColor || config.secondaryBtnColor || '#C5A059'}
                   onChange={e => handleCustomTextAccentColor(e.target.value)}
                   placeholder="#C5A059"
-                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono outline-none focus:border-theme-secondary"
+                  className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs text-gray-900 font-mono outline-none focus:border-gray-100"
                 />
               </div>
             </div>
@@ -534,7 +534,7 @@ export default function ThemeCustomizer() {
       </div>
 
       {/* Section 3: Typography / Font */}
-      <div className="bg-theme-surface border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
+      <div className="bg-white border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div>
             <h3 className="font-bold text-base flex items-center gap-2" style={{ color: config.textColor || '#FFFFFF' }}>
@@ -553,7 +553,7 @@ export default function ThemeCustomizer() {
                 className={cn(
                   "px-3 py-1 rounded-lg font-bold transition-all text-[11px]",
                   config.fontSize === size
-                    ? "btn-theme-secondary shadow-md"
+                    ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md"
                     : "opacity-70 hover:opacity-100"
                 )}
               >
@@ -588,7 +588,7 @@ export default function ThemeCustomizer() {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold" style={{ fontFamily: font.fontFamily, color: isSelected ? config.textAccentColor || config.secondaryBtnColor : config.textColor || 'inherit' }}>{font.name}</span>
                   {isSelected && (
-                    <div className="w-5 h-5 rounded-full btn-theme-secondary flex items-center justify-center shadow-md flex-shrink-0">
+                    <div className="w-5 h-5 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8] flex items-center justify-center shadow-md flex-shrink-0">
                       <Check className="w-3 h-3 text-current" />
                     </div>
                   )}
@@ -604,7 +604,7 @@ export default function ThemeCustomizer() {
       </div>
 
       {/* Section 4: Invoice Theme & Receipt Styling */}
-      <div className="bg-theme-surface border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
+      <div className="bg-white border border-white/10 rounded-2xl p-6 shadow-xl space-y-4">
         <div className="border-b border-white/10 pb-3">
           <h3 className="font-bold text-base flex items-center gap-2" style={{ color: config.textColor || '#FFFFFF' }}>
             <Receipt className="w-5 h-5 text-theme-secondary" />
@@ -645,7 +645,7 @@ export default function ThemeCustomizer() {
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold" style={{ color: isSelected ? config.textAccentColor || config.secondaryBtnColor : config.textColor || 'inherit' }}>{themeMeta.name}</span>
                     {isSelected && (
-                      <div className="w-5 h-5 rounded-full btn-theme-secondary flex items-center justify-center shadow-md flex-shrink-0">
+                      <div className="w-5 h-5 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8] flex items-center justify-center shadow-md flex-shrink-0">
                         <Check className="w-3 h-3 text-current" />
                       </div>
                     )}
@@ -673,7 +673,7 @@ export default function ThemeCustomizer() {
               rows={2}
               value={config.termsText}
               onChange={e => setConfig({ ...config, termsText: e.target.value })}
-              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-theme-secondary"
+              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-gray-100"
             />
           </div>
 
@@ -683,7 +683,7 @@ export default function ThemeCustomizer() {
               rows={2}
               value={config.thankYouNote}
               onChange={e => setConfig({ ...config, thankYouNote: e.target.value })}
-              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-theme-secondary"
+              className="w-full bg-[#F8FAFC] border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-gray-100"
             />
           </div>
 
@@ -715,7 +715,7 @@ export default function ThemeCustomizer() {
       <div className="flex justify-end pt-2">
         <button
           type="submit"
-          className="px-6 py-3 btn-theme-secondary font-bold text-sm tracking-wider uppercase rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer"
+          className="px-6 py-3 bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-sm tracking-wider uppercase rounded-xl shadow-lg flex items-center gap-2 transition-all cursor-pointer"
         >
           <Save className="w-4 h-4" />
           Save & Apply Theme System

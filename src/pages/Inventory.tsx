@@ -27,16 +27,16 @@ export default function Inventory() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-theme-primary">Products & Inventory Hub</h1>
-          <p className="text-theme-primary opacity-60 text-sm mt-1">Unified product catalog, category pricing, stock counts, and supplier management</p>
+          <h1 className="text-2xl font-serif font-bold text-gray-900">Products & Inventory Hub</h1>
+          <p className="text-gray-500 text-sm mt-1">Unified product catalog, category pricing, stock counts, and supplier management</p>
         </div>
-        <div className="px-3.5 py-1.5 rounded-xl bg-theme-surface text-theme-accent border border-theme-secondary/30 font-bold text-xs uppercase tracking-wider">
+        <div className="px-3.5 py-1.5 rounded-xl bg-white text-[#2563EB] border border-gray-100 font-bold text-xs uppercase tracking-wider">
           Unified Catalog & Stock
         </div>
       </div>
 
       {/* Visible Pill Button Tab Switcher */}
-      <div className="flex items-center gap-1.5 p-1.5 bg-theme-surface border border-theme-secondary/30 rounded-2xl overflow-x-auto no-scrollbar touch-pan-x">
+      <div className="flex items-center gap-1.5 p-1.5 bg-white border border-gray-100 rounded-2xl overflow-x-auto no-scrollbar touch-pan-x">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -44,8 +44,8 @@ export default function Inventory() {
             className={cn(
               "px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0",
               activeTab === tab.id
-                ? "btn-theme-secondary shadow-md font-extrabold"
-                : "text-theme-primary opacity-75 hover:opacity-100 hover:bg-theme-secondary/15"
+                ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md font-extrabold"
+                : "text-gray-600 hover:opacity-100 hover:bg-blue-50"
             )}
           >
             {tab.label}
@@ -150,34 +150,34 @@ function DashboardTab({ businessType, stockNoun }: { businessType: string; stock
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-theme-surface border border-theme-secondary/20 p-5 rounded-2xl hover:border-theme-secondary/40 transition-colors">
-          <div className="flex items-center gap-2 text-theme-primary opacity-70 text-xs mb-3">
-            <DollarSign className="w-4 h-4 text-theme-accent" /> Stock Valuation
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl hover:border-gray-100 transition-colors">
+          <div className="flex items-center gap-2 text-gray-900 opacity-70 text-xs mb-3">
+            <DollarSign className="w-4 h-4 text-[#2563EB]" /> Stock Valuation
           </div>
-          <div className="text-2xl font-bold text-theme-primary font-mono">₹{totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
-          <div className="text-[10px] text-theme-primary opacity-60 mt-1">Total inventory value</div>
+          <div className="text-2xl font-bold text-gray-900 font-mono">₹{totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+          <div className="text-[10px] text-gray-500 mt-1">Total inventory value</div>
         </div>
-        <div className="bg-theme-surface border border-theme-secondary/20 p-5 rounded-2xl hover:border-theme-secondary/40 transition-colors">
-          <div className="flex items-center gap-2 text-theme-primary opacity-70 text-xs mb-3">
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl hover:border-gray-100 transition-colors">
+          <div className="flex items-center gap-2 text-gray-900 opacity-70 text-xs mb-3">
             <Package className="w-4 h-4 text-blue-400" /> Total {stockNoun.split(' ')[0]}
           </div>
-          <div className="text-2xl font-bold text-theme-primary font-mono">{materials.length}</div>
-          <div className="text-[10px] text-theme-primary opacity-60 mt-1">Items being tracked</div>
+          <div className="text-2xl font-bold text-gray-900 font-mono">{materials.length}</div>
+          <div className="text-[10px] text-gray-500 mt-1">Items being tracked</div>
         </div>
-        <div className="bg-theme-surface border border-theme-secondary/20 p-5 rounded-2xl hover:border-red-500/40 transition-colors">
-          <div className="flex items-center gap-2 text-theme-primary opacity-70 text-xs mb-3">
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl hover:border-red-500/40 transition-colors">
+          <div className="flex items-center gap-2 text-gray-900 opacity-70 text-xs mb-3">
             <AlertTriangle className="w-4 h-4 text-red-400" /> Low Stock
           </div>
           <div className="text-2xl font-bold text-red-400 font-mono">{lowStock.length}</div>
-          <div className="text-[10px] text-theme-primary opacity-60 mt-1">Need replenishment</div>
+          <div className="text-[10px] text-gray-500 mt-1">Need replenishment</div>
         </div>
         {['MEDICAL', 'RETAIL', 'WHOLESALE'].includes(businessType) && (
-          <div className="bg-theme-surface border border-theme-secondary/20 p-5 rounded-2xl hover:border-amber-500/40 transition-colors">
-            <div className="flex items-center gap-2 text-theme-primary opacity-70 text-xs mb-3">
+          <div className="bg-white border border-gray-100 p-5 rounded-2xl hover:border-amber-500/40 transition-colors">
+            <div className="flex items-center gap-2 text-gray-900 opacity-70 text-xs mb-3">
               <CalendarClock className="w-4 h-4 text-amber-400" /> Expiring Soon
             </div>
             <div className="text-2xl font-bold text-amber-400 font-mono">{expiringSoon.length}</div>
-            <div className="text-[10px] text-theme-primary opacity-60 mt-1">Within 30 days</div>
+            <div className="text-[10px] text-gray-500 mt-1">Within 30 days</div>
           </div>
         )}
       </div>
@@ -189,11 +189,11 @@ function DashboardTab({ businessType, stockNoun }: { businessType: string; stock
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {lowStock.map(m => (
-              <div key={m.id} className="bg-theme-surface p-4 rounded-xl border border-red-500/20">
-                <div className="font-bold text-theme-primary text-sm">{m.name}</div>
+              <div key={m.id} className="bg-white p-4 rounded-xl border border-red-500/20">
+                <div className="font-bold text-gray-900 text-sm">{m.name}</div>
                 <div className="flex justify-between text-xs mt-2">
                   <span className="text-red-400 font-bold">{m.currentStock ?? 0} {m.unit} left</span>
-                  <span className="text-theme-primary opacity-60">Min: {m.minStockLevel ?? 0} {m.unit}</span>
+                  <span className="text-gray-500">Min: {m.minStockLevel ?? 0} {m.unit}</span>
                 </div>
               </div>
             ))}
@@ -476,8 +476,8 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
             className={cn(
               "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0",
               selectedCategory === 'ALL'
-                ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
-                : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
+                ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent font-extrabold"
+                : "bg-white text-gray-900 border-gray-100 hover:bg-blue-50"
             )}
           >
             All Products ({materials.length})
@@ -493,12 +493,12 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 className={cn(
                   "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border flex-shrink-0 flex items-center gap-1.5",
                   isSelected
-                    ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
-                    : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
+                    ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent font-extrabold"
+                    : "bg-white text-gray-900 border-gray-100 hover:bg-blue-50"
                 )}
               >
                 <span>{cat.name}</span>
-                <span className={cn("text-[10px] px-1.5 py-0.2 rounded-full font-mono", isSelected ? "bg-black/20 text-current" : "bg-theme-card text-theme-primary")}>
+                <span className={cn("text-[10px] px-1.5 py-0.2 rounded-full font-mono", isSelected ? "bg-black/20 text-current" : "bg-gray-50 text-gray-900")}>
                   {count}
                 </span>
               </button>
@@ -511,12 +511,12 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto min-w-0">
           <div className="relative w-full sm:w-72 min-w-0">
-            <Search className="w-4 h-4 text-theme-primary opacity-60 absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-gray-500 absolute left-3 top-2.5" />
             <input
               placeholder={`Search products by Name, Barcode, SKU, HSN...`}
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
-              className="bg-theme-surface border border-theme-secondary/30 focus:border-theme-secondary text-theme-primary text-xs pl-9 pr-3 py-2 rounded-xl outline-none w-full"
+              className="bg-white border border-gray-100 focus:border-gray-100 text-gray-900 text-xs pl-9 pr-3 py-2 rounded-xl outline-none w-full"
             />
           </div>
 
@@ -524,7 +524,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
           <select
             value={stockFilter}
             onChange={(e) => setStockFilter(e.target.value as any)}
-            className="bg-theme-surface border border-theme-secondary/30 text-theme-primary text-xs px-3 py-2 rounded-xl outline-none w-full sm:w-auto flex-shrink-0"
+            className="bg-white border border-gray-100 text-gray-900 text-xs px-3 py-2 rounded-xl outline-none w-full sm:w-auto flex-shrink-0"
           >
             <option value="ALL">All Stock Levels</option>
             <option value="IN_STOCK">In Stock</option>
@@ -535,7 +535,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
 
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center justify-center gap-2 px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl shadow-md w-full sm:w-auto flex-shrink-0"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs rounded-xl shadow-md w-full sm:w-auto flex-shrink-0"
         >
           <Plus className="w-3.5 h-3.5" /> Add {stockNoun.split(' ')[0]}
         </button>
@@ -543,31 +543,31 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
 
       {/* Add Product Form */}
       {showForm && (
-        <div className="bg-theme-surface border border-theme-secondary/30 p-4 sm:p-5 rounded-2xl shadow-xl">
-          <h3 className="text-sm font-bold text-theme-primary mb-4">Add New Product</h3>
+        <div className="bg-white border border-gray-100 p-4 sm:p-5 rounded-2xl shadow-xl">
+          <h3 className="text-sm font-bold text-gray-900 mb-4">Add New Product</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div className="col-span-1 sm:col-span-2">
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Product Name</label>
-              <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1" placeholder="e.g. Garam Masala 100g" />
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Product Name</label>
+              <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" placeholder="e.g. Garam Masala 100g" />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Category</label>
-              <select value={form.categoryId} onChange={e=>setForm({...form, categoryId: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1">
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Category</label>
+              <select value={form.categoryId} onChange={e=>setForm({...form, categoryId: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1">
                 <option value="">Default Category</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Selling Price (₹)</label>
-              <input type="number" required value={form.pricePerUnit} onChange={e=>setForm({...form, pricePerUnit: e.target.value as any})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1" />
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Selling Price (₹)</label>
+              <input type="number" required value={form.pricePerUnit} onChange={e=>setForm({...form, pricePerUnit: e.target.value as any})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Cost Price (₹)</label>
-              <input type="number" value={form.costPrice} onChange={e=>setForm({...form, costPrice: e.target.value as any})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1" />
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Cost Price (₹)</label>
+              <input type="number" value={form.costPrice} onChange={e=>setForm({...form, costPrice: e.target.value as any})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">GST Tax (%)</label>
-              <select value={form.gst} onChange={e=>setForm({...form, gst: e.target.value as any})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1">
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">GST Tax (%)</label>
+              <select value={form.gst} onChange={e=>setForm({...form, gst: e.target.value as any})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1">
                 <option value="0">0% (Exempt)</option>
                 <option value="5">5% GST</option>
                 <option value="12">12% GST</option>
@@ -576,16 +576,16 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">HSN Code</label>
-              <input value={form.hsnCode} onChange={e=>setForm({...form, hsnCode: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1" placeholder="e.g. 0910" />
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">HSN Code</label>
+              <input value={form.hsnCode} onChange={e=>setForm({...form, hsnCode: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" placeholder="e.g. 0910" />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Unit</label>
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Unit</label>
               <select
                 required
                 value={form.unit}
                 onChange={e=>setForm({...form, unit: e.target.value})}
-                className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1 font-medium"
+                className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1 font-medium"
               >
                 <option value="">Select Unit</option>
                 {COMMON_UNITS.map(grp => (
@@ -601,34 +601,34 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
               </select>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Min Stock Warning</label>
-              <input type="number" required value={form.minStockLevel} onChange={e=>setForm({...form, minStockLevel: e.target.value as any})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1" />
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Min Stock Warning</label>
+              <input type="number" required value={form.minStockLevel} onChange={e=>setForm({...form, minStockLevel: e.target.value as any})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">SKU / Code</label>
-              <input value={form.sku} onChange={e=>setForm({...form, sku: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1" />
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">SKU / Code</label>
+              <input value={form.sku} onChange={e=>setForm({...form, sku: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Barcode</label>
-              <input value={form.barcode} onChange={e=>setForm({...form, barcode: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1" />
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Barcode</label>
+              <input value={form.barcode} onChange={e=>setForm({...form, barcode: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Supplier</label>
-              <select value={form.supplierId} onChange={e=>setForm({...form, supplierId: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-theme-primary text-sm outline-none mt-1">
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Supplier</label>
+              <select value={form.supplierId} onChange={e=>setForm({...form, supplierId: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1">
                 <option value="">No Supplier</option>
                 {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
 
             {/* Website Visibility Checkbox */}
-            <div className="col-span-1 sm:col-span-2 md:col-span-4 p-3.5 bg-theme-card/70 border border-theme-secondary/30 rounded-xl flex items-center justify-between">
+            <div className="col-span-1 sm:col-span-2 md:col-span-4 p-3.5 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
                   <Globe className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-theme-primary">Show on Website / Online Store</div>
-                  <div className="text-[10px] text-theme-primary opacity-60">If checked, this product will be visible to customers on your public website catalog</div>
+                  <div className="text-xs font-bold text-gray-900">Show on Website / Online Store</div>
+                  <div className="text-[10px] text-gray-500">If checked, this product will be visible to customers on your public website catalog</div>
                 </div>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -643,8 +643,8 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
             </div>
 
             <div className="col-span-1 sm:col-span-2 md:col-span-4 flex flex-wrap gap-3 mt-2">
-              <button type="submit" className="flex-1 sm:flex-none px-6 py-2.5 btn-theme-secondary font-bold text-xs rounded-xl uppercase shadow-md">Save Item</button>
-              <button type="button" onClick={() => setShowForm(false)} className="flex-1 sm:flex-none px-6 py-2.5 bg-theme-card text-theme-primary opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100">Cancel</button>
+              <button type="submit" className="flex-1 sm:flex-none px-6 py-2.5 bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs rounded-xl uppercase shadow-md">Save Item</button>
+              <button type="button" onClick={() => setShowForm(false)} className="flex-1 sm:flex-none px-6 py-2.5 bg-gray-50 text-gray-900 opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100">Cancel</button>
             </div>
           </form>
         </div>
@@ -653,37 +653,37 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       {/* Edit Product Modal */}
       {editingItem && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-theme-surface border border-theme-secondary/30 p-6 rounded-2xl max-w-lg w-full shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-theme-secondary/20 pb-3">
-              <h3 className="text-base font-bold text-theme-primary flex items-center gap-2">
-                <Edit2 className="w-4 h-4 text-theme-accent" /> Edit Product: {editingItem.name}
+          <div className="bg-white border border-gray-100 p-6 rounded-2xl max-w-lg w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-[#2563EB]" /> Edit Product: {editingItem.name}
               </h3>
-              <button onClick={() => setEditingItem(null)} className="text-theme-primary opacity-60 hover:opacity-100 font-bold">✕</button>
+              <button onClick={() => setEditingItem(null)} className="text-gray-500 hover:opacity-100 font-bold">✕</button>
             </div>
 
             <form onSubmit={handleSaveEdit} className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Product Name</label>
-                <input required value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" />
+                <label className="text-[10px] font-bold text-gray-600 uppercase">Product Name</label>
+                <input required value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Category</label>
-                <select value={editForm.categoryId} onChange={e => setEditForm({ ...editForm, categoryId: e.target.value })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1">
+                <label className="text-[10px] font-bold text-gray-600 uppercase">Category</label>
+                <select value={editForm.categoryId} onChange={e => setEditForm({ ...editForm, categoryId: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1">
                   <option value="">Select Category</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Selling Price (₹)</label>
-                <input type="number" required value={editForm.price} onChange={e => setEditForm({ ...editForm, price: e.target.value as any })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" />
+                <label className="text-[10px] font-bold text-gray-600 uppercase">Selling Price (₹)</label>
+                <input type="number" required value={editForm.price} onChange={e => setEditForm({ ...editForm, price: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Cost Price (₹)</label>
-                <input type="number" value={editForm.costPrice} onChange={e => setEditForm({ ...editForm, costPrice: e.target.value as any })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" />
+                <label className="text-[10px] font-bold text-gray-600 uppercase">Cost Price (₹)</label>
+                <input type="number" value={editForm.costPrice} onChange={e => setEditForm({ ...editForm, costPrice: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">GST Tax (%)</label>
-                <select value={editForm.gst} onChange={e => setEditForm({ ...editForm, gst: e.target.value as any })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1">
+                <label className="text-[10px] font-bold text-gray-600 uppercase">GST Tax (%)</label>
+                <select value={editForm.gst} onChange={e => setEditForm({ ...editForm, gst: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1">
                   <option value="0">0% (Exempt)</option>
                   <option value="5">5% GST</option>
                   <option value="12">12% GST</option>
@@ -692,24 +692,24 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">HSN Code</label>
-                <input value={editForm.hsnCode} onChange={e => setEditForm({ ...editForm, hsnCode: e.target.value })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" />
+                <label className="text-[10px] font-bold text-gray-600 uppercase">HSN Code</label>
+                <input value={editForm.hsnCode} onChange={e => setEditForm({ ...editForm, hsnCode: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Stock Level</label>
-                <input type="number" required value={editForm.currentStock} onChange={e => setEditForm({ ...editForm, currentStock: e.target.value as any })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" />
+                <label className="text-[10px] font-bold text-gray-600 uppercase">Stock Level</label>
+                <input type="number" required value={editForm.currentStock} onChange={e => setEditForm({ ...editForm, currentStock: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Min Stock Warning</label>
-                <input type="number" required value={editForm.minStock} onChange={e => setEditForm({ ...editForm, minStock: e.target.value as any })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" />
+                <label className="text-[10px] font-bold text-gray-600 uppercase">Min Stock Warning</label>
+                <input type="number" required value={editForm.minStock} onChange={e => setEditForm({ ...editForm, minStock: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Unit</label>
+                <label className="text-[10px] font-bold text-gray-600 uppercase">Unit</label>
                 <select
                   required
                   value={editForm.unit}
                   onChange={e => setEditForm({ ...editForm, unit: e.target.value })}
-                  className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1 font-medium"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1 font-medium"
                 >
                   <option value="">Select Unit</option>
                   {COMMON_UNITS.map(grp => (
@@ -725,23 +725,23 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">SKU / Code</label>
-                <input value={editForm.sku} onChange={e => setEditForm({ ...editForm, sku: e.target.value })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" />
+                <label className="text-[10px] font-bold text-gray-600 uppercase">SKU / Code</label>
+                <input value={editForm.sku} onChange={e => setEditForm({ ...editForm, sku: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Barcode</label>
-                <input value={editForm.barcode} onChange={e => setEditForm({ ...editForm, barcode: e.target.value })} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" />
+                <label className="text-[10px] font-bold text-gray-600 uppercase">Barcode</label>
+                <input value={editForm.barcode} onChange={e => setEditForm({ ...editForm, barcode: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" />
               </div>
 
               {/* Edit Modal Website Visibility Checkbox */}
-              <div className="col-span-2 p-3 bg-theme-card/70 border border-theme-secondary/30 rounded-xl flex items-center justify-between">
+              <div className="col-span-2 p-3 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
                     <Globe className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-theme-primary">Show on Website / Online Store</div>
-                    <div className="text-[10px] text-theme-primary opacity-60">If checked, this product is visible on your public website</div>
+                    <div className="text-xs font-bold text-gray-900">Show on Website / Online Store</div>
+                    <div className="text-[10px] text-gray-500">If checked, this product is visible on your public website</div>
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -755,11 +755,11 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 </label>
               </div>
 
-              <div className="col-span-2 flex gap-3 pt-3 border-t border-theme-secondary/20">
-                <button type="submit" className="flex-1 btn-theme-secondary font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md">
+              <div className="col-span-2 flex gap-3 pt-3 border-t border-gray-100">
+                <button type="submit" className="flex-1 bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md">
                   Save Changes
                 </button>
-                <button type="button" onClick={() => setEditingItem(null)} className="px-5 py-2.5 bg-theme-card text-theme-primary opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100">
+                <button type="button" onClick={() => setEditingItem(null)} className="px-5 py-2.5 bg-gray-50 text-gray-900 opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100">
                   Cancel
                 </button>
               </div>
@@ -771,17 +771,17 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       {/* Mobile Card List View (<sm) */}
       <div className="block sm:hidden space-y-3">
         {filtered.length === 0 ? (
-          <div className="bg-theme-surface border border-theme-secondary/20 p-6 rounded-2xl text-center text-xs text-theme-primary opacity-60">
+          <div className="bg-white border border-gray-100 p-6 rounded-2xl text-center text-xs text-gray-500">
             No products found matching your search or filters. Click "Add {stockNoun.split(' ')[0]}" above to create one.
           </div>
         ) : (
           filtered.map(m => (
-            <div key={m.id} className="bg-theme-surface border border-theme-secondary/20 rounded-xl p-3.5 space-y-2.5">
+            <div key={m.id} className="bg-white border border-gray-100 rounded-xl p-3.5 space-y-2.5">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h4 className="font-bold text-theme-primary text-sm leading-tight">{m.name}</h4>
+                  <h4 className="font-bold text-gray-900 text-sm leading-tight">{m.name}</h4>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-theme-primary opacity-60">{m.categoryName || 'General'}</span>
+                    <span className="text-[10px] text-gray-500">{m.categoryName || 'General'}</span>
                     <button
                       onClick={() => handleToggleWebsiteVisibility(m)}
                       className={cn(
@@ -796,12 +796,12 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                     </button>
                   </div>
                 </div>
-                <span className="font-mono font-bold text-theme-accent text-sm flex-shrink-0">
+                <span className="font-mono font-bold text-[#2563EB] text-sm flex-shrink-0">
                   ₹{(m.pricePerUnit || m.price || 0).toFixed(2)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-xs pt-1 border-t border-theme-secondary/15">
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-100">
                 <span className={cn(
                   "px-2 py-0.5 rounded-full text-[10px] font-bold font-mono border",
                   (m.currentStock ?? 0) <= (m.minStockLevel ?? 10)
@@ -812,7 +812,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 </span>
 
                 <div className="flex items-center gap-1.5">
-                  <div className="inline-flex items-center gap-1 bg-theme-card px-1 py-0.5 rounded-xl border border-theme-secondary/30">
+                  <div className="inline-flex items-center gap-1 bg-gray-50 px-1 py-0.5 rounded-xl border border-gray-100">
                     <button
                       onClick={() => handleAdjustStock(m.id, -1)}
                       className="w-5 h-5 flex items-center justify-center font-extrabold text-xs text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
@@ -825,7 +825,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                       min="0"
                       value={m.currentStock ?? 0}
                       onChange={(e) => handleSetStock(m.id, Math.max(0, parseInt(e.target.value) || 0))}
-                      className="w-11 text-center font-mono font-bold text-xs bg-transparent border-0 outline-none text-theme-primary focus:ring-1 focus:ring-theme-accent rounded"
+                      className="w-11 text-center font-mono font-bold text-xs bg-transparent border-0 outline-none text-gray-900 focus:ring-1 focus:ring-theme-accent rounded"
                     />
                     <button
                       onClick={() => handleAdjustStock(m.id, 1)}
@@ -838,7 +838,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
 
                   <button
                     onClick={() => handleEditClick(m)}
-                    className="p-1.5 text-theme-accent hover:bg-theme-secondary/20 rounded-lg"
+                    className="p-1.5 text-[#2563EB] hover:bg-blue-50 rounded-lg"
                     title="Edit Product"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
@@ -858,9 +858,9 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       </div>
 
       {/* Comprehensive Products Table (>=sm) */}
-      <div className="hidden sm:block bg-theme-surface border border-theme-secondary/20 rounded-2xl overflow-hidden shadow-xl">
-        <table className="w-full text-left text-sm text-theme-primary">
-          <thead className="bg-theme-card text-theme-primary font-bold uppercase text-xs border-b border-theme-secondary/20">
+      <div className="hidden sm:block bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xl">
+        <table className="w-full text-left text-sm text-gray-900">
+          <thead className="bg-gray-50 text-gray-900 font-bold uppercase text-xs border-b border-gray-100">
             <tr>
               <th className="px-4 py-3">Product / Item</th>
               <th className="px-4 py-3">Category</th>
@@ -875,22 +875,22 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
           </thead>
           <tbody className="divide-y divide-theme-secondary/20">
             {filtered.length === 0 ? (
-              <tr><td colSpan={9} className="px-5 py-8 text-center text-theme-primary opacity-60 text-xs">No products found matching your search or filters. Click "Add {stockNoun.split(' ')[0]}" above to create one.</td></tr>
+              <tr><td colSpan={9} className="px-5 py-8 text-center text-gray-500 text-xs">No products found matching your search or filters. Click "Add {stockNoun.split(' ')[0]}" above to create one.</td></tr>
             ) : filtered.map(m => (
-              <tr key={m.id} className="hover:bg-theme-card/60 transition-colors">
-                <td className="px-4 py-3 font-bold text-theme-primary">
+              <tr key={m.id} className="hover:bg-gray-50/60 transition-colors">
+                <td className="px-4 py-3 font-bold text-gray-900">
                   <div>{m.name}</div>
-                  <div className="flex flex-wrap items-center gap-2 text-[10px] text-theme-primary opacity-60 font-mono mt-0.5">
+                  <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5">
                     {m.sku && <span>SKU: {m.sku}</span>}
                     {m.barcode && <span>• Barcode: {m.barcode}</span>}
                     {m.hsnCode && <span>• HSN: {m.hsnCode}</span>}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-theme-primary opacity-80 text-xs">{m.categoryName || 'General'}</td>
-                <td className="px-4 py-3 text-right text-theme-accent font-mono font-bold">₹{(m.pricePerUnit || m.price || 0).toFixed(2)}</td>
-                <td className="px-4 py-3 text-right font-mono text-theme-primary opacity-70">{m.costPrice ? `₹${Number(m.costPrice).toFixed(2)}` : '—'}</td>
+                <td className="px-4 py-3 text-gray-900 opacity-80 text-xs">{m.categoryName || 'General'}</td>
+                <td className="px-4 py-3 text-right text-[#2563EB] font-mono font-bold">₹{(m.pricePerUnit || m.price || 0).toFixed(2)}</td>
+                <td className="px-4 py-3 text-right font-mono text-gray-900 opacity-70">{m.costPrice ? `₹${Number(m.costPrice).toFixed(2)}` : '—'}</td>
                 <td className="px-4 py-3 text-center">
-                  <span className="px-2 py-0.5 rounded bg-theme-secondary/15 text-theme-accent border border-theme-secondary/30 font-mono text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded bg-theme-secondary/15 text-[#2563EB] border border-gray-100 font-mono text-[10px] font-bold">
                     {m.gst || 5}% GST
                   </span>
                 </td>
@@ -934,7 +934,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <div className="inline-flex items-center gap-1 bg-theme-card px-1.5 py-0.5 rounded-xl border border-theme-secondary/30 mr-1">
+                    <div className="inline-flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded-xl border border-gray-100 mr-1">
                       <button
                         onClick={() => handleAdjustStock(m.id, -1)}
                         className="w-5 h-5 flex items-center justify-center font-extrabold text-xs text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
@@ -947,7 +947,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                         min="0"
                         value={m.currentStock ?? 0}
                         onChange={(e) => handleSetStock(m.id, Math.max(0, parseInt(e.target.value) || 0))}
-                        className="w-12 text-center font-mono font-bold text-xs bg-transparent border-0 outline-none text-theme-primary focus:ring-1 focus:ring-theme-accent rounded"
+                        className="w-12 text-center font-mono font-bold text-xs bg-transparent border-0 outline-none text-gray-900 focus:ring-1 focus:ring-theme-accent rounded"
                       />
                       <button
                         onClick={() => handleAdjustStock(m.id, 1)}
@@ -959,7 +959,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                     </div>
                     <button
                       onClick={() => handleEditClick(m)}
-                      className="p-1.5 text-theme-accent hover:bg-theme-secondary/20 rounded-lg transition-all"
+                      className="p-1.5 text-[#2563EB] hover:bg-blue-50 rounded-lg transition-all"
                       title="Edit Product Details"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -1028,41 +1028,41 @@ function CategoriesTab() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-theme-primary">Product Categories ({categories.length})</h3>
+        <h3 className="text-sm font-bold text-gray-900">Product Categories ({categories.length})</h3>
         <button
           onClick={() => setShowCatModal(true)}
-          className="flex items-center gap-2 px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl"
+          className="flex items-center gap-2 px-4 py-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs rounded-xl"
         >
           <Plus className="w-3.5 h-3.5" /> Add Category
         </button>
       </div>
 
       {showCatModal && (
-        <div className="bg-theme-surface border border-theme-secondary/30 p-5 rounded-2xl">
-          <h4 className="text-sm font-bold text-theme-primary mb-3">Add Category</h4>
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl">
+          <h4 className="text-sm font-bold text-gray-900 mb-3">Add Category</h4>
           <form onSubmit={handleSaveCat} className="space-y-3">
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Category Name</label>
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Category Name</label>
               <input
                 required
                 value={catName}
                 onChange={e => setCatName(e.target.value)}
                 placeholder="e.g. Groceries, Spices, Beverages"
-                className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-xs text-theme-primary outline-none mt-1"
+                className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-xs text-gray-900 outline-none mt-1"
               />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-70 uppercase">Description</label>
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Description</label>
               <input
                 value={catDesc}
                 onChange={e => setCatDesc(e.target.value)}
                 placeholder="Short description"
-                className="w-full bg-theme-card border border-theme-secondary/30 rounded-lg p-2 text-xs text-theme-primary outline-none mt-1"
+                className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-xs text-gray-900 outline-none mt-1"
               />
             </div>
             <div className="flex gap-2 pt-1">
-              <button type="submit" className="px-5 py-2 btn-theme-secondary text-xs font-bold rounded-xl">Save</button>
-              <button type="button" onClick={() => setShowCatModal(false)} className="px-5 py-2 bg-theme-card text-theme-primary opacity-70 text-xs font-bold rounded-xl">Cancel</button>
+              <button type="submit" className="px-5 py-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8] text-xs font-bold rounded-xl">Save</button>
+              <button type="button" onClick={() => setShowCatModal(false)} className="px-5 py-2 bg-gray-50 text-gray-900 opacity-70 text-xs font-bold rounded-xl">Cancel</button>
             </div>
           </form>
         </div>
@@ -1072,11 +1072,11 @@ function CategoriesTab() {
         {categories.map(cat => {
           const count = items.filter(i => i.categoryId === cat.id).length;
           return (
-            <div key={cat.id} className="bg-theme-surface border border-theme-secondary/20 p-4 rounded-xl flex items-center justify-between">
+            <div key={cat.id} className="bg-white border border-gray-100 p-4 rounded-xl flex items-center justify-between">
               <div>
-                <h4 className="font-bold text-theme-primary text-sm">{cat.name}</h4>
-                <p className="text-[11px] text-theme-primary opacity-60 mt-0.5">{cat.description || 'General category'}</p>
-                <span className="inline-block mt-2 px-2 py-0.5 bg-theme-card text-theme-accent border border-theme-secondary/30 rounded text-[10px] font-mono font-bold">
+                <h4 className="font-bold text-gray-900 text-sm">{cat.name}</h4>
+                <p className="text-[11px] text-gray-500 mt-0.5">{cat.description || 'General category'}</p>
+                <span className="inline-block mt-2 px-2 py-0.5 bg-gray-50 text-[#2563EB] border border-gray-100 rounded text-[10px] font-mono font-bold">
                   {count} Products
                 </span>
               </div>
@@ -1145,34 +1145,34 @@ function SuppliersTab() {
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
       <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
         {suppliers.map(s => (
-          <div key={s.id} className="bg-theme-surface border border-theme-secondary/20 p-5 rounded-2xl shadow-md">
-            <h3 className="text-base font-bold text-theme-primary">{s.name}</h3>
-            <div className="text-xs text-theme-primary opacity-70 mt-2 font-mono">📞 {s.contact || 'N/A'}</div>
-            <div className="text-xs text-theme-primary opacity-70 font-mono">✉️ {s.email || 'N/A'}</div>
+          <div key={s.id} className="bg-white border border-gray-100 p-5 rounded-2xl shadow-md">
+            <h3 className="text-base font-bold text-gray-900">{s.name}</h3>
+            <div className="text-xs text-gray-900 opacity-70 mt-2 font-mono">📞 {s.contact || 'N/A'}</div>
+            <div className="text-xs text-gray-900 opacity-70 font-mono">✉️ {s.email || 'N/A'}</div>
           </div>
         ))}
         {suppliers.length === 0 && (
-          <div className="col-span-2 py-12 text-center text-theme-primary opacity-60 text-xs bg-theme-surface border border-theme-secondary/20 rounded-2xl">
+          <div className="col-span-2 py-12 text-center text-gray-500 text-xs bg-white border border-gray-100 rounded-2xl">
             No suppliers added yet. Fill out the form to add your first supplier!
           </div>
         )}
       </div>
-      <div className="bg-theme-surface border border-theme-secondary/30 p-6 rounded-2xl h-fit shadow-xl">
-        <h3 className="text-base font-bold text-theme-primary mb-4">Add Supplier</h3>
+      <div className="bg-white border border-gray-100 p-6 rounded-2xl h-fit shadow-xl">
+        <h3 className="text-base font-bold text-gray-900 mb-4">Add Supplier</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-theme-primary opacity-75">Supplier Name</label>
-            <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" placeholder="e.g. Metro Traders" />
+            <label className="text-xs font-bold text-gray-600">Supplier Name</label>
+            <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" placeholder="e.g. Metro Traders" />
           </div>
           <div>
-            <label className="text-xs font-bold text-theme-primary opacity-75">Phone / Contact</label>
-            <input value={form.contact} onChange={e=>setForm({...form, contact: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" placeholder="+91 98765 43210" />
+            <label className="text-xs font-bold text-gray-600">Phone / Contact</label>
+            <input value={form.contact} onChange={e=>setForm({...form, contact: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" placeholder="+91 98765 43210" />
           </div>
           <div>
-            <label className="text-xs font-bold text-theme-primary opacity-75">Email Address</label>
-            <input value={form.email} onChange={e=>setForm({...form, email: e.target.value})} className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2.5 text-xs text-theme-primary outline-none mt-1" placeholder="supplier@email.com" />
+            <label className="text-xs font-bold text-gray-600">Email Address</label>
+            <input value={form.email} onChange={e=>setForm({...form, email: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" placeholder="supplier@email.com" />
           </div>
-          <button className="w-full btn-theme-secondary font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md">Add Supplier</button>
+          <button className="w-full bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md">Add Supplier</button>
         </form>
       </div>
     </div>
@@ -1203,9 +1203,9 @@ function TransactionsTab() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <div className="xl:col-span-2 bg-[#131315] border border-[#2D2D30] rounded-2xl overflow-x-auto">
+      <div className="xl:col-span-2 bg-[#131315] border border-gray-200 rounded-2xl overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm text-gray-300">
-          <thead className="bg-[#0A0A0B] text-gray-400 font-bold uppercase text-[10px] sm:text-xs">
+          <thead className="bg-[#F8FAFC] text-gray-400 font-bold uppercase text-[10px] sm:text-xs">
             <tr>
               <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Date</th>
               <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Material</th>
@@ -1216,7 +1216,7 @@ function TransactionsTab() {
           </thead>
           <tbody className="divide-y divide-[#2D2D30]">
             {transactions.map(tx => (
-              <tr key={tx.id} className="hover:bg-[#1A1A1C]">
+              <tr key={tx.id} className="hover:bg-blue-50/40">
                 <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{new Date(tx.createdAt).toLocaleDateString()}</td>
                 <td className="px-3 sm:px-6 py-3 sm:py-4 font-bold text-white whitespace-nowrap">{tx.rawMaterial?.name}</td>
                 <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
@@ -1234,29 +1234,29 @@ function TransactionsTab() {
         </table>
       </div>
 
-      <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl h-fit">
+      <div className="bg-[#131315] border border-gray-200 p-6 rounded-xl h-fit">
         <h3 className="text-lg font-bold text-white mb-4">Record Transaction</h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs font-bold text-gray-400">Material</label>
-            <select required value={form.rawMaterialId} onChange={e=>setForm({...form, rawMaterialId: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white">
+            <select required value={form.rawMaterialId} onChange={e=>setForm({...form, rawMaterialId: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white">
               <option value="">Select Material</option>
               {materials.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
           </div>
           <div>
             <label className="text-xs font-bold text-gray-400">Type</label>
-            <select required value={form.type} onChange={e=>setForm({...form, type: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white">
+            <select required value={form.type} onChange={e=>setForm({...form, type: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white">
               <option value="STOCK_IN">Stock In</option>
               <option value="STOCK_OUT">Stock Out</option>
               <option value="WASTE">Waste</option>
             </select>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-xs font-bold text-gray-400">Quantity</label><input type="number" required value={form.quantity} onChange={e=>setForm({...form, quantity: e.target.value as any})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white" /></div>
-            <div><label className="text-xs font-bold text-gray-400">Unit Price</label><input type="number" required value={form.unitPrice} onChange={e=>setForm({...form, unitPrice: e.target.value as any})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white" /></div>
+            <div><label className="text-xs font-bold text-gray-400">Quantity</label><input type="number" required value={form.quantity} onChange={e=>setForm({...form, quantity: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
+            <div><label className="text-xs font-bold text-gray-400">Unit Price</label><input type="number" required value={form.unitPrice} onChange={e=>setForm({...form, unitPrice: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
           </div>
-          <div><label className="text-xs font-bold text-gray-400">Notes</label><input value={form.notes} onChange={e=>setForm({...form, notes: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2 text-white" /></div>
+          <div><label className="text-xs font-bold text-gray-400">Notes</label><input value={form.notes} onChange={e=>setForm({...form, notes: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
           <button className="w-full bg-[#C5A059] text-[#0A0A0B] font-bold py-2 rounded">Submit</button>
         </form>
       </div>
@@ -1299,8 +1299,8 @@ function RecipesTab() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <div className="xl:col-span-1 bg-[#131315] border border-[#2D2D30] rounded-xl overflow-hidden flex flex-col max-h-[700px]">
-        <div className="p-4 border-b border-[#2D2D30] bg-[#0A0A0B]">
+      <div className="xl:col-span-1 bg-[#131315] border border-gray-200 rounded-xl overflow-hidden flex flex-col max-h-[700px]">
+        <div className="p-4 border-b border-gray-200 bg-[#F8FAFC]">
           <h3 className="font-bold text-gray-900">Menu Items</h3>
         </div>
         <div className="overflow-y-auto p-4 space-y-4">
@@ -1314,7 +1314,7 @@ function RecipesTab() {
                     onClick={() => { setSelectedMenuItem(item); fetchRecipes(item.id); }}
                     className={cn(
                       "w-full text-left p-3 rounded-lg border text-sm font-bold transition-all",
-                      selectedMenuItem?.id === item.id ? "bg-[#C5A059]/10 border-[#C5A059] text-[#C5A059]" : "bg-[#0A0A0B] border-[#2D2D30] text-gray-600 hover:border-gray-600"
+                      selectedMenuItem?.id === item.id ? "bg-[#C5A059]/10 border-[#C5A059] text-[#C5A059]" : "bg-[#F8FAFC] border-gray-200 text-gray-600 hover:border-gray-600"
                     )}
                   >
                     {item.name}
@@ -1329,7 +1329,7 @@ function RecipesTab() {
       <div className="xl:col-span-2">
         {selectedMenuItem ? (
           <div className="space-y-6">
-            <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
+            <div className="bg-[#131315] border border-gray-200 p-6 rounded-xl">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
                 <Link className="w-5 h-5 text-[#C5A059]" /> {selectedMenuItem.name} Bill of Materials (BOM)
               </h3>
@@ -1339,7 +1339,7 @@ function RecipesTab() {
                 {recipes.length === 0 ? (
                   <div className="text-gray-500 text-sm py-4">No recipe defined yet.</div>
                 ) : recipes.map(r => (
-                  <div key={r.id} className="flex justify-between items-center p-4 bg-[#0A0A0B] border border-[#2D2D30] rounded-lg">
+                  <div key={r.id} className="flex justify-between items-center p-4 bg-[#F8FAFC] border border-gray-200 rounded-lg">
                     <div>
                       <div className="font-bold text-gray-900">{r.rawMaterial?.name}</div>
                       <div className="text-sm text-gray-400">Uses {r.quantityUsed} {r.rawMaterial?.unit}</div>
@@ -1350,26 +1350,26 @@ function RecipesTab() {
               </div>
             </div>
 
-            <div className="bg-[#131315] border border-[#2D2D30] p-6 rounded-xl">
+            <div className="bg-[#131315] border border-gray-200 p-6 rounded-xl">
               <h3 className="text-lg font-bold text-white mb-4">Add Material to Recipe</h3>
               <form onSubmit={handleAddRecipe} className="flex gap-4 items-end">
                 <div className="flex-1">
                   <label className="text-xs font-bold text-gray-400">Raw Material</label>
-                  <select required value={form.rawMaterialId} onChange={e=>setForm({...form, rawMaterialId: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2.5 text-white">
+                  <select required value={form.rawMaterialId} onChange={e=>setForm({...form, rawMaterialId: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2.5 text-white">
                     <option value="">Select Material...</option>
                     {materials.map(m => <option key={m.id} value={m.id}>{m.name} ({m.unit})</option>)}
                   </select>
                 </div>
                 <div className="w-32">
                   <label className="text-xs font-bold text-gray-400">Qty Used</label>
-                  <input type="number" step="0.01" required value={form.quantityUsed} onChange={e=>setForm({...form, quantityUsed: e.target.value as any})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] rounded p-2.5 text-white" />
+                  <input type="number" step="0.01" required value={form.quantityUsed} onChange={e=>setForm({...form, quantityUsed: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2.5 text-white" />
                 </div>
                 <button className="bg-[#C5A059] text-[#0A0A0B] font-bold px-6 py-2.5 rounded hover:bg-[#D5B069] transition-colors">Add</button>
               </form>
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-[#131315] border border-[#2D2D30] rounded-xl p-12">
+          <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-[#131315] border border-gray-200 rounded-xl p-12">
             <Link className="w-12 h-12 mb-4 opacity-50" />
             <div className="text-lg font-bold">Select a Menu Item</div>
             <div className="text-sm">Link raw materials to menu items for auto-deduction.</div>
@@ -1422,15 +1422,15 @@ function BatchExpiryTab() {
         <div className="bg-[#131315] border border-[#C5A059]/30 p-5 rounded-2xl">
           <h3 className="text-sm font-bold text-white mb-4">Add New Batch</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="col-span-2"><label className="text-[10px] font-bold text-gray-400 uppercase">Product Name</label><input required value={form.productName} onChange={e => setForm({...form, productName: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Batch No.</label><input required value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Mfg. Date</label><input type="date" required value={form.mfgDate} onChange={e => setForm({...form, mfgDate: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Expiry Date</label><input type="date" required value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Quantity</label><input type="number" required value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value as any})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">MRP (₹)</label><input type="number" required value={form.mrp} onChange={e => setForm({...form, mrp: e.target.value as any})} className="w-full bg-[#0A0A0B] border border-[#2D2D30] focus:border-[#C5A059] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
+            <div className="col-span-2"><label className="text-[10px] font-bold text-gray-400 uppercase">Product Name</label><input required value={form.productName} onChange={e => setForm({...form, productName: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Batch No.</label><input required value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Mfg. Date</label><input type="date" required value={form.mfgDate} onChange={e => setForm({...form, mfgDate: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Expiry Date</label><input type="date" required value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Quantity</label><input type="number" required value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-400 uppercase">MRP (₹)</label><input type="number" required value={form.mrp} onChange={e => setForm({...form, mrp: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
             <div className="col-span-3 flex gap-3 mt-2">
               <button type="submit" className="px-6 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-xl uppercase hover:bg-[#b08d4a]">Save Batch</button>
-              <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-[#1A1A1C] text-gray-400 font-bold text-xs rounded-xl uppercase hover:text-white">Cancel</button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-gray-50 text-gray-400 font-bold text-xs rounded-xl uppercase hover:text-white">Cancel</button>
             </div>
           </form>
         </div>
@@ -1438,7 +1438,7 @@ function BatchExpiryTab() {
 
       <div className="bg-[#131315] border border-[#1F1F21] rounded-2xl overflow-hidden">
         <table className="w-full text-left text-xs text-gray-300">
-          <thead className="bg-[#0A0A0B] text-gray-400 font-bold uppercase text-[10px]">
+          <thead className="bg-[#F8FAFC] text-gray-400 font-bold uppercase text-[10px]">
             <tr>
               <th className="px-5 py-3">Product</th>
               <th className="px-5 py-3">Batch No.</th>
@@ -1457,7 +1457,7 @@ function BatchExpiryTab() {
               const expiryClass = days < 0 ? 'text-red-400' : days < 30 ? 'text-amber-400' : 'text-emerald-400';
               const expiryLabel = days < 0 ? 'EXPIRED' : days < 30 ? `${days}d left` : 'Good';
               return (
-                <tr key={b.id} className="hover:bg-[#1A1A1C] transition-colors">
+                <tr key={b.id} className="hover:bg-blue-50/40 transition-colors">
                   <td className="px-5 py-3 font-bold text-white">{b.productName}</td>
                   <td className="px-5 py-3 font-mono text-gray-300">{b.batchNo}</td>
                   <td className="px-5 py-3 text-gray-400">{b.mfgDate ? new Date(b.mfgDate).toLocaleDateString('en-IN') : '-'}</td>

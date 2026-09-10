@@ -332,7 +332,7 @@ export default function WebsiteBuilder() {
           <button
             type="button"
             onClick={handleSave}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg btn-theme-secondary font-medium text-sm shadow-sm transition-colors flex-shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-medium text-sm shadow-sm transition-colors flex-shrink-0"
           >
             <Save className="w-4 h-4" />
             <span>Publish Website</span>
@@ -441,7 +441,7 @@ export default function WebsiteBuilder() {
               </div>
               <button
                 onClick={handleAddSlide}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg btn-theme-secondary font-medium text-sm transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-medium text-sm transition-colors shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Hero Slide</span>
@@ -667,7 +667,7 @@ export default function WebsiteBuilder() {
               </div>
               <button
                 onClick={handleAddShowcaseItem}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg btn-theme-secondary font-medium text-sm transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-medium text-sm transition-colors shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Item / Offering</span>
@@ -1046,7 +1046,7 @@ export default function WebsiteBuilder() {
               </div>
               <button
                 onClick={handleAddArticle}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg btn-theme-secondary font-medium text-sm transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-medium text-sm transition-colors shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Article / Story</span>
@@ -1446,9 +1446,9 @@ export default function WebsiteBuilder() {
             </a>
           </div>
 
-          <div className="flex justify-center bg-gray-950 p-4 rounded-2xl border border-gray-800 overflow-x-auto">
+          <div className="flex justify-center bg-slate-100/80 p-6 rounded-3xl border border-slate-200/60 shadow-inner overflow-x-auto">
             <div className={cn(
-              "transition-all duration-300 shadow-2xl rounded-xl overflow-hidden border border-white/10 bg-white min-w-0",
+              "transition-all duration-300 shadow-2xl rounded-2xl overflow-hidden border border-slate-200 bg-white min-w-0",
               previewDevice === 'DESKTOP' ? "w-full max-w-6xl h-[750px]" : "w-[390px] h-[750px]"
             )}>
               <iframe

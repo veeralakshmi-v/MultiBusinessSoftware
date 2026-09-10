@@ -405,9 +405,9 @@ export default function EmployeeDirectory() {
     <div className="p-3 sm:p-6 md:p-8 space-y-4 sm:space-y-6 max-w-[1600px] mx-auto w-full min-w-0 overflow-hidden">
 
       {/* ── HEADER & CONTROLS ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white border border-gray-200 p-3.5 sm:p-5 rounded-2xl shadow-xl w-full min-w-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white/80 backdrop-blur-md border border-white/60 p-5 sm:p-6 rounded-3xl shadow-lg shadow-gray-200/50 w-full min-w-0">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#C5A059]/20 to-[#C5A059]/5 border border-[#2563EB]/30 flex items-center justify-center text-[#2563EB] shadow-lg flex-shrink-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB] shadow-md flex-shrink-0">
             <Users className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div className="min-w-0 flex-1">
@@ -424,13 +424,13 @@ export default function EmployeeDirectory() {
               placeholder="Search staff, username, Aadhar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+              className="w-full bg-gray-50 border border-gray-100 rounded-xl pl-9 pr-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
             />
           </div>
 
           <button
             onClick={() => handleOpenModal()}
-            className="w-full md:w-auto px-4 py-2 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#d4b06a] hover:to-[#b08d4a] text-[#080809] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all flex-shrink-0"
+            className="w-full md:w-auto px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all flex-shrink-0"
           >
             <UserPlus className="w-4 h-4" />
             <span>Add Employee</span>
@@ -451,8 +451,8 @@ export default function EmployeeDirectory() {
               className={cn(
                 "px-3 py-1 rounded-xl text-xs font-bold transition-all border whitespace-nowrap flex-shrink-0",
                 roleFilter === r
-                  ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
-                  : "bg-theme-surface text-theme-primary hover:bg-theme-secondary/20 border-theme-secondary/30"
+                  ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 border-transparent font-extrabold"
+                  : "bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-gray-100"
               )}
             >
               {r}
@@ -464,7 +464,7 @@ export default function EmployeeDirectory() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+              className="bg-gray-50 border border-gray-100 rounded-xl px-2 py-1 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
             >
               <option value="ALL">All Departments</option>
               <option value="Management/Admin">Management/Admin</option>
@@ -481,7 +481,7 @@ export default function EmployeeDirectory() {
             onClick={() => setViewMode('grid')}
             className={cn(
               "px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all",
-              viewMode === 'grid' ? "btn-theme-secondary shadow-md border-transparent" : "bg-theme-surface text-theme-primary border-theme-secondary/30"
+              viewMode === 'grid' ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 border-transparent" : "bg-white text-gray-600 border border-gray-100"
             )}
           >
             Tiles
@@ -490,7 +490,7 @@ export default function EmployeeDirectory() {
             onClick={() => setViewMode('table')}
             className={cn(
               "px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all",
-              viewMode === 'table' ? "btn-theme-secondary shadow-md border-transparent" : "bg-theme-surface text-theme-primary border-theme-secondary/30"
+              viewMode === 'table' ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 border-transparent" : "bg-white text-gray-600 border border-gray-100"
             )}
           >
             Table
@@ -506,7 +506,7 @@ export default function EmployeeDirectory() {
             <div
               key={st.id}
               onClick={() => handleOpenModal(st)}
-              className="group relative bg-white hover:bg-[#18181B] border border-gray-200 hover:border-[#2563EB]/40 rounded-2xl p-5 shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer flex flex-col justify-between overflow-hidden"
+              className="group relative bg-white hover:bg-blue-50/60 border border-gray-100 hover:border-[#2563EB]/30 rounded-2xl p-5 shadow-md hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer flex flex-col justify-between overflow-hidden"
             >
               {/* Card Header: Photo & Role Badge */}
               <div className="flex items-start justify-between gap-3">
@@ -519,7 +519,7 @@ export default function EmployeeDirectory() {
                     </div>
                   )}
                   <span className={cn(
-                    "absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#131315]",
+                    "absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white",
                     st.status === 'ACTIVE' ? "bg-emerald-400" : "bg-red-400"
                   )} />
                 </div>
@@ -533,7 +533,7 @@ export default function EmployeeDirectory() {
                   )}>
                     {st.role}
                   </span>
-                  <span className="text-[10px] font-semibold text-gray-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
+                  <span className="text-[10px] font-semibold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
                     {st.category || 'General'}
                   </span>
                 </div>
@@ -546,15 +546,15 @@ export default function EmployeeDirectory() {
               </div>
 
               {/* Detail Chips */}
-              <div className="space-y-1.5 pt-3 border-t border-white/[0.06] text-xs font-mono">
-                <div className="flex items-center justify-between text-gray-300">
+              <div className="space-y-1.5 pt-3 border-t border-gray-100 text-xs font-mono">
+                <div className="flex items-center justify-between text-gray-600">
                   <span className="text-gray-500 text-[11px] flex items-center gap-1">
                     <CreditCard className="w-3 h-3 text-[#2563EB]" /> Aadhar:
                   </span>
                   <span className="font-bold text-[#2563EB]">{st.aadharNumber || 'Required *'}</span>
                 </div>
 
-                <div className="flex items-center justify-between text-gray-400">
+                <div className="flex items-center justify-between text-gray-600">
                   <span className="text-gray-500 text-[11px] flex items-center gap-1">
                     <Phone className="w-3 h-3 text-cyan-400" /> Phone:
                   </span>
@@ -572,14 +572,14 @@ export default function EmployeeDirectory() {
               </div>
 
               {/* Card Footer: Edit Button */}
-              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between">
+              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleOpenModal(st);
                   }}
-                  className="px-3.5 py-1.5 btn-theme-secondary rounded-xl text-xs font-bold transition-all flex items-center gap-1 border border-white/20 shadow-md"
+                  className="px-3.5 py-1.5 bg-[#2563EB] text-white hover:bg-[#1D4ED8] rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-md"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                   <span>Edit</span>
@@ -593,9 +593,9 @@ export default function EmployeeDirectory() {
 
       {/* ── TABLE LIST VIEW ── */}
       {viewMode === 'table' && (
-        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-xl">
+        <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-xl">
           <table className="w-full text-left text-xs">
-            <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200">
+            <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-100">
               <tr>
                 <th className="p-3.5 whitespace-nowrap">Employee</th>
                 <th className="p-3.5 whitespace-nowrap">Category</th>
@@ -674,7 +674,7 @@ export default function EmployeeDirectory() {
                         e.stopPropagation();
                         handleOpenModal(st);
                       }}
-                      className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-[#2563EB] border border-gray-200 rounded-lg"
+                      className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-[#2563EB] border border-gray-100 rounded-lg"
                       title="Edit Staff"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -690,8 +690,8 @@ export default function EmployeeDirectory() {
       {/* ── INDIVIDUAL EMPLOYEE DETAIL & EDIT MODAL ── */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in overflow-y-auto">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+          <div className="bg-white border border-gray-100 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#2563EB]" />
                 <h3 className="font-bold text-gray-900 text-base">
@@ -705,22 +705,22 @@ export default function EmployeeDirectory() {
 
             <form onSubmit={handleSaveStaff} className="space-y-4">
               {/* Employee Photo Upload Card */}
-              <div className="flex items-center gap-4 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+              <div className="flex items-center gap-4 p-3 bg-gray-50 border border-gray-100 rounded-xl">
                 {staffPhoto ? (
                   <img src={staffPhoto} alt="" className="w-16 h-16 rounded-xl object-cover border-2 border-[#2563EB]/40 flex-shrink-0" />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl bg-gray-100 border border-[#3D3D40] flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-semibold">
+                  <div className="w-16 h-16 rounded-xl bg-gray-100 border border-gray-100 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-semibold">
                     No Photo
                   </div>
                 )}
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold text-white">Employee Photo</p>
+                  <p className="text-xs font-semibold text-gray-900">Employee Photo</p>
                   <p className="text-[10px] text-gray-400">Upload profile photo or identity picture (PNG/JPG)</p>
                   <div className="flex items-center gap-2 pt-0.5">
                     <button
                       type="button"
                       onClick={() => photoInputRef.current?.click()}
-                      className="px-3 py-1 bg-gray-100 hover:bg-[#303035] border border-[#3D3D40] text-gray-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all"
+                      className="px-3 py-1 bg-gray-100 hover:bg-gray-200 border border-gray-100 text-gray-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all"
                     >
                       <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
                       <span>{staffPhoto ? 'Change Photo' : 'Upload Photo'}</span>
@@ -748,7 +748,7 @@ export default function EmployeeDirectory() {
                     placeholder="e.g. Ramesh Kumar"
                     value={staffName}
                     onChange={(e) => setStaffName(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -763,7 +763,7 @@ export default function EmployeeDirectory() {
                       "w-full rounded-xl px-3 py-2 text-xs font-mono outline-none cursor-not-allowed opacity-80 transition-all",
                       isPhoneDuplicate
                         ? "bg-red-950/20 border border-red-500/50 text-red-300"
-                        : "bg-white border border-gray-200 text-gray-400"
+                        : "bg-white border border-gray-100 text-gray-400"
                     )}
                   />
                   <p className={cn("text-[10px] mt-1 flex items-center gap-1 font-medium", isPhoneDuplicate ? "text-red-400 font-bold" : "text-gray-400")}>
@@ -785,7 +785,7 @@ export default function EmployeeDirectory() {
                         setStaffCategory(val);
                       }
                     }}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   >
                     <option value="Management/Admin">Management/Admin</option>
                     <option value="Accounts & Finance">Accounts & Finance</option>
@@ -825,7 +825,7 @@ export default function EmployeeDirectory() {
                         if (val === 'ADMIN') setStaffStatus('ACTIVE');
                       }
                     }}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   >
                     <option value="CASHIER">CASHIER</option>
                     <option value="MANAGER">MANAGER</option>
@@ -878,28 +878,28 @@ export default function EmployeeDirectory() {
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Billing POS', 'Customers', 'Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-100 text-gray-600 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
                     >
                       POS Cashier
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Dashboard', 'Billing POS', 'Categories & Items', 'Inventory', 'Sales Reports', 'Customers', 'Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-100 text-gray-600 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
                     >
                       Store Manager
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-100 text-gray-600 hover:text-[#2563EB] hover:border-[#2563EB]/50 transition-all"
                     >
                       Attendance Only
                     </button>
                   </div>
 
                   {/* Checklist Multi-Select Container */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl max-h-56 overflow-y-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-gray-50 border border-gray-100 rounded-xl max-h-56 overflow-y-auto">
                     {PROJECT_MENU_ITEMS.map((item) => {
                       const isChecked = selectedAppAccess.includes(item);
                       return (
@@ -908,8 +908,8 @@ export default function EmployeeDirectory() {
                           className={cn(
                             "flex items-center gap-2.5 p-2.5 rounded-xl border text-xs cursor-pointer transition-all select-none",
                             isChecked
-                              ? "bg-blue-50 border-[#2563EB]/50 text-white font-bold shadow-sm"
-                              : "bg-white border-gray-200 text-gray-400 hover:border-gray-600 hover:text-gray-200"
+                              ? "bg-blue-50 border-[#2563EB] text-[#2563EB] font-bold shadow-xs"
+                              : "bg-white border-gray-100 text-gray-400 hover:border-gray-600 hover:text-gray-700"
                           )}
                         >
                           <input
@@ -944,7 +944,7 @@ export default function EmployeeDirectory() {
                 </div>
 
 
-                <div className="sm:col-span-2 p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-1.5">
+                <div className="sm:col-span-2 p-3 bg-gray-50 border border-gray-100 rounded-xl space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-gray-600 flex items-center gap-1.5">
                       <Shield className="w-3.5 h-3.5 text-[#2563EB]" /> Assigned Role Title:
@@ -964,7 +964,7 @@ export default function EmployeeDirectory() {
                     type="date"
                     value={staffDob}
                     onChange={(e) => setStaffDob(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB] [color-scheme:light]"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB] [color-scheme:light]"
                   />
                 </div>
 
@@ -986,7 +986,7 @@ export default function EmployeeDirectory() {
                     type="date"
                     value={staffDoj}
                     onChange={(e) => setStaffDoj(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB] [color-scheme:light]"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB] [color-scheme:light]"
                   />
                 </div>
 
@@ -996,7 +996,7 @@ export default function EmployeeDirectory() {
                     type="date"
                     value={staffDor}
                     onChange={(e) => setStaffDor(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB] [color-scheme:light]"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB] [color-scheme:light]"
                   />
                 </div>
 
@@ -1018,7 +1018,7 @@ export default function EmployeeDirectory() {
                       "w-full bg-gray-50 rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
                       isPhoneDuplicate
                         ? "border-2 border-red-500 text-red-300 focus:border-red-400"
-                        : "border border-[#2563EB]/40 focus:border-[#2563EB] text-white"
+                        : "border border-[#2563EB]/40 focus:border-[#2563EB] text-gray-900"
                     )}
                   />
                   {isPhoneDuplicate && (
@@ -1035,7 +1035,7 @@ export default function EmployeeDirectory() {
                     placeholder="+91 98765 11111"
                     value={staffFamilyPhone}
                     onChange={(e) => setStaffFamilyPhone(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -1046,7 +1046,7 @@ export default function EmployeeDirectory() {
                     placeholder="staff@business.com"
                     value={staffEmail}
                     onChange={(e) => setStaffEmail(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -1059,7 +1059,7 @@ export default function EmployeeDirectory() {
                     placeholder="1234"
                     value={staffPin}
                     onChange={(e) => setStaffPin(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -1070,13 +1070,13 @@ export default function EmployeeDirectory() {
                     placeholder="Full residential address..."
                     value={staffAddress}
                     onChange={(e) => setStaffAddress(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 outline-none focus:border-[#2563EB] resize-none"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs text-gray-900 outline-none focus:border-[#2563EB] resize-none"
                   />
                 </div>
 
-                <div className="sm:col-span-2 flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                <div className="sm:col-span-2 flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl">
                   <div>
-                    <p className="text-xs font-semibold text-white">Employment Status</p>
+                    <p className="text-xs font-semibold text-gray-900">Employment Status</p>
                     <p className="text-[10px] text-gray-400">
                       {staffRole === 'ADMIN'
                         ? "Admin accounts are protected and strictly maintained as Active"
@@ -1119,7 +1119,7 @@ export default function EmployeeDirectory() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                 {selectedStaff ? (
                   <button
                     type="button"
@@ -1141,7 +1141,7 @@ export default function EmployeeDirectory() {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-[#2563EB] text-white font-bold rounded-xl text-xs hover:bg-[#b08d4a] shadow-lg shadow-blue-500/20 flex items-center gap-1.5"
+                    className="px-6 py-2 bg-[#2563EB] text-white font-bold rounded-xl text-xs hover:bg-[#1D4ED8] shadow-lg shadow-blue-500/20 flex items-center gap-1.5"
                   >
                     <Save className="w-4 h-4" />
                     <span>Save Employee Details</span>

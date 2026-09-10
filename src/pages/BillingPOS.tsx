@@ -1357,8 +1357,8 @@ export default function BillingPOS() {
                     className={cn(
                       "py-2 px-1 rounded-xl text-[10px] font-bold border transition-all flex flex-col items-center gap-1",
                       isSelected
-                        ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
-                        : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
+                        ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent font-extrabold"
+                        : "bg-white text-gray-900 border-gray-100 hover:bg-blue-50"
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -1370,35 +1370,35 @@ export default function BillingPOS() {
 
             {/* Split / Partial Payment Box */}
             {paymentMethod === 'SPLIT' && grandTotal > 0 && (
-              <div className="bg-theme-surface p-3 rounded-2xl border border-theme-secondary/30 space-y-2.5 shadow-md">
+              <div className="bg-white p-3 rounded-2xl border border-gray-100 space-y-2.5 shadow-md">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-theme-primary flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
                     <ArrowRightLeft className="w-3.5 h-3.5 text-amber-400" /> Split / Partial Payment
                   </span>
-                  <span className="text-[10px] text-theme-primary opacity-60">
-                    Bill Total: <strong className="font-mono text-theme-accent">₹{grandTotal.toFixed(2)}</strong>
+                  <span className="text-[10px] text-gray-900 opacity-60">
+                    Bill Total: <strong className="font-mono text-[#2563EB]">₹{grandTotal.toFixed(2)}</strong>
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Paid Amount (₹)</label>
+                    <label className="text-[10px] font-bold text-gray-900 opacity-75 uppercase">Paid Amount (₹)</label>
                     <input
                       type="number"
                       step="any"
                       placeholder={(grandTotal / 2).toFixed(0)}
                       value={splitPaidAmount}
                       onChange={e => setSplitPaidAmount(e.target.value)}
-                      className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2 text-xs font-mono font-bold text-theme-primary outline-none focus:border-theme-secondary mt-0.5"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2 text-xs font-mono font-bold text-gray-900 outline-none focus:border-gray-100 mt-0.5"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase">Paid Via</label>
+                    <label className="text-[10px] font-bold text-gray-900 opacity-75 uppercase">Paid Via</label>
                     <select
                       value={splitPaidMethod}
                       onChange={e => setSplitPaidMethod(e.target.value as any)}
-                      className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-2 text-xs font-bold text-theme-primary outline-none focus:border-theme-secondary mt-0.5"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2 text-xs font-bold text-gray-900 outline-none focus:border-gray-100 mt-0.5"
                     >
                       <option value="CASH">💵 Cash</option>
                       <option value="UPI">📲 UPI / QR</option>
@@ -1407,13 +1407,13 @@ export default function BillingPOS() {
                   </div>
                 </div>
 
-                <div className="bg-theme-card p-2.5 rounded-xl border border-theme-secondary/20 flex items-center justify-between text-xs font-mono">
+                <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex items-center justify-between text-xs font-mono">
                   <div>
-                    <span className="text-theme-primary opacity-70 text-[10px]">Paid ({splitPaidMethod}): </span>
+                    <span className="text-gray-900 opacity-70 text-[10px]">Paid ({splitPaidMethod}): </span>
                     <span className="font-bold text-emerald-400">₹{computedPaidAmount.toFixed(2)}</span>
                   </div>
                   <div>
-                    <span className="text-theme-primary opacity-70 text-[10px]">Balance Due: </span>
+                    <span className="text-gray-900 opacity-70 text-[10px]">Balance Due: </span>
                     <span className="font-bold text-red-400">₹{computedBalanceDue.toFixed(2)}</span>
                   </div>
                 </div>
@@ -1428,7 +1428,7 @@ export default function BillingPOS() {
 
             {/* Cash Tendered Calculator */}
             {paymentMethod === 'CASH' && grandTotal > 0 && (
-              <div className="bg-theme-surface p-2 rounded-xl border border-theme-secondary/30 flex items-center justify-between text-xs">
+              <div className="bg-white p-2 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
                   <span className="opacity-80">Cash Received:</span>
                   <input
@@ -1436,7 +1436,7 @@ export default function BillingPOS() {
                     placeholder={grandTotal.toFixed(2)}
                     value={cashTendered}
                     onChange={(e) => setCashTendered(e.target.value)}
-                    className="w-24 bg-theme-primary border border-theme-secondary/30 rounded px-2 py-1 text-theme-primary font-mono text-xs outline-none focus:border-theme-secondary"
+                    className="w-24 bg-theme-primary border border-gray-100 rounded px-2 py-1 text-gray-900 font-mono text-xs outline-none focus:border-gray-100"
                   />
                 </div>
                 {changeDue > 0 && (
@@ -1458,8 +1458,8 @@ export default function BillingPOS() {
             className={cn(
               "w-full py-3.5 rounded-xl font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg transition-all border",
               cart.length > 0
-                ? "btn-theme-secondary shadow-md border-transparent cursor-pointer"
-                : "bg-theme-surface text-theme-primary opacity-50 cursor-not-allowed border-theme-secondary/20"
+                ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent cursor-pointer"
+                : "bg-white text-gray-900 opacity-50 cursor-not-allowed border-gray-100"
             )}
           >
             <Printer className="w-4 h-4" />
@@ -1472,7 +1472,7 @@ export default function BillingPOS() {
       {/* Quick Add Product Modal in POS */}
       {isAddItemModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#141416] border border-[#2D2D30] rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+          <div className="bg-[#141416] border border-gray-200 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#222225] pb-3">
               <div className="flex items-center gap-2">
                 <PackagePlus className="w-5 h-5 text-[#C5A059]" />
@@ -1492,7 +1492,7 @@ export default function BillingPOS() {
                   placeholder="e.g. Cotton Shirt, Notebook, Engine Oil"
                   value={newItemName}
                   onChange={(e) => setNewItemName(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                 />
               </div>
 
@@ -1502,7 +1502,7 @@ export default function BillingPOS() {
                   <select
                     value={newItemCatId}
                     onChange={(e) => setNewItemCatId(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   >
                     {categories.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -1522,7 +1522,7 @@ export default function BillingPOS() {
                     placeholder="0.00"
                     value={newItemPrice}
                     onChange={(e) => setNewItemPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
@@ -1533,7 +1533,7 @@ export default function BillingPOS() {
                     min="0"
                     value={newItemStock}
                     onChange={(e) => setNewItemStock(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
               </div>
@@ -1544,7 +1544,7 @@ export default function BillingPOS() {
                   <select
                     value={newItemGst}
                     onChange={(e) => setNewItemGst(Number(e.target.value))}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   >
                     <option value={0}>0%</option>
                     <option value={5}>5%</option>
@@ -1559,7 +1559,7 @@ export default function BillingPOS() {
                   <select
                     value={newItemUnit}
                     onChange={(e) => setNewItemUnit(e.target.value)}
-                    className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059] font-medium"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB] font-medium"
                   >
                     <option value="">Select Unit</option>
                     {COMMON_UNITS.map(grp => (
@@ -1580,7 +1580,7 @@ export default function BillingPOS() {
                 <button
                   type="button"
                   onClick={() => setIsAddItemModalOpen(false)}
-                  className="px-4 py-2 bg-[#1A1A1C] text-gray-400 hover:text-white rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 bg-gray-50 text-gray-400 hover:text-white rounded-xl text-xs font-semibold"
                 >
                   Cancel
                 </button>
@@ -1599,7 +1599,7 @@ export default function BillingPOS() {
       {/* Held Bills Recall Modal */}
       {isHeldModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#141416] border border-[#2D2D30] rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
+          <div className="bg-[#141416] border border-gray-200 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#222225] pb-3">
               <div className="flex items-center gap-2">
                 <PlayCircle className="w-5 h-5 text-amber-400" />
@@ -1638,7 +1638,7 @@ export default function BillingPOS() {
       {/* Add New Customer Modal */}
       {isAddCustomerModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#141416] border border-[#2D2D30] rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+          <div className="bg-[#141416] border border-gray-200 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-[#222225] pb-3">
               <div className="flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-[#C5A059]" />
@@ -1658,7 +1658,7 @@ export default function BillingPOS() {
                   placeholder="e.g. Ramesh Kumar"
                   value={newCustName}
                   onChange={(e) => setNewCustName(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                 />
               </div>
 
@@ -1670,7 +1670,7 @@ export default function BillingPOS() {
                   placeholder="e.g. 9876543210"
                   value={newCustMobile}
                   onChange={(e) => setNewCustMobile(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-[#C5A059]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                 />
               </div>
 
@@ -1681,7 +1681,7 @@ export default function BillingPOS() {
                   placeholder="e.g. ramesh@gmail.com"
                   value={newCustEmail}
                   onChange={(e) => setNewCustEmail(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                 />
               </div>
 
@@ -1692,7 +1692,7 @@ export default function BillingPOS() {
                   placeholder="e.g. Chennai, Tamil Nadu"
                   value={newCustAddress}
                   onChange={(e) => setNewCustAddress(e.target.value)}
-                  className="w-full bg-[#1A1A1C] border border-[#2D2D30] rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#C5A059]"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                 />
               </div>
 
@@ -1700,7 +1700,7 @@ export default function BillingPOS() {
                 <button
                   type="button"
                   onClick={() => setIsAddCustomerModalOpen(false)}
-                  className="px-3.5 py-2 bg-[#1A1A1C] text-gray-400 hover:text-white rounded-xl text-xs"
+                  className="px-3.5 py-2 bg-gray-50 text-gray-400 hover:text-white rounded-xl text-xs"
                 >
                   Cancel
                 </button>
@@ -1719,20 +1719,20 @@ export default function BillingPOS() {
       {/* Weight / Volume Sub-unit Custom Quantity Modal */}
       {weightModalItem && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-theme-surface border border-theme-secondary/30 p-6 rounded-2xl max-w-md w-full shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-theme-secondary/20 pb-3">
+          <div className="bg-white border border-gray-100 p-6 rounded-2xl max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
-                <h3 className="text-base font-bold text-theme-primary">{weightModalItem.item.name}</h3>
-                <p className="text-xs text-theme-primary opacity-60">
-                  Rate: <span className="font-mono font-bold text-theme-accent">₹{weightModalItem.item.price.toFixed(2)}</span> per {weightModalItem.item.unit || 'Kg'}
+                <h3 className="text-base font-bold text-gray-900">{weightModalItem.item.name}</h3>
+                <p className="text-xs text-gray-900 opacity-60">
+                  Rate: <span className="font-mono font-bold text-[#2563EB]">₹{weightModalItem.item.price.toFixed(2)}</span> per {weightModalItem.item.unit || 'Kg'}
                 </p>
               </div>
-              <button onClick={() => setWeightModalItem(null)} className="text-theme-primary opacity-60 hover:opacity-100 font-bold text-sm">✕</button>
+              <button onClick={() => setWeightModalItem(null)} className="text-gray-900 opacity-60 hover:opacity-100 font-bold text-sm">✕</button>
             </div>
 
             {/* Quick Presets */}
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase tracking-wider">Quick Presets</label>
+              <label className="text-[10px] font-bold text-gray-900 opacity-75 uppercase tracking-wider">Quick Presets</label>
               <div className="grid grid-cols-4 gap-2 mt-1.5">
                 {getUnitType(weightModalItem.item.unit) === 'WEIGHT' ? (
                   [
@@ -1752,8 +1752,8 @@ export default function BillingPOS() {
                       className={cn(
                         "py-2 rounded-xl text-xs font-mono font-bold border transition-all",
                         Number(subUnitVal) === preset.val
-                          ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
-                          : "bg-theme-card text-theme-primary border-theme-secondary/30 hover:border-theme-secondary"
+                          ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent font-extrabold"
+                          : "bg-gray-50 text-gray-900 border-gray-100 hover:border-gray-100"
                       )}
                     >
                       {preset.label}
@@ -1777,8 +1777,8 @@ export default function BillingPOS() {
                       className={cn(
                         "py-2 rounded-xl text-xs font-mono font-bold border transition-all",
                         Number(subUnitVal) === preset.val
-                          ? "btn-theme-secondary shadow-md border-transparent font-extrabold"
-                          : "bg-theme-card text-theme-primary border-theme-secondary/30 hover:border-theme-secondary"
+                          ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent font-extrabold"
+                          : "bg-gray-50 text-gray-900 border-gray-100 hover:border-gray-100"
                       )}
                     >
                       {preset.label}
@@ -1790,7 +1790,7 @@ export default function BillingPOS() {
 
             {/* Custom Input */}
             <div>
-              <label className="text-[10px] font-bold text-theme-primary opacity-75 uppercase tracking-wider">
+              <label className="text-[10px] font-bold text-gray-900 opacity-75 uppercase tracking-wider">
                 Custom Quantity ({getUnitType(weightModalItem.item.unit) === 'WEIGHT' ? 'Grams' : 'Milliliters (ml)'})
               </label>
               <div className="relative mt-1">
@@ -1801,9 +1801,9 @@ export default function BillingPOS() {
                   value={subUnitVal}
                   onChange={e => setSubUnitVal(e.target.value)}
                   placeholder="e.g. 250, 500, 750"
-                  className="w-full bg-theme-card border border-theme-secondary/30 rounded-xl p-3 text-lg font-mono font-bold text-theme-primary outline-none focus:border-theme-secondary"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-lg font-mono font-bold text-gray-900 outline-none focus:border-gray-100"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-theme-primary opacity-60">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-900 opacity-60">
                   {getUnitType(weightModalItem.item.unit) === 'WEIGHT' ? 'Grams' : 'ml'}
                 </span>
               </div>
@@ -1817,14 +1817,14 @@ export default function BillingPOS() {
               const convertedQty = isSub ? numGrams : numGrams / 1000;
               const totalPrice = weightModalItem.item.price * convertedQty;
               return (
-                <div className="bg-theme-card p-3 rounded-xl border border-theme-secondary/30 flex items-center justify-between text-xs font-mono">
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 flex items-center justify-between text-xs font-mono">
                   <div>
-                    <span className="text-theme-primary opacity-70">Quantity: </span>
-                    <span className="font-bold text-theme-primary">{formatQuantityWithSubunit(convertedQty, weightModalItem.item.unit)}</span>
+                    <span className="text-gray-900 opacity-70">Quantity: </span>
+                    <span className="font-bold text-gray-900">{formatQuantityWithSubunit(convertedQty, weightModalItem.item.unit)}</span>
                   </div>
                   <div>
-                    <span className="text-theme-primary opacity-70">Total: </span>
-                    <span className="font-bold text-theme-accent text-sm">₹{totalPrice.toFixed(2)}</span>
+                    <span className="text-gray-900 opacity-70">Total: </span>
+                    <span className="font-bold text-[#2563EB] text-sm">₹{totalPrice.toFixed(2)}</span>
                   </div>
                 </div>
               );
@@ -1851,14 +1851,14 @@ export default function BillingPOS() {
                   }
                   setWeightModalItem(null);
                 }}
-                className="flex-1 btn-theme-secondary font-bold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg"
+                className="flex-1 bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg"
               >
                 Confirm Quantity
               </button>
               <button
                 type="button"
                 onClick={() => setWeightModalItem(null)}
-                className="px-5 py-3 bg-theme-card text-theme-primary opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100"
+                className="px-5 py-3 bg-gray-50 text-gray-900 opacity-70 font-bold text-xs rounded-xl uppercase hover:opacity-100"
               >
                 Cancel
               </button>

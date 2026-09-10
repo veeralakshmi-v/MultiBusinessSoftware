@@ -74,15 +74,15 @@ export default function EmployeeLogin() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-theme-primary text-theme-primary font-sans flex flex-col relative overflow-hidden">
+    <div className="min-h-screen w-full bg-theme-primary text-gray-900 font-sans flex flex-col relative overflow-hidden">
 
       {/* Top bar */}
-      <header className="px-6 py-4 flex items-center border-b border-theme-secondary/20 bg-theme-surface backdrop-blur-xl z-10 relative">
+      <header className="px-6 py-4 flex items-center border-b border-gray-100 bg-white backdrop-blur-xl z-10 relative">
         <button
           onClick={() => navigate('/')}
           className="flex items-center gap-2 text-xs nav-item-hover px-3 py-1.5 rounded-xl transition-colors group"
         >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-theme-accent" />
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-[#2563EB]" />
           <span>Back to Home</span>
         </button>
       </header>
@@ -92,18 +92,18 @@ export default function EmployeeLogin() {
         <div className="w-full max-w-md">
 
           {/* Card */}
-          <div className="bg-theme-surface border border-theme-secondary/30 rounded-3xl shadow-2xl overflow-hidden">
+          <div className="bg-white border border-gray-100 rounded-3xl shadow-2xl overflow-hidden">
 
             {/* Top accent */}
-            <div className="h-1.5 btn-theme-secondary" />
+            <div className="h-1.5 bg-[#2563EB] text-white hover:bg-[#1D4ED8]" />
 
             <div className="p-8">
               {/* Icon + Title */}
               <div className="text-center mb-8">
-                <div className="w-16 h-16 rounded-2xl btn-theme-secondary flex items-center justify-center mx-auto mb-4 shadow-lg border border-white/20">
+                <div className="w-16 h-16 rounded-2xl bg-[#2563EB] text-white hover:bg-[#1D4ED8] flex items-center justify-center mx-auto mb-4 shadow-lg border border-white/20">
                   <UserCircle className="w-8 h-8 text-current" />
                 </div>
-                <h1 className="text-xl font-bold text-theme-primary tracking-tight">Employee Login</h1>
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">Employee Login</h1>
                 <p className="text-xs opacity-75 mt-1.5">Enter your Employee ID and PIN to access your portal</p>
               </div>
 
@@ -116,8 +116,8 @@ export default function EmployeeLogin() {
                 ].map(f => {
                   const Icon = f.icon;
                   return (
-                    <div key={f.label} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-theme-card border border-theme-secondary/20">
-                      <Icon className="w-4 h-4 text-theme-accent" />
+                    <div key={f.label} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                      <Icon className="w-4 h-4 text-[#2563EB]" />
                       <span className="text-[9px] opacity-75 text-center leading-tight font-mono">{f.label}</span>
                     </div>
                   );
@@ -138,13 +138,13 @@ export default function EmployeeLogin() {
                     Employee ID / Username
                   </label>
                   <div className="relative">
-                    <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-accent" />
+                    <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2563EB]" />
                     <input
                       type="text"
                       value={username}
                       onChange={e => setUsername(e.target.value)}
                       placeholder="Enter your username"
-                      className="w-full bg-theme-surface border border-theme-secondary/30 focus:border-theme-secondary rounded-xl pl-10 pr-4 py-3 text-sm text-theme-primary outline-none transition-colors"
+                      className="w-full bg-white border border-gray-100 focus:border-gray-100 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-900 outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -154,14 +154,14 @@ export default function EmployeeLogin() {
                     PIN Code
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-accent" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2563EB]" />
                     <input
                       type={showPin ? 'text' : 'password'}
                       value={pin}
                       onChange={e => setPin(e.target.value)}
                       placeholder="Enter your PIN"
                       maxLength={6}
-                      className="w-full bg-theme-surface border border-theme-secondary/30 focus:border-theme-secondary rounded-xl pl-10 pr-12 py-3 text-sm text-theme-primary outline-none transition-colors font-mono tracking-widest"
+                      className="w-full bg-white border border-gray-100 focus:border-gray-100 rounded-xl pl-10 pr-12 py-3 text-sm text-gray-900 outline-none transition-colors font-mono tracking-widest"
                     />
                     <button type="button" onClick={() => setShowPin(!showPin)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 opacity-75 hover:opacity-100 transition-colors">
@@ -173,7 +173,7 @@ export default function EmployeeLogin() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 btn-theme-secondary font-bold text-sm uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed mt-2 shadow-lg"
+                  className="w-full py-3.5 bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-sm uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed mt-2 shadow-lg"
                 >
                   {loading ? (
                     <><Loader2 className="w-4 h-4 animate-spin text-current" /> Verifying...</>

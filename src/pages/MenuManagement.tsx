@@ -393,14 +393,14 @@ export default function MenuManagement() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => handleOpenCategoryModal()}
-            className="px-3.5 py-2 bg-theme-surface text-theme-primary border border-theme-secondary/30 hover:bg-theme-secondary/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+            className="px-3.5 py-2 bg-white text-gray-900 border border-gray-100 hover:bg-blue-50 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
           >
-            <FolderPlus className="w-4 h-4 text-theme-accent" />
+            <FolderPlus className="w-4 h-4 text-[#2563EB]" />
             <span>Add Category</span>
           </button>
           <button
             onClick={() => handleOpenItemModal()}
-            className="px-4 py-2 btn-theme-secondary rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md"
+            className="px-4 py-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8] rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md"
           >
             <Plus className="w-4 h-4 text-current" />
             <span>Add New Item</span>
@@ -456,7 +456,7 @@ export default function MenuManagement() {
       <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Select Category to View Items</span>
-          <span className="text-[11px] text-theme-accent font-medium">{filteredItems.length} products listed</span>
+          <span className="text-[11px] text-[#2563EB] font-medium">{filteredItems.length} products listed</span>
 
         </div>
 
@@ -466,12 +466,12 @@ export default function MenuManagement() {
             className={cn(
               "px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 flex-shrink-0 border",
               selectedCategory === 'ALL'
-                ? "btn-theme-secondary shadow-md border-transparent"
-                : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
+                ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent"
+                : "bg-white text-gray-900 border-gray-100 hover:bg-blue-50"
             )}
           >
             <span>All Items</span>
-            <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", selectedCategory === 'ALL' ? "bg-black/20 text-current" : "bg-white/10 text-theme-primary")}>
+            <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", selectedCategory === 'ALL' ? "bg-black/20 text-current" : "bg-white/10 text-gray-900")}>
               {items.length}
             </span>
           </button>
@@ -485,12 +485,12 @@ export default function MenuManagement() {
                   className={cn(
                     "px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border pr-8",
                     isSelected
-                      ? "btn-theme-secondary shadow-md border-transparent"
-                      : "bg-theme-surface text-theme-primary border-theme-secondary/30 hover:bg-theme-secondary/20"
+                      ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent"
+                      : "bg-white text-gray-900 border-gray-100 hover:bg-blue-50"
                   )}
                 >
                   <span>{cat.name}</span>
-                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", isSelected ? "bg-black/20 text-current" : "bg-white/10 text-theme-primary")}>
+                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", isSelected ? "bg-black/20 text-current" : "bg-white/10 text-gray-900")}>
                     {cat.itemCount}
                   </span>
                 </button>
@@ -687,7 +687,7 @@ export default function MenuManagement() {
               </p>
               <button
                 onClick={() => handleOpenItemModal()}
-                className="px-4 py-2 btn-theme-secondary font-bold text-xs rounded-xl shadow-md"
+                className="px-4 py-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs rounded-xl shadow-md"
               >
                 + Add Item Now
               </button>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { cn } from '../lib/utils';
 import {
   Clock, CalendarDays, FileCheck, CheckCircle2, XCircle, AlertCircle,
   Users, Filter, Search, ThumbsUp, ThumbsDown, ChevronDown, BarChart3,
@@ -208,16 +209,21 @@ export default function StaffAttendance() {
   const pendingCount = allLeaves.filter(l => l.status === 'PENDING').length;
 
   return (
-    <div className="flex flex-col h-full bg-[#F8FAFC] text-gray-900 overflow-hidden">
+    <div className="space-y-6">
 
       {/* Page header */}
-      <div className="px-6 py-5 border-b border-gray-200 flex-shrink-0">
-        <h1 className="text-lg font-bold text-gray-900">Staff Attendance</h1>
-        <p className="text-xs text-gray-500 mt-0.5">Track daily attendance, status and manage leave requests</p>
+      <div className="bg-white/80 backdrop-blur-md border border-white/60 p-6 rounded-3xl shadow-lg shadow-gray-200/50 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent">Staff Attendance</h1>
+          <p className="text-gray-500 text-sm mt-1">Track daily attendance, real-time punch status, biometric verification and leave management</p>
+        </div>
+        <div className="px-4 py-2 rounded-2xl bg-blue-50 text-[#2563EB] border border-blue-100 font-bold text-xs uppercase tracking-wider shadow-sm">
+          Staff & Shifts
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="px-6 pt-4 flex items-center gap-2 flex-shrink-0 border-b border-gray-200 overflow-x-auto">
+      <div className="flex items-center gap-1.5 p-1.5 bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl shadow-sm overflow-x-auto no-scrollbar touch-pan-x">
         {[
           { id: 'calendar',       label: 'My Attendance Calendar', icon: CalendarDays },
           { id: 'my_attendance',  label: 'Mark Attendance (Punch IN/OUT)', icon: Clock },
@@ -228,16 +234,14 @@ export default function StaffAttendance() {
           const active = activeTab === tab.id;
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 -mb-px transition-all whitespace-nowrap ${
-                active ? 'border-[#2563EB] text-[#2563EB]' : 'border-transparent text-gray-400 hover:text-gray-900'
-              }`}>
+              className={cn("px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0", active ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 font-extrabold" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80")}>
               <Icon className="w-4 h-4" /> {tab.label}
             </button>
           );
         })}
       </div>
 
-      <div className="flex-1 overflow-auto p-6 space-y-5">
+      <div className="space-y-6">
 
         {/* ── MY ATTENDANCE CALENDAR TAB ── */}
         {activeTab === 'calendar' && (
@@ -292,7 +296,7 @@ export default function StaffAttendance() {
           return (
             <div className="space-y-5">
               <div className="bg-white/90 border border-gray-100 rounded-2xl p-6 shadow-lg shadow-gray-200/40 max-w-xl mx-auto space-y-5">
-                <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
+                <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB] font-bold">
                     {user?.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
@@ -309,13 +313,13 @@ export default function StaffAttendance() {
                 )}
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
+                  <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center">
                     <p className="text-[11px] text-gray-500 font-semibold uppercase">Punch IN</p>
                     <p className="text-lg font-bold text-emerald-400 font-mono mt-1">
                       {myRec?.punchIn || '—'}
                     </p>
                   </div>
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
+                  <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center">
                     <p className="text-[11px] text-gray-500 font-semibold uppercase">Punch OUT</p>
                     <p className="text-lg font-bold text-red-400 font-mono mt-1">
                       {myRec?.punchOut || '—'}
@@ -353,9 +357,9 @@ export default function StaffAttendance() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input type="text" placeholder="Search staff..."
                   value={searchQ} onChange={e => setSearchQ(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400/50" />
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400/50" />
               </div>
-              <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl">
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-xl">
                 <CalendarDays className="w-4 h-4 text-gray-500" />
                 <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)}
                   className="bg-transparent text-xs text-gray-900 outline-none [color-scheme:light] cursor-pointer" />
@@ -383,16 +387,16 @@ export default function StaffAttendance() {
 
             {/* Attendance table */}
             {staffList.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 bg-gray-50 border border-gray-200 rounded-2xl">
+              <div className="flex flex-col items-center justify-center py-16 bg-white/90 backdrop-blur-md border border-gray-100 rounded-2xl shadow-md shadow-gray-100/50">
                 <Users className="w-10 h-10 text-gray-700 mb-3" />
                 <p className="text-sm font-semibold text-gray-400">No active staff found</p>
                 <p className="text-xs text-gray-600 mt-1">Add staff members in Settings to track attendance</p>
               </div>
             ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-md shadow-gray-100/50 overflow-hidden">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50">
+                    <tr className="border-b border-gray-100 bg-gray-50/80">
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Employee</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Status</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Punch IN</th>
@@ -509,7 +513,7 @@ export default function StaffAttendance() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input type="text" placeholder="Search employee or leave type..."
                   value={searchQ} onChange={e => setSearchQ(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400/50" />
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 outline-none focus:border-blue-400/50" />
               </div>
               {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(f => (
                 <button key={f} onClick={() => setLeaveFilter(f)}
@@ -519,7 +523,7 @@ export default function StaffAttendance() {
                       : f === 'PENDING'  ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
                       : f === 'APPROVED' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
                       :                    'bg-red-500/20 border-red-500/50 text-red-400'
-                      : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-gray-900'
+                      : 'bg-gray-50 border-gray-100 text-gray-400 hover:text-gray-900'
                   }`}>
                   {f === 'ALL' ? 'All' : f.charAt(0) + f.slice(1).toLowerCase()}
                   {f === 'PENDING' && pendingCount > 0 && (
@@ -531,7 +535,7 @@ export default function StaffAttendance() {
 
             {/* Leave requests */}
             {filteredLeaves.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 bg-gray-50 border border-gray-200 rounded-2xl">
+              <div className="flex flex-col items-center justify-center py-16 bg-white/90 backdrop-blur-md border border-gray-100 rounded-2xl shadow-md shadow-gray-100/50">
                 <CalendarDays className="w-10 h-10 text-gray-700 mb-3" />
                 <p className="text-sm font-semibold text-gray-400">No leave requests found</p>
               </div>
