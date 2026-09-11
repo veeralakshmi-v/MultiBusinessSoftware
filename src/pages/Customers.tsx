@@ -39,6 +39,14 @@ export interface Customer {
   orders?: any[];
 }
 
+export function isCompanyCustomer(c: Customer): boolean {
+  if (c.type === 'COMPANY') return true;
+  if (c.gstNumber && c.gstNumber.trim().length > 0) return true;
+  if (c.companyName && c.companyName.trim().length > 0) return true;
+  if (c.type === 'INDIVIDUAL') return false;
+  return false;
+}
+
 function getCustomerPendingBalance(customer: Customer, allOrders: any[]): number {
   if (customer.pendingBalance !== undefined && customer.pendingBalance > 0) {
     return customer.pendingBalance;
@@ -89,10 +97,19 @@ export default function Customers() {
           data.forEach((d: any) => { if (!ids.has(d.id)) list.push(d); });
           localStorage.setItem('universal_customers', JSON.stringify(list));
         }
-        setCustomers(list);
+        // Normalize any customer with a GSTIN to type COMPANY
+        const normalized = list.map(c => ({
+          ...c,
+          type: isCompanyCustomer(c) ? ('COMPANY' as CustomerType) : ('INDIVIDUAL' as CustomerType),
+        }));
+        setCustomers(normalized);
       })
       .catch(() => {
-        setCustomers(list);
+        const normalized = list.map(c => ({
+          ...c,
+          type: isCompanyCustomer(c) ? ('COMPANY' as CustomerType) : ('INDIVIDUAL' as CustomerType),
+        }));
+        setCustomers(normalized);
       });
   };
 
@@ -140,7 +157,9 @@ export default function Customers() {
     });
   }, [customers, todayMMDD]);
 
-  // Count of customers with pending dues
+  // Category Counts
+  const individualCount = useMemo(() => customers.filter(c => !isCompanyCustomer(c)).length, [customers]);
+  const companyCount = useMemo(() => customers.filter(c => isCompanyCustomer(c)).length, [customers]);
   const dueCustomersCount = useMemo(() => {
     return customers.filter(c => getCustomerPendingBalance(c, allOrders) > 0).length;
   }, [customers, allOrders]);
@@ -160,9 +179,11 @@ export default function Customers() {
 
       if (!matchSearch) return false;
 
+      const isComp = isCompanyCustomer(c);
+
       // Filter tabs
-      if (filterType === 'INDIVIDUAL') return (c.type || 'INDIVIDUAL') === 'INDIVIDUAL';
-      if (filterType === 'COMPANY') return c.type === 'COMPANY';
+      if (filterType === 'INDIVIDUAL') return !isComp;
+      if (filterType === 'COMPANY') return isComp;
       if (filterType === 'DUE') {
         const bal = getCustomerPendingBalance(c, allOrders);
         return bal > 0;
@@ -276,9 +297,9 @@ export default function Customers() {
           {/* Filter Pills */}
           <div className="p-3 border-b border-gray-100 bg-gray-50/50 flex flex-wrap gap-1.5">
             {[
-              { id: 'ALL', label: 'All' },
-              { id: 'INDIVIDUAL', label: '👤 Individual' },
-              { id: 'COMPANY', label: '🏢 Company' },
+              { id: 'ALL', label: `All (${customers.length})` },
+              { id: 'INDIVIDUAL', label: `👤 Individual (${individualCount})` },
+              { id: 'COMPANY', label: `🏢 Company (${companyCount})` },
               { id: 'CELEBRATIONS', label: `🎉 Today (${celebrationsToday.length})` },
               { id: 'DUE', label: `⚠️ Due (${dueCustomersCount})` },
             ].map(tab => (
@@ -322,7 +343,7 @@ export default function Customers() {
               filteredCustomers.map(c => {
                 const isSelected = selectedCustomer?.id === c.id;
                 const cBalance = getCustomerPendingBalance(c, allOrders);
-                const isCompany = c.type === 'COMPANY';
+                const isCompany = isCompanyCustomer(c);
                 const isBdayToday = c.birthday && c.birthday.slice(5) === todayMMDD;
                 const isAnnivToday = c.anniversary && c.anniversary.slice(5) === todayMMDD;
 
@@ -456,7 +477,7 @@ function CustomerProfile({
   const [settleAmount, setSettleAmount] = useState<string>('');
   const [settleMethod, setSettleMethod] = useState<'CASH' | 'UPI' | 'CARD'>('CASH');
 
-  const isCompany = customer.type === 'COMPANY';
+  const isCompany = isCompanyCustomer(customer);
 
   // Customer Orders live lookup
   const customerOrders = useMemo(() => {
