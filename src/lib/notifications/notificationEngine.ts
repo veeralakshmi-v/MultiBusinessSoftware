@@ -239,27 +239,31 @@ export class NotificationEngine {
       return true;
     });
 
-    const dispatches: NotificationRecord[] = matchingTemplates.map(tmpl => {
-      const title = this.renderTemplate(tmpl.titleTemplate, defaultData);
-      const body = this.renderTemplate(tmpl.bodyTemplate, defaultData);
+    if (matchingTemplates.length === 0) {
+      return { success: false, dispatches: [] };
+    }
 
-      const record: NotificationRecord = {
-        id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-        event,
-        channel: tmpl.channel,
-        recipient,
-        title,
-        body,
-        status: 'SENT',
-        createdAt: new Date().toISOString(),
-        metadata: defaultData,
-      };
+    // Select the best template for display (prefer IN_APP, then WHATSAPP, SMS, etc.)
+    const primaryTmpl = matchingTemplates.find(t => t.channel === 'IN_APP') || matchingTemplates[0];
+    const title = this.renderTemplate(primaryTmpl.titleTemplate, defaultData);
+    const body = this.renderTemplate(primaryTmpl.bodyTemplate, defaultData);
+    const activeChannels = matchingTemplates.map(t => t.channel);
 
-      return record;
-    });
+    const record: NotificationRecord = {
+      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      event,
+      channel: primaryTmpl.channel,
+      channels: activeChannels,
+      recipient,
+      title,
+      body,
+      status: 'SENT',
+      createdAt: new Date().toISOString(),
+      metadata: defaultData,
+    };
 
-    // Save to in-app history store
-    this.saveNotificationRecords(dispatches);
+    // Save single consolidated notification record to history store
+    this.saveNotificationRecords([record]);
 
     try {
       window.dispatchEvent(new Event('notification_dispatched'));
@@ -267,8 +271,8 @@ export class NotificationEngine {
     } catch {}
 
     return {
-      success: dispatches.length > 0,
-      dispatches,
+      success: true,
+      dispatches: [record],
     };
   }
 
@@ -282,12 +286,29 @@ export class NotificationEngine {
         return [];
       }
       const parsed: NotificationRecord[] = JSON.parse(raw);
-      // Automatically purge old mock starter notifications if stored in user's browser
-      const cleaned = parsed.filter(n => !n.id.startsWith('notif-init-'));
-      if (cleaned.length !== parsed.length) {
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cleaned));
+      if (!Array.isArray(parsed)) return [];
+
+      // Deduplicate duplicate entries from previous multi-channel dispatches
+      const seen = new Set<string>();
+      const deduped: NotificationRecord[] = [];
+
+      for (const item of parsed) {
+        if (!item || !item.id) continue;
+        // Generate a deduplication key based on event + title/metadata or createdAt minute
+        const createdMin = item.createdAt ? item.createdAt.substring(0, 16) : '';
+        const key = `${item.event}-${item.metadata?.invoiceNumber || item.metadata?.itemName || item.title}-${createdMin}`;
+        
+        if (!seen.has(key)) {
+          seen.add(key);
+          deduped.push(item);
+        }
       }
-      return cleaned.slice(0, limit);
+
+      if (deduped.length !== parsed.length) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(deduped));
+      }
+
+      return deduped.slice(0, limit);
     } catch {
       return [];
     }

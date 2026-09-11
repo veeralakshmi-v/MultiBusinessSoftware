@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Package, Truck, ArrowRightLeft, DollarSign, AlertTriangle, Search, Plus, Trash2, Edit2, Link, CalendarClock, FlaskConical, Globe } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
+import { NotificationEngine } from '../lib/notifications/notificationEngine';
 
 export const COMMON_UNITS = [
   { group: 'Weight Units', units: ['Kg', 'g', 'Quintal', 'Ton', 'mg', 'lb'] },
@@ -1450,6 +1451,33 @@ function TransactionsTab() {
       localStorage.setItem('universal_items', JSON.stringify(items));
       window.dispatchEvent(new Event('storage'));
       loadMaterials();
+
+      // Trigger relevant operational notification
+      if (form.type === 'STOCK_IN' || form.type === 'PURCHASE') {
+        NotificationEngine.dispatch({
+          event: 'PURCHASE_RECEIVED',
+          recipient: { name: 'Store Manager' },
+          data: {
+            purchaseOrderNo: newTx.id.toUpperCase(),
+            supplierName: form.notes || 'Inward Restock',
+            itemCount: `${parsedQty} ${selectedProductInfo?.unit || 'Pcs'} of ${selectedProductInfo?.name}`,
+            totalAmount: (parsedQty * parsedPrice).toFixed(2),
+          }
+        });
+      }
+
+      if (newStock <= (selectedProductInfo?.minStockLevel || 10)) {
+        NotificationEngine.dispatch({
+          event: 'LOW_STOCK',
+          recipient: { name: 'Store Manager' },
+          data: {
+            itemName: selectedProductInfo?.name || 'Product',
+            stockRemaining: newStock.toString(),
+            unit: selectedProductInfo?.unit || 'Pcs',
+            sku: selectedProductInfo?.sku || 'SKU-001',
+          }
+        });
+      }
     } catch {}
 
     // Post to API asynchronously

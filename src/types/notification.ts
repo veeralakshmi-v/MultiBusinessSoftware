@@ -30,6 +30,7 @@ export interface NotificationRecord {
   id: string;
   event: NotificationEvent;
   channel: NotificationChannel;
+  channels?: NotificationChannel[];
   recipient: NotificationRecipient;
   title: string;
   body: string;
