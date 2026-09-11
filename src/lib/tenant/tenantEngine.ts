@@ -657,4 +657,43 @@ export class TenantEngine {
 
     return false;
   }
+
+  /**
+   * Resets tenant admin credentials
+   */
+  static resetTenantPassword(tenantId: string, newPass: string): boolean {
+    const list = this.getTenants();
+    const idx = list.findIndex(t => t.id === tenantId);
+    if (idx === -1) return false;
+    list[idx].adminPasswordHash = newPass;
+    list[idx].updatedAt = new Date().toISOString();
+    this.saveTenants(list);
+    return true;
+  }
+
+  /**
+   * Generates and downloads a complete JSON backup of the tenants registry
+   */
+  static exportTenantsBackup(): void {
+    try {
+      const tenants = this.getTenants();
+      const backupData = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        totalTenants: tenants.length,
+        tenants,
+      };
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `saas-tenants-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Failed to export backup', e);
+    }
+  }
 }
