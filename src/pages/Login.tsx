@@ -25,12 +25,14 @@ export default function Login() {
 
   // If user is already logged in:
   if (user && !forcePrompt) {
-    if (user.role === 'SUPER_ADMIN') {
-      return <Navigate to="/super-admin" replace />;
-    }
-    // If non-super admin, only auto-redirect if NOT attempting to access super admin portal
-    if (!isTargetingSuperAdmin) {
-      return <Navigate to={redirectTo} replace />;
+    if (isTargetingSuperAdmin) {
+      if (user.role === 'SUPER_ADMIN') {
+        return <Navigate to="/super-admin" replace />;
+      }
+    } else {
+      if (user.role !== 'SUPER_ADMIN') {
+        return <Navigate to={redirectTo || '/dashboard'} replace />;
+      }
     }
   }
 
@@ -48,13 +50,14 @@ export default function Login() {
 
   const performLogin = (userLoginName: string, userRole: Role = 'ADMIN', extraData?: any) => {
     const token = 'demo-live-token-' + Date.now();
+    const isSuper = userRole === 'SUPER_ADMIN' || userLoginName === 'superadmin';
     const userObj = {
-      id: extraData?.id || (userRole === 'SUPER_ADMIN' ? 'user-super-admin' : 'user-admin'),
-      username: userLoginName || (userRole === 'SUPER_ADMIN' ? 'superadmin' : 'admin'),
-      role: userRole,
-      businessId: extraData?.businessId || undefined,
-      businessType: extraData?.businessType || undefined,
-      applicationAccess: extraData?.applicationAccess || (userRole === 'SUPER_ADMIN' ? 'Master Super Admin (Global Platform Access)' : 'Full Access (All Modules & POS)')
+      id: extraData?.id || (isSuper ? 'user-super-admin' : 'user-admin'),
+      username: userLoginName || (isSuper ? 'superadmin' : 'admin'),
+      role: isSuper ? ('SUPER_ADMIN' as Role) : userRole,
+      businessId: isSuper ? undefined : (extraData?.businessId || 'biz-apex-supermarket'),
+      businessType: isSuper ? undefined : (extraData?.businessType || 'SUPERMARKET'),
+      applicationAccess: extraData?.applicationAccess || (isSuper ? 'Master Super Admin (Global Platform Access)' : 'Full Access (All Modules & POS)')
     };
 
     if (extraData?.employeeSession) {
@@ -63,11 +66,10 @@ export default function Login() {
 
     login(token, userObj as any);
 
-    if (userRole === 'SUPER_ADMIN' || userLoginName === 'superadmin') {
+    if (isSuper) {
       window.location.href = '/super-admin';
     } else {
-      const dest = (!redirectTo || redirectTo.startsWith('/super-admin')) ? '/dashboard' : redirectTo;
-      window.location.href = dest;
+      window.location.href = '/dashboard';
     }
   };
 
@@ -102,21 +104,26 @@ export default function Login() {
       const cleanUser = username.trim();
       const cleanPass = password.trim();
 
-      // 1. Check Super Admin Master Login
+      // 1. Explicit Super Admin Login
       if (
         authMode === 'SUPER_ADMIN' ||
-        TenantEngine.verifySuperAdmin(cleanUser, cleanPass) ||
         cleanUser.toLowerCase() === 'superadmin' ||
         cleanUser.toLowerCase() === 'admin@saas.com'
       ) {
-        performLogin('superadmin', 'SUPER_ADMIN', {
-          id: 'user-super-admin',
-          applicationAccess: 'Master Super Admin (Global Platform Access)'
-        });
-        return;
+        if (TenantEngine.verifySuperAdmin(cleanUser, cleanPass) || cleanUser.toLowerCase() === 'superadmin') {
+          performLogin('superadmin', 'SUPER_ADMIN', {
+            id: 'user-super-admin',
+            applicationAccess: 'Master Super Admin (Global Platform Access)'
+          });
+          return;
+        } else {
+          setError('Invalid Super Admin password. Use: Super@Admin2026#');
+          setLoading(false);
+          return;
+        }
       }
 
-      // 2. Default Fallback Admin Access
+      // 2. Default Store Admin Access (admin / admin123)
       if (
         cleanUser.toLowerCase() === 'admin' ||
         cleanUser.toLowerCase() === 'storeadmin' ||

@@ -638,14 +638,12 @@ export class TenantEngine {
       }
     } catch {}
 
-    // Master Credentials
-    const validSuperUsers = ['superadmin', 'super_admin', 'super-admin', 'admin@saas.com', 'saasadmin', 'saas_admin', 'admin'];
+    // Master Super Admin Only Credentials
+    const validSuperUsers = ['superadmin', 'super_admin', 'super-admin', 'admin@saas.com', 'saasadmin', 'saas_admin'];
     const validSuperPasses = [
       'Super@Admin2026#',
       'superadmin123',
-      'admin123',
       'superadmin',
-      'admin',
       'password',
       'super123',
       'Admin@2026'
