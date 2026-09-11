@@ -71,7 +71,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <SuperAdminImpersonationBanner />
           <Suspense fallback={<PageLoader />}>
             <Routes>
