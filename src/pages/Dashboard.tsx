@@ -111,8 +111,25 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [selectedDate, fetchDashboard, fetchItems]);
 
-  const trend = data?.trend ?? [];
-  const maxRevenue = trend.length > 0 ? Math.max(...trend.map(d => d.revenue)) : 1;
+  const displayTrend = useMemo(() => {
+    if (data?.trend && data.trend.length > 0) {
+      return data.trend;
+    }
+    const days: TrendDay[] = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      days.push({ date: iso, count: 0, revenue: 0 });
+    }
+    return days;
+  }, [data?.trend]);
+
+  const maxRevenue = useMemo(() => {
+    const max = Math.max(0, ...displayTrend.map(d => Number(d.revenue) || 0));
+    return max > 0 ? max : 1000;
+  }, [displayTrend]);
+
   const kpis = data?.kpis;
   const dateOrders = data?.dateOrders ?? [];
 
@@ -297,31 +314,60 @@ export default function Dashboard() {
         </div>
 
         {/* Bar Chart Visualizer */}
-        <div className="h-44 sm:h-48 flex items-end gap-1.5 sm:gap-2 pt-6 pb-2 border-b border-gray-100 overflow-x-auto no-scrollbar touch-pan-x">
-          {trend.map((d, idx) => {
-            const heightPct = Math.max(10, Math.round((d.revenue / maxRevenue) * 100));
+        <div className="h-48 sm:h-52 flex items-stretch gap-1.5 sm:gap-2.5 pt-4 pb-2 border-b border-gray-100 overflow-x-auto no-scrollbar touch-pan-x">
+          {displayTrend.map((d, idx) => {
+            const rev = Number(d.revenue) || 0;
+            const hasSales = rev > 0;
+            const heightPct = hasSales ? Math.min(100, Math.max(12, Math.round((rev / maxRevenue) * 100))) : 8;
             const isSelected = d.date === selectedDate;
+            const isToday = d.date === todayISO();
+
             return (
               <div
                 key={idx}
                 onClick={() => setSelectedDate(d.date)}
-                className="flex-1 min-w-[34px] sm:min-w-[40px] flex flex-col items-center gap-1.5 group cursor-pointer"
+                className="flex-1 min-w-[38px] sm:min-w-[46px] h-full flex flex-col justify-end items-center group cursor-pointer select-none"
+                title={`${formatDate(d.date)}: ${currency}${rev.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${d.count || 0} bills)`}
               >
-                <div className="text-[9px] text-gray-400 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                  {currency}{Math.round(d.revenue / 1000)}k
+                {/* Revenue Tag on Hover or Selected */}
+                <div className={cn(
+                  "text-[9px] font-mono transition-all mb-1.5 px-1 py-0.5 rounded text-center whitespace-nowrap",
+                  isSelected
+                    ? "text-[#2563EB] font-bold opacity-100 bg-blue-50 border border-blue-200/60 shadow-xs"
+                    : "text-gray-500 opacity-0 group-hover:opacity-100 bg-gray-50 border border-gray-200/60"
+                )}>
+                  {hasSales ? (rev >= 1000 ? `${currency}${(rev / 1000).toFixed(1)}k` : `${currency}${Math.round(rev)}`) : '₹0'}
                 </div>
-                <div
-                  style={{ height: `${heightPct}%` }}
-                  className={cn(
-                    "w-full rounded-t-xl transition-all duration-200",
-                    isSelected
-                      ? "bg-[#2563EB] shadow-md shadow-blue-500/25"
-                      : "bg-blue-100/80 group-hover:bg-blue-200"
+
+                {/* Bar Track & Fill */}
+                <div className="w-full flex-1 flex items-end justify-center px-1">
+                  <div className="w-full max-w-[28px] h-full flex items-end justify-center rounded-t-xl bg-gray-100/70 relative overflow-hidden group-hover:bg-blue-50 transition-colors">
+                    <div
+                      style={{ height: `${heightPct}%` }}
+                      className={cn(
+                        "w-full rounded-t-xl transition-all duration-300",
+                        isSelected
+                          ? "bg-gradient-to-t from-[#2563EB] to-[#60A5FA] shadow-md shadow-blue-500/30"
+                          : hasSales
+                            ? "bg-gradient-to-t from-[#3B82F6] to-[#93C5FD] group-hover:from-[#2563EB] group-hover:to-[#60A5FA]"
+                            : "bg-gray-300/80 group-hover:bg-blue-300"
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Date Label */}
+                <div className="mt-2 flex flex-col items-center">
+                  <span className={cn(
+                    "text-[10px] font-mono whitespace-nowrap leading-tight transition-colors",
+                    isSelected ? "text-[#2563EB] font-extrabold" : "text-gray-500 group-hover:text-gray-900"
+                  )}>
+                    {formatDate(d.date)}
+                  </span>
+                  {isToday && (
+                    <span className="text-[8px] font-bold text-[#2563EB] uppercase tracking-tighter">Today</span>
                   )}
-                />
-                <span className={cn("text-[10px] font-mono whitespace-nowrap", isSelected ? "text-[#2563EB] font-bold" : "text-gray-400")}>
-                  {formatDate(d.date)}
-                </span>
+                </div>
               </div>
             );
           })}

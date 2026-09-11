@@ -80,7 +80,7 @@ export default function App() {
                 <Route path="orders"     element={<Orders />} />
                 <Route path="employees"  element={<EmployeeDirectory />} />
                 <Route path="attendance" element={<StaffAttendance />} />
-                <Route path="settings"   element={<Settings initialTab="profile" />} />
+                <Route path="settings"   element={<Settings />} />
                 <Route path="website"    element={<WebsiteBuilder />} />
               </Route>
 

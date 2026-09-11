@@ -361,15 +361,15 @@ export default function PublicStorefront() {
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 leading-[1.12]">
                   <span>{activeSlide?.title || config.brandName} </span>
                   {activeSlide?.titleHighlight && (
-                    <span className="bg-gradient-to-r from-theme-accent via-blue-500 to-theme-accent bg-clip-text text-transparent font-black block sm:inline">
+                    <span className="text-[#2563EB] font-black block sm:inline">
                       {activeSlide.titleHighlight}
                     </span>
                   )}
                 </h1>
 
                 {/* Subtitle */}
-                <p className="text-base sm:text-lg text-theme-muted font-normal max-w-2xl leading-relaxed">
-                  {activeSlide?.subtitle || 'Explore premium products, services, and seamless digital ordering engineered for exceptional quality.'}
+                <p className="text-base sm:text-lg text-gray-600 font-normal max-w-2xl leading-relaxed">
+                  {activeSlide?.subtitle || 'Delivering world-class products, expert services, and bespoke solutions tailored to your unique requirements.'}
                 </p>
 
                 {/* Action CTA Buttons */}

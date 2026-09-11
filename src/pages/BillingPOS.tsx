@@ -496,6 +496,7 @@ export default function BillingPOS() {
       const updated = menuItems.filter(m => m.id !== itemId);
       setMenuItems(updated);
       localStorage.setItem('universal_items', JSON.stringify(updated));
+      window.dispatchEvent(new Event('storage'));
       setCart(prev => prev.filter(c => c.menuItem.id !== itemId));
 
       try {
@@ -527,7 +528,11 @@ export default function BillingPOS() {
       discount: billDiscountValue,
       total: grandTotal,
     };
-    setHeldBills(prev => [newHeld, ...prev]);
+    setHeldBills(prev => {
+      const updated = [newHeld, ...prev];
+      localStorage.setItem('universal_held_bills', JSON.stringify(updated));
+      return updated;
+    });
     setCart([]);
     setSelectedCustomer(null);
     setBillDiscountValue(0);
@@ -538,8 +543,29 @@ export default function BillingPOS() {
     setCart(held.cart);
     setSelectedCustomer(held.customer);
     setBillDiscountValue(held.discount);
-    setHeldBills(prev => prev.filter(h => h.id !== held.id));
+    setHeldBills(prev => {
+      const updated = prev.filter(h => h.id !== held.id);
+      localStorage.setItem('universal_held_bills', JSON.stringify(updated));
+      return updated;
+    });
     setIsHeldModalOpen(false);
+  };
+
+  const handleDeleteHeldBill = (e: React.MouseEvent, heldId: string) => {
+    e.stopPropagation();
+    setHeldBills(prev => {
+      const updated = prev.filter(h => h.id !== heldId);
+      localStorage.setItem('universal_held_bills', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const handleClearAllHeldBills = () => {
+    if (heldBills.length === 0) return;
+    if (confirm('Are you sure you want to delete all parked / held bills?')) {
+      setHeldBills([]);
+      localStorage.setItem('universal_held_bills', JSON.stringify([]));
+    }
   };
 
   // Calculations
@@ -742,6 +768,7 @@ export default function BillingPOS() {
         return m;
       });
       localStorage.setItem('universal_items', JSON.stringify(updated));
+      window.dispatchEvent(new Event('storage'));
       return updated;
     });
 
@@ -878,7 +905,7 @@ export default function BillingPOS() {
 
         {/* Category Filter Chips */}
         {categories.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar flex-shrink-0">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 px-0.5 no-scrollbar flex-shrink-0">
             <button
               onClick={() => setSelectedCategory('ALL')}
               className={cn(
@@ -906,7 +933,7 @@ export default function BillingPOS() {
                   )}
                 >
                   <span>{cat.name}</span>
-                  <span className={cn("text-[10px] px-1.5 py-0.2 rounded-full font-mono", isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600")}>
+                  <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold", isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600")}>
                     {count}
                   </span>
                 </button>
@@ -916,7 +943,7 @@ export default function BillingPOS() {
         )}
 
         {/* Products Grid */}
-        <div className="flex-1 overflow-y-auto no-scrollbar pr-1">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-1">
           {filteredItems.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
               {filteredItems.map(item => {
@@ -929,28 +956,31 @@ export default function BillingPOS() {
                     key={item.id}
                     onClick={() => handleProductCardClick(item)}
                     className={cn(
-                      "relative flex flex-col justify-between p-3.5 rounded-2xl border transition-all duration-200 select-none group shadow-sm hover:shadow-md",
+                      "relative flex flex-col justify-between p-3.5 rounded-2xl border transition-all duration-200 select-none group shadow-xs hover:shadow-md min-h-[110px]",
                       isOut
                         ? "opacity-60 cursor-not-allowed bg-gray-50 border-red-200 text-gray-500"
                         : inCart
-                          ? "bg-blue-50/90 border-[#2563EB] shadow-md shadow-blue-500/10 cursor-pointer"
+                          ? "bg-blue-50/90 border-[#2563EB] shadow-md shadow-blue-500/10 cursor-pointer ring-1 ring-[#2563EB]"
                           : "bg-white border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 cursor-pointer"
                     )}
                   >
-                    {/* Cart Count Badge */}
+                    {/* Cart Count Badge inside card */}
                     {inCart && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center shadow-md animate-in zoom-in">
+                      <div className="absolute top-2.5 right-2.5 min-w-[22px] h-[22px] px-1 rounded-full bg-[#2563EB] text-white font-bold text-[11px] flex items-center justify-center shadow-md ring-2 ring-white animate-in zoom-in z-10">
                         {inCart.quantity}
                       </div>
                     )}
 
                     <div>
                       <div className="flex items-start justify-between gap-1">
-                        <h4 className="font-bold text-gray-900 text-xs leading-snug line-clamp-2 group-hover:text-[#2563EB] transition-colors">
+                        <h4 className={cn(
+                          "font-bold text-gray-900 text-xs leading-snug line-clamp-2 group-hover:text-[#2563EB] transition-colors",
+                          inCart ? "pr-6" : ""
+                        )}>
                           {item.name}
                         </h4>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] text-gray-500 font-mono mt-1">
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-mono mt-1">
                         <span>{item.unit || 'Pcs'}</span>
                         {item.gst > 0 && <span>• {item.gst}% GST</span>}
                       </div>
@@ -961,7 +991,7 @@ export default function BillingPOS() {
                         {currency}{item.price.toFixed(2)}
                       </span>
                       <span className={cn(
-                        "text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded-md border",
+                        "text-[9px] font-mono font-semibold px-2 py-0.5 rounded-lg border",
                         isOut ? "text-red-600 bg-red-50 border-red-200" : "text-gray-600 bg-gray-50 border-gray-200"
                       )}>
                         {isOut ? 'Out' : `${stock} left`}
@@ -1605,32 +1635,61 @@ export default function BillingPOS() {
                 <PlayCircle className="w-5 h-5 text-amber-400" />
                 <h3 className="font-bold text-white text-sm">Parked / Held Bills ({heldBills.length})</h3>
               </div>
-              <button onClick={() => setIsHeldModalOpen(false)} className="text-gray-400 hover:text-white">
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {heldBills.length > 0 && (
+                  <button
+                    onClick={handleClearAllHeldBills}
+                    className="text-[11px] font-bold text-red-400 hover:text-red-300 hover:underline px-2 py-0.5 rounded transition-colors"
+                  >
+                    Clear All
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsHeldModalOpen(false)}
+                  className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
-            <div className="max-h-72 overflow-y-auto space-y-2 divide-y divide-[#222225]">
-              {heldBills.map(h => (
-                <div key={h.id} className="pt-2 first:pt-0 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold text-white text-xs">{h.billNumber} • {h.time}</div>
-                    <div className="text-[11px] text-gray-400">
-                      {h.customer ? h.customer.name : 'Walk-in'} • {h.cart.length} items
+            {heldBills.length === 0 ? (
+              <div className="py-8 text-center text-gray-500 text-xs space-y-1">
+                <p className="font-semibold text-gray-400">No parked bills</p>
+                <p className="text-[11px] text-gray-500">Parked bills will appear here when you hold a cart.</p>
+              </div>
+            ) : (
+              <div className="max-h-72 overflow-y-auto space-y-2.5 divide-y divide-[#222225] pr-1">
+                {heldBills.map(h => (
+                  <div key={h.id} className="pt-2.5 first:pt-0 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-bold text-white text-xs truncate">{h.billNumber} • {h.time}</div>
+                      <div className="text-[11px] text-gray-400 truncate">
+                        {h.customer ? h.customer.name : 'Walk-in'} • {h.cart.length} items
+                      </div>
+                      <div className="font-mono font-bold text-[#C5A059] text-xs mt-0.5">
+                        {currency}{h.total.toFixed(2)}
+                      </div>
                     </div>
-                    <div className="font-mono font-bold text-[#C5A059] text-xs mt-0.5">
-                      {currency}{h.total.toFixed(2)}
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={() => handleRecallHeldBill(h)}
+                        className="px-3 py-1.5 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-lg hover:bg-[#b08d4a] transition-colors shadow-xs"
+                      >
+                        Resume Bill
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteHeldBill(e, h.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Delete parked bill"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleRecallHeldBill(h)}
-                    className="px-3 py-1.5 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-lg hover:bg-[#b08d4a]"
-                  >
-                    Resume Bill
-                  </button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -31,7 +31,7 @@ export default function Inventory() {
           <p className="text-gray-500 text-sm mt-1">Unified product catalog, category pricing, stock counts, and supplier management</p>
         </div>
         <div className="px-3.5 py-1.5 rounded-xl bg-white text-[#2563EB] border border-gray-100 font-bold text-xs uppercase tracking-wider">
-          Unified Catalog & Stock
+          Products & Stock Manager
         </div>
       </div>
 
@@ -143,57 +143,141 @@ function DashboardTab({ businessType, stockNoun }: { businessType: string; stock
     return () => window.removeEventListener('storage', loadData);
   }, []);
 
-  const totalValue = materials.reduce((acc, m) => acc + ((m.currentStock || 0) * (m.pricePerUnit || 0)), 0);
-  const lowStock = materials.filter(m => (m.currentStock || 0) <= (m.minStockLevel || 0));
-  const expiringSoon = materials.filter(m => m.expiryDate && new Date(m.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+  const totalValue = useMemo(() => {
+    return materials.reduce((acc, m) => {
+      const stock = Number(m.currentStock) || 0;
+      const unitVal = (Number(m.costPrice) > 0 ? Number(m.costPrice) : (Number(m.pricePerUnit) || Number(m.price) || 0));
+      return acc + (stock * unitVal);
+    }, 0);
+  }, [materials]);
+
+  const lowStock = useMemo(() => {
+    return materials.filter(m => (Number(m.currentStock) || 0) <= (Number(m.minStockLevel) || 10));
+  }, [materials]);
+
+  const expiringSoon = useMemo(() => {
+    return materials.filter(m => m.expiryDate && new Date(m.expiryDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+  }, [materials]);
+
+  // Group valuation by category
+  const categoryValuations = useMemo(() => {
+    const groups: { [cat: string]: { count: number; totalQty: number; value: number } } = {};
+    materials.forEach(m => {
+      const cat = m.categoryName || 'General';
+      if (!groups[cat]) {
+        groups[cat] = { count: 0, totalQty: 0, value: 0 };
+      }
+      const qty = Number(m.currentStock) || 0;
+      const price = (Number(m.costPrice) > 0 ? Number(m.costPrice) : (Number(m.pricePerUnit) || Number(m.price) || 0));
+      groups[cat].count += 1;
+      groups[cat].totalQty += qty;
+      groups[cat].value += qty * price;
+    });
+    return Object.entries(groups).map(([category, data]) => ({
+      category,
+      ...data,
+    })).sort((a, b) => b.value - a.value);
+  }, [materials]);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl hover:border-gray-100 transition-colors">
-          <div className="flex items-center gap-2 text-gray-900 opacity-70 text-xs mb-3">
-            <DollarSign className="w-4 h-4 text-[#2563EB]" /> Stock Valuation
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-xs hover:shadow-md transition-all">
+          <div className="flex items-center gap-2 text-gray-700 text-xs font-semibold mb-2">
+            <DollarSign className="w-4 h-4 text-[#2563EB]" /> Total Stock Valuation
           </div>
-          <div className="text-2xl font-bold text-gray-900 font-mono">₹{totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
-          <div className="text-[10px] text-gray-500 mt-1">Total inventory value</div>
+          <div className="text-2xl font-bold text-gray-900 font-mono">
+            ₹{totalValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <div className="text-[11px] text-gray-500 mt-1">Live asset value of catalog</div>
         </div>
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl hover:border-gray-100 transition-colors">
-          <div className="flex items-center gap-2 text-gray-900 opacity-70 text-xs mb-3">
-            <Package className="w-4 h-4 text-blue-400" /> Total {stockNoun.split(' ')[0]}
+
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-xs hover:shadow-md transition-all">
+          <div className="flex items-center gap-2 text-gray-700 text-xs font-semibold mb-2">
+            <Package className="w-4 h-4 text-[#2563EB]" /> Total Products Tracked
           </div>
           <div className="text-2xl font-bold text-gray-900 font-mono">{materials.length}</div>
-          <div className="text-[10px] text-gray-500 mt-1">Items being tracked</div>
+          <div className="text-[11px] text-gray-500 mt-1">Active inventory SKUs</div>
         </div>
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl hover:border-red-500/40 transition-colors">
-          <div className="flex items-center gap-2 text-gray-900 opacity-70 text-xs mb-3">
-            <AlertTriangle className="w-4 h-4 text-red-400" /> Low Stock
+
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-xs hover:shadow-md transition-all">
+          <div className="flex items-center gap-2 text-gray-700 text-xs font-semibold mb-2">
+            <AlertTriangle className="w-4 h-4 text-amber-500" /> Low Stock Alerts
           </div>
-          <div className="text-2xl font-bold text-red-400 font-mono">{lowStock.length}</div>
-          <div className="text-[10px] text-gray-500 mt-1">Need replenishment</div>
+          <div className="text-2xl font-bold text-amber-600 font-mono">{lowStock.length}</div>
+          <div className="text-[11px] text-gray-500 mt-1">At or below minimum threshold</div>
         </div>
-        {['MEDICAL', 'RETAIL', 'WHOLESALE'].includes(businessType) && (
-          <div className="bg-white border border-gray-100 p-5 rounded-2xl hover:border-amber-500/40 transition-colors">
-            <div className="flex items-center gap-2 text-gray-900 opacity-70 text-xs mb-3">
-              <CalendarClock className="w-4 h-4 text-amber-400" /> Expiring Soon
-            </div>
-            <div className="text-2xl font-bold text-amber-400 font-mono">{expiringSoon.length}</div>
-            <div className="text-[10px] text-gray-500 mt-1">Within 30 days</div>
+
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-xs hover:shadow-md transition-all">
+          <div className="flex items-center gap-2 text-gray-700 text-xs font-semibold mb-2">
+            <CalendarClock className="w-4 h-4 text-emerald-600" /> Stock Health Rate
           </div>
-        )}
+          <div className="text-2xl font-bold text-emerald-600 font-mono">
+            {materials.length > 0 ? `${Math.round(((materials.length - lowStock.length) / materials.length) * 100)}%` : '100%'}
+          </div>
+          <div className="text-[11px] text-gray-500 mt-1">Optimal stock sufficiency</div>
+        </div>
       </div>
 
+      {/* Category-Wise Valuation Breakdown */}
+      <div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <Package className="w-4 h-4 text-[#2563EB]" />
+          <span>Category-Wise Valuation & Asset Distribution</span>
+        </h3>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-gray-700">
+            <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-[10px] border-y border-gray-100">
+              <tr>
+                <th className="px-4 py-3">Category</th>
+                <th className="px-4 py-3">Products Count</th>
+                <th className="px-4 py-3">Units in Stock</th>
+                <th className="px-4 py-3 text-right">Valuation (₹)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {categoryValuations.map(cat => (
+                <tr key={cat.category} className="hover:bg-blue-50/30 transition-colors">
+                  <td className="px-4 py-3 font-bold text-gray-900">{cat.category}</td>
+                  <td className="px-4 py-3 font-mono">{cat.count} items</td>
+                  <td className="px-4 py-3 font-mono font-semibold">{cat.totalQty}</td>
+                  <td className="px-4 py-3 font-mono font-bold text-gray-900 text-right">
+                    ₹{cat.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                </tr>
+              ))}
+              {categoryValuations.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-gray-400">
+                    No product categories tracked yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Low Stock Items Warning Grid */}
       {lowStock.length > 0 && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6">
-          <h3 className="text-red-400 font-bold mb-4 flex items-center gap-2 text-sm">
-            <AlertTriangle className="w-4 h-4" /> Items Below Minimum Stock Level
+        <div className="bg-red-50/60 border border-red-200/80 rounded-2xl p-5 sm:p-6 space-y-3">
+          <h3 className="text-red-700 font-bold flex items-center gap-2 text-sm">
+            <AlertTriangle className="w-4 h-4 text-red-600" />
+            <span>Items Below Minimum Threshold ({lowStock.length})</span>
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {lowStock.map(m => (
-              <div key={m.id} className="bg-white p-4 rounded-xl border border-red-500/20">
-                <div className="font-bold text-gray-900 text-sm">{m.name}</div>
-                <div className="flex justify-between text-xs mt-2">
-                  <span className="text-red-400 font-bold">{m.currentStock ?? 0} {m.unit} left</span>
-                  <span className="text-gray-500">Min: {m.minStockLevel ?? 0} {m.unit}</span>
+              <div key={m.id} className="bg-white p-3.5 rounded-xl border border-red-200 shadow-2xs space-y-2">
+                <div className="font-bold text-gray-900 text-xs truncate">{m.name}</div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-red-600 font-bold font-mono px-2 py-0.5 rounded-md bg-red-50 border border-red-200">
+                    {m.currentStock ?? 0} {m.unit || 'Pcs'} left
+                  </span>
+                  <span className="text-gray-500 font-mono text-[11px]">
+                    Min: {m.minStockLevel ?? 10} {m.unit || 'Pcs'}
+                  </span>
                 </div>
               </div>
             ))}
@@ -1141,14 +1225,44 @@ function SuppliersTab() {
     setForm({ name: '', contact: '', email: '' });
   };
 
+  const handleDeleteSupplier = (id: string) => {
+    if (confirm('Are you sure you want to delete this supplier?')) {
+      const updated = suppliers.filter(s => s.id !== id);
+      setSuppliers(updated);
+      localStorage.setItem('universal_suppliers', JSON.stringify(updated));
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
         {suppliers.map(s => (
-          <div key={s.id} className="bg-white border border-gray-100 p-5 rounded-2xl shadow-md">
-            <h3 className="text-base font-bold text-gray-900">{s.name}</h3>
-            <div className="text-xs text-gray-900 opacity-70 mt-2 font-mono">📞 {s.contact || 'N/A'}</div>
-            <div className="text-xs text-gray-900 opacity-70 font-mono">✉️ {s.email || 'N/A'}</div>
+          <div key={s.id} className="bg-white border border-gray-100 p-5 rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold text-xs">
+                    <Truck className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-900">{s.name}</h3>
+                </div>
+                <button
+                  onClick={() => handleDeleteSupplier(s.id)}
+                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Delete Supplier"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="mt-3 space-y-1">
+                <div className="text-xs text-gray-600 font-mono">📞 {s.contact || s.phone || 'No phone'}</div>
+                <div className="text-xs text-gray-600 font-mono">✉️ {s.email || 'No email'}</div>
+              </div>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-400">
+              <span>Verified Vendor</span>
+              <span className="text-[#2563EB] font-bold">Active</span>
+            </div>
           </div>
         ))}
         {suppliers.length === 0 && (
@@ -1157,22 +1271,48 @@ function SuppliersTab() {
           </div>
         )}
       </div>
-      <div className="bg-white border border-gray-100 p-6 rounded-2xl h-fit shadow-xl">
-        <h3 className="text-base font-bold text-gray-900 mb-4">Add Supplier</h3>
+
+      <div className="bg-white border border-gray-100 p-5 sm:p-6 rounded-2xl h-fit shadow-xs">
+        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <Truck className="w-4 h-4 text-[#2563EB]" />
+          <span>Add New Supplier</span>
+        </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-gray-600">Supplier Name</label>
-            <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" placeholder="e.g. Metro Traders" />
+            <label className="text-xs font-bold text-gray-700">Supplier Name *</label>
+            <input
+              required
+              value={form.name}
+              onChange={e=>setForm({...form, name: e.target.value})}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium"
+              placeholder="e.g. Metro Traders"
+            />
           </div>
           <div>
-            <label className="text-xs font-bold text-gray-600">Phone / Contact</label>
-            <input value={form.contact} onChange={e=>setForm({...form, contact: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" placeholder="+91 98765 43210" />
+            <label className="text-xs font-bold text-gray-700">Phone / Contact</label>
+            <input
+              value={form.contact}
+              onChange={e=>setForm({...form, contact: e.target.value})}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium"
+              placeholder="+91 98765 43210"
+            />
           </div>
           <div>
-            <label className="text-xs font-bold text-gray-600">Email Address</label>
-            <input value={form.email} onChange={e=>setForm({...form, email: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" placeholder="supplier@email.com" />
+            <label className="text-xs font-bold text-gray-700">Email Address</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={e=>setForm({...form, email: e.target.value})}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium"
+              placeholder="supplier@email.com"
+            />
           </div>
-          <button className="w-full bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md">Add Supplier</button>
+          <button
+            type="submit"
+            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition-all cursor-pointer"
+          >
+            Add Supplier
+          </button>
         </form>
       </div>
     </div>
@@ -1180,84 +1320,417 @@ function SuppliersTab() {
 }
 
 function TransactionsTab() {
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('universal_stock_transactions');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [];
+  });
   const [materials, setMaterials] = useState<any[]>([]);
   
-  const fetchTxs = () => fetch('/api/inventory/transactions').then(r => r.json()).then(setTransactions);
+  const fetchTxs = () => {
+    fetch('/api/inventory/transactions')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setTransactions(prev => {
+            const ids = new Set(prev.map(p => p.id));
+            const merged = [...prev];
+            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
+            localStorage.setItem('universal_stock_transactions', JSON.stringify(merged));
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
+  };
+
+  const loadMaterials = () => {
+    getCombinedMaterials().then(setMaterials);
+  };
+
   useEffect(() => {
     fetchTxs();
-    fetch('/api/inventory/materials').then(r => r.json()).then(setMaterials);
+    loadMaterials();
+    window.addEventListener('storage', loadMaterials);
+    return () => window.removeEventListener('storage', loadMaterials);
   }, []);
 
-  const [form, setForm] = useState({ rawMaterialId: '', type: 'STOCK_IN', quantity: 0, unitPrice: 0, notes: '' });
+  const [form, setForm] = useState({
+    rawMaterialId: '',
+    type: 'STOCK_IN',
+    quantity: '' as any,
+    unitPrice: '' as any,
+    notes: ''
+  });
+
+  const selectedProductInfo = useMemo(() => {
+    return materials.find(m => m.id === form.rawMaterialId);
+  }, [materials, form.rawMaterialId]);
+
+  const parsedQty = parseFloat(form.quantity) || 0;
+  const parsedPrice = parseFloat(form.unitPrice) || (selectedProductInfo?.costPrice || selectedProductInfo?.pricePerUnit || 0);
+
+  const projectedStock = useMemo(() => {
+    if (!selectedProductInfo) return null;
+    const current = Number(selectedProductInfo.currentStock) || 0;
+    if (form.type === 'STOCK_IN' || form.type === 'PURCHASE') {
+      return current + parsedQty;
+    } else if (form.type === 'STOCK_OUT' || form.type === 'WASTE') {
+      return Math.max(0, current - parsedQty);
+    } else if (form.type === 'ADJUSTMENT') {
+      return parsedQty;
+    }
+    return current;
+  }, [selectedProductInfo, form.type, parsedQty]);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    await fetch('/api/inventory/transactions', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({...form, quantity: Number(form.quantity), unitPrice: Number(form.unitPrice)})
-    });
-    fetchTxs();
-    setForm({ rawMaterialId: '', type: 'STOCK_IN', quantity: 0, unitPrice: 0, notes: '' });
+    if (!form.rawMaterialId) {
+      alert('Please select a product or material.');
+      return;
+    }
+
+    if (parsedQty <= 0 && form.type !== 'ADJUSTMENT') {
+      alert('Please enter a quantity greater than 0.');
+      return;
+    }
+
+    const currentStock = Number(selectedProductInfo?.currentStock) || 0;
+    let newStock = currentStock;
+    if (form.type === 'STOCK_IN' || form.type === 'PURCHASE') {
+      newStock = currentStock + parsedQty;
+    } else if (form.type === 'STOCK_OUT' || form.type === 'WASTE') {
+      newStock = Math.max(0, currentStock - parsedQty);
+    } else if (form.type === 'ADJUSTMENT') {
+      newStock = parsedQty;
+    }
+
+    const newTx = {
+      id: `tx-${Date.now()}`,
+      rawMaterialId: form.rawMaterialId,
+      rawMaterial: {
+        id: selectedProductInfo?.id,
+        name: selectedProductInfo?.name || 'Product Item',
+        unit: selectedProductInfo?.unit || 'Pcs'
+      },
+      type: form.type,
+      quantity: parsedQty,
+      unitPrice: parsedPrice,
+      totalValue: parsedQty * parsedPrice,
+      prevStock: currentStock,
+      newStock: newStock,
+      notes: form.notes || '',
+      createdAt: new Date().toISOString()
+    };
+
+    // Update local transactions list
+    const updatedTxs = [newTx, ...transactions];
+    setTransactions(updatedTxs);
+    localStorage.setItem('universal_stock_transactions', JSON.stringify(updatedTxs));
+
+    // Update Product Stock Count in universal_items
+    try {
+      const savedItems = localStorage.getItem('universal_items');
+      let items: any[] = savedItems ? JSON.parse(savedItems) : [...materials];
+      if (!Array.isArray(items) || items.length === 0) items = [...materials];
+
+      const existingIdx = items.findIndex((it: any) => it.id === form.rawMaterialId || it.name.toLowerCase() === selectedProductInfo?.name?.toLowerCase());
+
+      if (existingIdx >= 0) {
+        items[existingIdx] = { ...items[existingIdx], currentStock: newStock };
+      } else if (selectedProductInfo) {
+        items.push({ ...selectedProductInfo, currentStock: newStock });
+      }
+
+      localStorage.setItem('universal_items', JSON.stringify(items));
+      window.dispatchEvent(new Event('storage'));
+      loadMaterials();
+    } catch {}
+
+    // Post to API asynchronously
+    try {
+      await fetch('/api/inventory/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rawMaterialId: form.rawMaterialId,
+          type: form.type,
+          quantity: parsedQty,
+          unitPrice: parsedPrice,
+          notes: form.notes
+        })
+      });
+    } catch {}
+
+    setForm({ rawMaterialId: '', type: 'STOCK_IN', quantity: '', unitPrice: '', notes: '' });
+  };
+
+  const handleDeleteTx = (tx: any) => {
+    if (confirm(`Delete this movement log entry and revert stock for "${tx.rawMaterial?.name || 'Item'}"?`)) {
+      // Revert stock change
+      try {
+        const savedItems = localStorage.getItem('universal_items');
+        if (savedItems) {
+          const items = JSON.parse(savedItems);
+          const q = Number(tx.quantity) || 0;
+          const updatedItems = items.map((it: any) => {
+            if (it.id === tx.rawMaterialId || it.name.toLowerCase() === tx.rawMaterial?.name?.toLowerCase()) {
+              const cur = Number(it.currentStock) || 0;
+              let reverted = cur;
+              if (tx.type === 'STOCK_IN' || tx.type === 'PURCHASE') {
+                reverted = Math.max(0, cur - q);
+              } else if (tx.type === 'STOCK_OUT' || tx.type === 'WASTE') {
+                reverted = cur + q;
+              } else if (tx.type === 'ADJUSTMENT' && tx.prevStock !== undefined) {
+                reverted = Number(tx.prevStock);
+              }
+              return { ...it, currentStock: reverted };
+            }
+            return it;
+          });
+          localStorage.setItem('universal_items', JSON.stringify(updatedItems));
+          window.dispatchEvent(new Event('storage'));
+          loadMaterials();
+        }
+      } catch {}
+
+      const updated = transactions.filter(t => t.id !== tx.id);
+      setTransactions(updated);
+      localStorage.setItem('universal_stock_transactions', JSON.stringify(updated));
+    }
   };
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <div className="xl:col-span-2 bg-[#131315] border border-gray-200 rounded-2xl overflow-x-auto">
-        <table className="w-full text-left text-xs sm:text-sm text-gray-300">
-          <thead className="bg-[#F8FAFC] text-gray-400 font-bold uppercase text-[10px] sm:text-xs">
-            <tr>
-              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Date</th>
-              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Material</th>
-              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Type</th>
-              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Qty</th>
-              <th className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">Value</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#2D2D30]">
-            {transactions.map(tx => (
-              <tr key={tx.id} className="hover:bg-blue-50/40">
-                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">{new Date(tx.createdAt).toLocaleDateString()}</td>
-                <td className="px-3 sm:px-6 py-3 sm:py-4 font-bold text-white whitespace-nowrap">{tx.rawMaterial?.name}</td>
-                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                  <span className={cn(
-                    "px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold",
-                    tx.type === 'STOCK_IN' || tx.type === 'PURCHASE' ? 'bg-green-500/10 text-green-500' :
-                    tx.type === 'WASTE' ? 'bg-red-500/10 text-red-500' : 'bg-orange-500/10 text-orange-500'
-                  )}>{tx.type}</span>
-                </td>
-                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-mono">{tx.quantity}</td>
-                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-mono">₹{tx.totalValue.toFixed(2)}</td>
+      {/* Left: Stock Movement Transactions Ledger */}
+      <div className="xl:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-xs overflow-hidden flex flex-col">
+        <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ArrowRightLeft className="w-4 h-4 text-[#2563EB]" />
+            <h3 className="font-bold text-gray-900 text-sm">Stock Movement Ledger</h3>
+          </div>
+          <span className="text-xs text-gray-500 font-mono font-bold">
+            {transactions.length} Records
+          </span>
+        </div>
+
+        <div className="overflow-x-auto flex-1">
+          <table className="w-full text-left text-xs sm:text-sm text-gray-700">
+            <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-[10px] border-b border-gray-100">
+              <tr>
+                <th className="px-4 py-3 whitespace-nowrap">Date</th>
+                <th className="px-4 py-3 whitespace-nowrap">Product / Item</th>
+                <th className="px-4 py-3 whitespace-nowrap">Type</th>
+                <th className="px-4 py-3 whitespace-nowrap">Qty Change</th>
+                <th className="px-4 py-3 whitespace-nowrap">Valuation</th>
+                <th className="px-4 py-3 whitespace-nowrap text-right">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {transactions.map(tx => {
+                const isPositive = tx.type === 'STOCK_IN' || tx.type === 'PURCHASE';
+                const isNegative = tx.type === 'STOCK_OUT' || tx.type === 'WASTE';
+                const isAdjust = tx.type === 'ADJUSTMENT';
+
+                return (
+                  <tr key={tx.id} className="hover:bg-blue-50/40 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap font-mono text-xs text-gray-500">
+                      {new Date(tx.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td className="px-4 py-3 font-bold text-gray-900 whitespace-nowrap">
+                      <div>{tx.rawMaterial?.name || 'Product Item'}</div>
+                      {tx.notes && <div className="text-[10px] text-gray-400 font-normal truncate max-w-xs">{tx.notes}</div>}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={cn(
+                        "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border inline-flex items-center gap-1",
+                        isPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                        tx.type === 'WASTE' ? 'bg-red-50 text-red-700 border-red-200' :
+                        isAdjust ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                        'bg-blue-50 text-blue-700 border-blue-200'
+                      )}>
+                        {tx.type === 'STOCK_IN' ? 'Stock In (+)' :
+                         tx.type === 'STOCK_OUT' ? 'Stock Out (-)' :
+                         tx.type === 'WASTE' ? 'Waste / Spoil' :
+                         tx.type === 'PURCHASE' ? 'Purchase (+)' :
+                         'Adjustment'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap font-mono font-bold">
+                      <span className={cn(
+                        "inline-block px-2 py-0.5 rounded text-xs",
+                        isPositive ? "bg-emerald-50 text-emerald-700 font-bold" :
+                        isNegative ? "bg-rose-50 text-rose-700 font-bold" :
+                        "bg-amber-50 text-amber-700 font-bold"
+                      )}>
+                        {isPositive ? `+${tx.quantity}` : isNegative ? `-${tx.quantity}` : `=${tx.quantity}`} {tx.rawMaterial?.unit || 'Pcs'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap font-mono font-semibold">
+                      <span className={isPositive ? "text-emerald-700 font-bold" : isNegative ? "text-rose-700 font-bold" : "text-gray-900"}>
+                        {isPositive ? '+₹' : isNegative ? '-₹' : '₹'}
+                        {(Number(tx.totalValue) || (Number(tx.quantity) * Number(tx.unitPrice)) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-right">
+                      <button
+                        onClick={() => handleDeleteTx(tx)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                        title="Delete log & revert stock"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {transactions.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-12 text-center text-gray-400 text-xs">
+                    No stock movement transactions recorded yet. Use the form to record stock in/out!
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div className="bg-[#131315] border border-gray-200 p-6 rounded-xl h-fit">
-        <h3 className="text-lg font-bold text-white mb-4">Record Transaction</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Right: Record Stock Movement Form */}
+      <div className="bg-white border border-gray-100 p-5 sm:p-6 rounded-2xl h-fit shadow-xs space-y-4">
+        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+          <ArrowRightLeft className="w-4 h-4 text-[#2563EB]" />
+          <span>Record Stock Transaction</span>
+        </h3>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
-            <label className="text-xs font-bold text-gray-400">Material</label>
-            <select required value={form.rawMaterialId} onChange={e=>setForm({...form, rawMaterialId: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white">
-              <option value="">Select Material</option>
-              {materials.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            <label className="text-xs font-bold text-gray-700">Select Product / Item *</label>
+            <select
+              required
+              value={form.rawMaterialId}
+              onChange={e => {
+                const mat = materials.find(m => m.id === e.target.value);
+                setForm({
+                  ...form,
+                  rawMaterialId: e.target.value,
+                  unitPrice: mat ? (mat.costPrice || mat.pricePerUnit || mat.price || '') : ''
+                });
+              }}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium"
+            >
+              <option value="">Choose item...</option>
+              {materials.map(m => (
+                <option key={m.id} value={m.id}>
+                  {m.name} (Stock: {m.currentStock ?? 0} {m.unit || 'Pcs'})
+                </option>
+              ))}
             </select>
           </div>
+
           <div>
-            <label className="text-xs font-bold text-gray-400">Type</label>
-            <select required value={form.type} onChange={e=>setForm({...form, type: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white">
-              <option value="STOCK_IN">Stock In</option>
-              <option value="STOCK_OUT">Stock Out</option>
-              <option value="WASTE">Waste</option>
+            <label className="text-xs font-bold text-gray-700">Movement Type *</label>
+            <select
+              required
+              value={form.type}
+              onChange={e => setForm({ ...form, type: e.target.value })}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium"
+            >
+              <option value="STOCK_IN">Stock In (Restock / Inward +)</option>
+              <option value="STOCK_OUT">Stock Out (Transfer / Dispatch -)</option>
+              <option value="WASTE">Waste / Spoilage (-)</option>
+              <option value="ADJUSTMENT">Stock Audit / Count Adjustment (=)</option>
             </select>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="text-xs font-bold text-gray-400">Quantity</label><input type="number" required value={form.quantity} onChange={e=>setForm({...form, quantity: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
-            <div><label className="text-xs font-bold text-gray-400">Unit Price</label><input type="number" required value={form.unitPrice} onChange={e=>setForm({...form, unitPrice: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-bold text-gray-700">Quantity *</label>
+              <input
+                type="number"
+                step="any"
+                required
+                min="0.01"
+                placeholder="e.g. 10"
+                value={form.quantity}
+                onChange={e => setForm({ ...form, quantity: e.target.value })}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-mono font-medium"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-gray-700">Unit Price (₹)</label>
+              <input
+                type="number"
+                step="any"
+                min="0"
+                placeholder="e.g. 50"
+                value={form.unitPrice}
+                onChange={e => setForm({ ...form, unitPrice: e.target.value })}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-mono font-medium"
+              />
+            </div>
           </div>
-          <div><label className="text-xs font-bold text-gray-400">Notes</label><input value={form.notes} onChange={e=>setForm({...form, notes: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2 text-white" /></div>
-          <button className="w-full bg-[#C5A059] text-[#0A0A0B] font-bold py-2 rounded">Submit</button>
+
+          {/* Live Dynamic Stock & Valuation Preview Box */}
+          {selectedProductInfo && (
+            <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 space-y-2 text-xs">
+              <div className="flex items-center justify-between text-gray-700">
+                <span className="font-medium">Current Stock:</span>
+                <span className="font-mono font-bold text-gray-900">
+                  {selectedProductInfo.currentStock ?? 0} {selectedProductInfo.unit || 'Pcs'}
+                </span>
+              </div>
+              {parsedQty > 0 && (
+                <>
+                  <div className="flex items-center justify-between text-gray-700">
+                    <span className="font-medium">Projected New Stock:</span>
+                    <span className={cn(
+                      "font-mono font-bold px-1.5 py-0.5 rounded text-[11px]",
+                      (form.type === 'STOCK_IN' || form.type === 'PURCHASE') ? "bg-emerald-100 text-emerald-800" :
+                      (form.type === 'STOCK_OUT' || form.type === 'WASTE') ? "bg-rose-100 text-rose-800" :
+                      "bg-amber-100 text-amber-800"
+                    )}>
+                      {projectedStock} {selectedProductInfo.unit || 'Pcs'}
+                      {' '}
+                      ({(form.type === 'STOCK_IN' || form.type === 'PURCHASE') ? `+${parsedQty}` :
+                        (form.type === 'STOCK_OUT' || form.type === 'WASTE') ? `-${parsedQty}` :
+                        `=${parsedQty}`})
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1 border-t border-blue-200/60">
+                    <span className="font-medium text-gray-700">Movement Value:</span>
+                    <span className="font-mono font-bold text-[#2563EB]">
+                      {(form.type === 'STOCK_IN' || form.type === 'PURCHASE') ? '+₹' :
+                       (form.type === 'STOCK_OUT' || form.type === 'WASTE') ? '-₹' : '₹'}
+                      {(parsedQty * parsedPrice).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          <div>
+            <label className="text-xs font-bold text-gray-700">Notes / Remarks</label>
+            <input
+              value={form.notes}
+              onChange={e => setForm({ ...form, notes: e.target.value })}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium"
+              placeholder="e.g. Received from supplier Metro Traders"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition-all cursor-pointer"
+          >
+            Record Movement
+          </button>
         </form>
       </div>
     </div>
@@ -1271,12 +1744,12 @@ function RecipesTab() {
   const [recipes, setRecipes] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/categories').then(r => r.json()).then(setCategories);
-    fetch('/api/inventory/materials').then(r => r.json()).then(setMaterials);
+    fetch('/api/categories').then(r => r.json()).then(setCategories).catch(() => {});
+    getCombinedMaterials().then(setMaterials);
   }, []);
 
   const fetchRecipes = (menuItemId: string) => {
-    fetch(`/api/inventory/recipes/${menuItemId}`).then(r => r.json()).then(setRecipes);
+    fetch(`/api/inventory/recipes/${menuItemId}`).then(r => r.json()).then(setRecipes).catch(() => {});
   };
 
   const [form, setForm] = useState({ rawMaterialId: '', quantityUsed: 0 });
@@ -1287,34 +1760,34 @@ function RecipesTab() {
     await fetch('/api/inventory/recipes', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ menuItemId: selectedMenuItem.id, rawMaterialId: form.rawMaterialId, quantityUsed: Number(form.quantityUsed) })
-    });
+    }).catch(() => {});
     fetchRecipes(selectedMenuItem.id);
     setForm({ rawMaterialId: '', quantityUsed: 0 });
   };
 
   const handleDelete = async (id: string) => {
-    await fetch(`/api/inventory/recipes/${id}`, { method: 'DELETE' });
+    await fetch(`/api/inventory/recipes/${id}`, { method: 'DELETE' }).catch(() => {});
     fetchRecipes(selectedMenuItem.id);
   };
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <div className="xl:col-span-1 bg-[#131315] border border-gray-200 rounded-xl overflow-hidden flex flex-col max-h-[700px]">
-        <div className="p-4 border-b border-gray-200 bg-[#F8FAFC]">
-          <h3 className="font-bold text-gray-900">Menu Items</h3>
+      <div className="xl:col-span-1 bg-white border border-gray-100 rounded-2xl overflow-hidden flex flex-col max-h-[700px] shadow-xs">
+        <div className="p-4 border-b border-gray-100 bg-gray-50">
+          <h3 className="font-bold text-gray-900 text-sm">Products / Menu Items</h3>
         </div>
         <div className="overflow-y-auto p-4 space-y-4">
           {categories.map(c => (
             <div key={c.id}>
               <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{c.name}</div>
               <div className="space-y-2">
-                {c.items.map((item: any) => (
+                {c.items?.map((item: any) => (
                   <button
                     key={item.id}
                     onClick={() => { setSelectedMenuItem(item); fetchRecipes(item.id); }}
                     className={cn(
-                      "w-full text-left p-3 rounded-lg border text-sm font-bold transition-all",
-                      selectedMenuItem?.id === item.id ? "bg-[#C5A059]/10 border-[#C5A059] text-[#C5A059]" : "bg-[#F8FAFC] border-gray-200 text-gray-600 hover:border-gray-600"
+                      "w-full text-left p-3 rounded-xl border text-xs font-bold transition-all",
+                      selectedMenuItem?.id === item.id ? "bg-blue-50 border-[#2563EB] text-[#2563EB]" : "bg-white border-gray-100 text-gray-700 hover:bg-gray-50"
                     )}
                   >
                     {item.name}
@@ -1329,50 +1802,65 @@ function RecipesTab() {
       <div className="xl:col-span-2">
         {selectedMenuItem ? (
           <div className="space-y-6">
-            <div className="bg-[#131315] border border-gray-200 p-6 rounded-xl">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <Link className="w-5 h-5 text-[#C5A059]" /> {selectedMenuItem.name} Bill of Materials (BOM)
+            <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-xs">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <Link className="w-5 h-5 text-[#2563EB]" /> {selectedMenuItem.name} Bill of Materials (BOM)
               </h3>
-              <p className="text-sm text-gray-400 mt-1">These materials will be automatically deducted from stock when this item is billed.</p>
+              <p className="text-xs text-gray-500 mt-1">These materials will be automatically deducted from stock when this item is billed.</p>
               
               <div className="mt-6 space-y-3">
                 {recipes.length === 0 ? (
-                  <div className="text-gray-500 text-sm py-4">No recipe defined yet.</div>
+                  <div className="text-gray-400 text-xs py-4 text-center">No recipe defined yet.</div>
                 ) : recipes.map(r => (
-                  <div key={r.id} className="flex justify-between items-center p-4 bg-[#F8FAFC] border border-gray-200 rounded-lg">
+                  <div key={r.id} className="flex justify-between items-center p-3.5 bg-gray-50 border border-gray-100 rounded-xl">
                     <div>
-                      <div className="font-bold text-gray-900">{r.rawMaterial?.name}</div>
-                      <div className="text-sm text-gray-400">Uses {r.quantityUsed} {r.rawMaterial?.unit}</div>
+                      <div className="font-bold text-gray-900 text-xs">{r.rawMaterial?.name}</div>
+                      <div className="text-xs text-gray-500">Uses {r.quantityUsed} {r.rawMaterial?.unit}</div>
                     </div>
-                    <button onClick={() => handleDelete(r.id)} className="text-gray-500 hover:text-red-500 transition-colors p-2"><Trash2 className="w-4 h-4"/></button>
+                    <button onClick={() => handleDelete(r.id)} className="text-gray-400 hover:text-red-500 transition-colors p-1.5"><Trash2 className="w-4 h-4"/></button>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-[#131315] border border-gray-200 p-6 rounded-xl">
-              <h3 className="text-lg font-bold text-white mb-4">Add Material to Recipe</h3>
+            <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-xs">
+              <h3 className="text-sm font-bold text-gray-900 mb-4">Add Material to Recipe</h3>
               <form onSubmit={handleAddRecipe} className="flex gap-4 items-end">
                 <div className="flex-1">
-                  <label className="text-xs font-bold text-gray-400">Raw Material</label>
-                  <select required value={form.rawMaterialId} onChange={e=>setForm({...form, rawMaterialId: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2.5 text-white">
+                  <label className="text-xs font-bold text-gray-700">Raw Material</label>
+                  <select
+                    required
+                    value={form.rawMaterialId}
+                    onChange={e=>setForm({...form, rawMaterialId: e.target.value})}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] outline-none mt-1 font-medium"
+                  >
                     <option value="">Select Material...</option>
                     {materials.map(m => <option key={m.id} value={m.id}>{m.name} ({m.unit})</option>)}
                   </select>
                 </div>
                 <div className="w-32">
-                  <label className="text-xs font-bold text-gray-400">Qty Used</label>
-                  <input type="number" step="0.01" required value={form.quantityUsed} onChange={e=>setForm({...form, quantityUsed: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 rounded p-2.5 text-white" />
+                  <label className="text-xs font-bold text-gray-700">Qty Used</label>
+                  <input
+                    type="number"
+                    step="any"
+                    required
+                    value={form.quantityUsed}
+                    onChange={e=>setForm({...form, quantityUsed: e.target.value as any})}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] outline-none mt-1 font-mono font-medium"
+                  />
                 </div>
-                <button className="bg-[#C5A059] text-[#0A0A0B] font-bold px-6 py-2.5 rounded hover:bg-[#D5B069] transition-colors">Add</button>
+                <button
+                  type="submit"
+                  className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md shadow-blue-500/20 transition-all"
+                >
+                  Add
+                </button>
               </form>
             </div>
           </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-[#131315] border border-gray-200 rounded-xl p-12">
-            <Link className="w-12 h-12 mb-4 opacity-50" />
-            <div className="text-lg font-bold">Select a Menu Item</div>
-            <div className="text-sm">Link raw materials to menu items for auto-deduction.</div>
+          <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center text-gray-400 text-xs shadow-xs">
+            Select a product from the left to configure its recipe and BOM deduction rules.
           </div>
         )}
       </div>

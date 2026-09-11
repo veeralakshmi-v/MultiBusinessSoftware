@@ -384,13 +384,25 @@ export default function DashboardLayout() {
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             {/* Quick Theme Customizer Button */}
             <Link
-              to="/dashboard/settings"
+              to="/dashboard/settings?tab=theme"
               state={{ tab: 'theme' }}
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border border-gray-200 text-xs font-bold rounded-xl transition-all"
               title="Change Application Theme & Color Palette"
             >
               <Palette className="w-4 h-4 text-[#2563EB]" />
               <span className="hidden sm:inline">Theme</span>
+            </Link>
+
+            {/* Quick Open Website Button */}
+            <Link
+              to="/website"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border border-gray-200 text-xs font-bold rounded-xl transition-all"
+              title="Open Live Public Website / Storefront"
+            >
+              <Globe className="w-4 h-4 text-[#2563EB]" />
+              <span className="hidden sm:inline">Open Website</span>
             </Link>
 
             {/* Quick POS Shortcut */}

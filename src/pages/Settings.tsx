@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth, Role, LandingSlide } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 import {
@@ -50,14 +51,33 @@ const DEFAULT_STAFF: StaffUser[] = [
   },
 ];
 
-export default function Settings({ initialTab = 'profile' }: { initialTab?: 'profile' | 'billing' | 'staff' | 'landing' | 'security' | 'theme' }) {
-  const { businessProfile, updateBusinessProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'billing' | 'staff' | 'landing' | 'security' | 'theme'>(initialTab);
+export type SettingsTab = 'profile' | 'billing' | 'staff' | 'landing' | 'security' | 'theme';
 
+export default function Settings({ initialTab = 'profile' }: { initialTab?: SettingsTab }) {
+  const { businessProfile, updateBusinessProfile } = useAuth();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const getResolvedTab = (): SettingsTab => {
+    const stateTab = (location.state as { tab?: SettingsTab })?.tab;
+    const queryTab = searchParams.get('tab') as SettingsTab;
+    const validTabs: SettingsTab[] = ['profile', 'billing', 'staff', 'landing', 'security', 'theme'];
+    if (stateTab && validTabs.includes(stateTab)) return stateTab;
+    if (queryTab && validTabs.includes(queryTab)) return queryTab;
+    return initialTab;
+  };
+
+  const [activeTab, setActiveTab] = useState<SettingsTab>(getResolvedTab);
 
   useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
+    const resolved = getResolvedTab();
+    setActiveTab(resolved);
+  }, [location.state, location.search, initialTab]);
+
+  const handleTabChange = (tab: SettingsTab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
 
   // Change Password State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -525,7 +545,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
       {/* Tabs Row */}
       <div className="flex items-center gap-1.5 border-b border-gray-200 pb-2 overflow-x-auto no-scrollbar touch-pan-x">
         <button
-          onClick={() => setActiveTab('profile')}
+          onClick={() => handleTabChange('profile')}
           className={cn(
             "px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0",
             activeTab === 'profile'
@@ -538,7 +558,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         </button>
 
         <button
-          onClick={() => setActiveTab('billing')}
+          onClick={() => handleTabChange('billing')}
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'billing'
@@ -551,7 +571,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         </button>
 
         <button
-          onClick={() => setActiveTab('staff')}
+          onClick={() => handleTabChange('staff')}
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'staff'
@@ -564,7 +584,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         </button>
 
         <button
-          onClick={() => setActiveTab('landing')}
+          onClick={() => handleTabChange('landing')}
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'landing'
@@ -577,7 +597,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         </button>
 
         <button
-          onClick={() => setActiveTab('security')}
+          onClick={() => handleTabChange('security')}
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'security'
@@ -590,7 +610,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: 'pro
         </button>
 
         <button
-          onClick={() => setActiveTab('theme')}
+          onClick={() => handleTabChange('theme')}
           className={cn(
             "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
             activeTab === 'theme'
