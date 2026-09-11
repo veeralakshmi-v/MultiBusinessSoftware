@@ -150,7 +150,67 @@ export const DEFAULT_NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
     enabled: true,
   },
 
-  // 6. STAFF_PUNCHED_IN
+  // 6. CUSTOMER_BIRTHDAY_OFFER
+  {
+    event: 'CUSTOMER_BIRTHDAY_OFFER',
+    channel: 'WHATSAPP',
+    titleTemplate: '🎂 Happy Birthday {{customerName}} from {{businessName}}!',
+    bodyTemplate: '🎂 *Happy Birthday {{customerName}}!* 🎉\nAll of us at *{{businessName}}* wish you a wonderful year ahead!\n\n🎁 As our birthday treat to you, enjoy *{{discountOffer}}* on your next visit/order!\n🔑 Use Coupon Code: *{{couponCode}}*\n⏳ Valid till: *{{validDate}}*\n\nVisit us today or shop online!',
+    enabled: true,
+  },
+  {
+    event: 'CUSTOMER_BIRTHDAY_OFFER',
+    channel: 'SMS',
+    titleTemplate: 'Birthday Special Offer',
+    bodyTemplate: 'Happy Birthday {{customerName}}! {{businessName}} celebrates you with {{discountOffer}} off using code {{couponCode}}. Valid till {{validDate}}. Have a great day!',
+    enabled: true,
+  },
+  {
+    event: 'CUSTOMER_BIRTHDAY_OFFER',
+    channel: 'EMAIL',
+    titleTemplate: '🎂 Happy Birthday {{customerName}}! Special {{discountOffer}} Gift Inside',
+    bodyTemplate: 'Dear {{customerName}},\n\nWarmest birthday wishes from the team at {{businessName}}! 🎂\n\nTo make your day extra special, we are delighted to offer you {{discountOffer}} discount on your next purchase.\n\nCoupon Code: {{couponCode}}\nValid Till: {{validDate}}\n\nWe look forward to serving you soon!\n\nWarm regards,\n{{businessName}}',
+    enabled: true,
+  },
+  {
+    event: 'CUSTOMER_BIRTHDAY_OFFER',
+    channel: 'IN_APP',
+    titleTemplate: '🎂 Birthday Offer Sent to {{customerName}}',
+    bodyTemplate: 'Dispatched {{discountOffer}} offer (Code: {{couponCode}}) to {{customerName}} ({{mobile}}).',
+    enabled: true,
+  },
+
+  // 7. CUSTOMER_ANNIVERSARY_OFFER
+  {
+    event: 'CUSTOMER_ANNIVERSARY_OFFER',
+    channel: 'WHATSAPP',
+    titleTemplate: '💍 Happy Anniversary {{customerName}} from {{businessName}}!',
+    bodyTemplate: '💍 *Happy Anniversary {{customerName}}!* 🥂\nWishing you a joyful anniversary celebration!\n\n🎁 Celebrate with *{{discountOffer}}* off on your special milestone with us.\n🔑 Use Coupon Code: *{{couponCode}}*\n⏳ Valid till: *{{validDate}}*\n\nWarm wishes from *{{businessName}}*!',
+    enabled: true,
+  },
+  {
+    event: 'CUSTOMER_ANNIVERSARY_OFFER',
+    channel: 'SMS',
+    titleTemplate: 'Anniversary Special Offer',
+    bodyTemplate: 'Happy Anniversary {{customerName}}! Celebrate with {{businessName}} & enjoy {{discountOffer}} with code {{couponCode}}. Valid till {{validDate}}.',
+    enabled: true,
+  },
+  {
+    event: 'CUSTOMER_ANNIVERSARY_OFFER',
+    channel: 'EMAIL',
+    titleTemplate: '💍 Happy Anniversary {{customerName}}! Special {{discountOffer}} Offer',
+    bodyTemplate: 'Dear {{customerName}},\n\nHappy Anniversary! 🥂\n\nTo celebrate this wonderful milestone, {{businessName}} is offering you {{discountOffer}} off on your next purchase.\n\nCoupon Code: {{couponCode}}\nValid Till: {{validDate}}\n\nWarm regards,\n{{businessName}}',
+    enabled: true,
+  },
+  {
+    event: 'CUSTOMER_ANNIVERSARY_OFFER',
+    channel: 'IN_APP',
+    titleTemplate: '💍 Anniversary Offer Sent to {{customerName}}',
+    bodyTemplate: 'Dispatched {{discountOffer}} offer (Code: {{couponCode}}) to {{customerName}} ({{mobile}}).',
+    enabled: true,
+  },
+
+  // 8. STAFF_PUNCHED_IN
   {
     event: 'STAFF_PUNCHED_IN',
     channel: 'IN_APP',
