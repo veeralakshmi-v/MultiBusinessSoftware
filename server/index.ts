@@ -162,17 +162,18 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers.authorization || '';
   if (!authHeader) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  const isSuper = authHeader.toLowerCase().includes('super');
   res.json({
     user: {
-      id: 'user-admin',
-      username: 'admin',
-      role: 'ADMIN',
-      businessId: DEMO_BUSINESS_ID,
-      businessType: 'RESTAURANT',
+      id: isSuper ? 'user-super-admin' : 'user-admin',
+      username: isSuper ? 'superadmin' : 'admin',
+      role: isSuper ? 'SUPER_ADMIN' : 'ADMIN',
+      businessId: isSuper ? undefined : DEMO_BUSINESS_ID,
+      businessType: isSuper ? undefined : 'RESTAURANT',
     },
   });
 });

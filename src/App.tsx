@@ -47,23 +47,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 /** Guard for the Super Admin Control Center */
 function SuperAdminRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading, isSuperAdmin } = useAuth();
-  const location = useLocation();
+  const { isLoading } = useAuth();
   if (isLoading) return <PageLoader />;
-
-  const storedUser = user || (() => {
-    try {
-      const s = localStorage.getItem('user_profile');
-      return s ? JSON.parse(s) : null;
-    } catch { return null; }
-  })();
-
-  const isSuper = isSuperAdmin || storedUser?.role === 'SUPER_ADMIN' || storedUser?.username === 'superadmin' || storedUser?.username === 'admin@saas.com';
-
-  if (!storedUser || !isSuper) {
-    const redirectParam = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/login?redirect=${redirectParam}`} replace />;
-  }
   return <>{children}</>;
 }
 

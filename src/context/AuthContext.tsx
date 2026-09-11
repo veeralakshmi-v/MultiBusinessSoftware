@@ -144,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const isSuperAdmin = useMemo(() => {
+    if (localStorage.getItem('saas_super_admin_active') === 'true') return true;
     return user?.role === 'SUPER_ADMIN' || user?.username === 'superadmin' || user?.username === 'admin@saas.com';
   }, [user]);
 
@@ -425,14 +426,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
         return;
       }
+
+      // If already Super Admin session, preserve it without backend override
+      const isSuper = localStorage.getItem('saas_super_admin_active') === 'true' || user?.role === 'SUPER_ADMIN';
+      if (isSuper) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const response = await fetch('/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.ok) {
           const data = await response.json();
-          setUser(data.user);
-          localStorage.setItem('user_profile', JSON.stringify(data.user));
+          if (data?.user) {
+            setUser(data.user);
+            localStorage.setItem('user_profile', JSON.stringify(data.user));
+          }
         }
       } catch (error) {
         // Retain local demo session
@@ -475,6 +486,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (newToken: string, newUser: User) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('user_profile', JSON.stringify(newUser));
+    if (newUser.role === 'SUPER_ADMIN' || newUser.username === 'superadmin') {
+      localStorage.setItem('saas_super_admin_active', 'true');
+    } else {
+      localStorage.removeItem('saas_super_admin_active');
+    }
     setToken(newToken);
     setUser(newUser);
     if (newUser.businessId) {
@@ -487,6 +503,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token');
     localStorage.removeItem('user_profile');
     localStorage.removeItem('employee_session');
+    localStorage.removeItem('saas_super_admin_active');
+    localStorage.removeItem('saas_impersonating_tenant_id');
     setToken(null);
     setUser(null);
     window.location.href = '/login';
