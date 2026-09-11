@@ -638,9 +638,18 @@ export class TenantEngine {
       }
     } catch {}
 
-    // Default Master Credentials
-    const validSuperUsers = ['superadmin', 'super_admin', 'super-admin', 'admin@saas.com', 'saasadmin', 'saas_admin'];
-    const validSuperPasses = ['superadmin123', 'admin123', 'superadmin', 'admin', 'password', 'super123'];
+    // Master Credentials
+    const validSuperUsers = ['superadmin', 'super_admin', 'super-admin', 'admin@saas.com', 'saasadmin', 'saas_admin', 'admin'];
+    const validSuperPasses = [
+      'Super@Admin2026#',
+      'superadmin123',
+      'admin123',
+      'superadmin',
+      'admin',
+      'password',
+      'super123',
+      'Admin@2026'
+    ];
 
     if (validSuperUsers.includes(u) && validSuperPasses.includes(p)) {
       return true;

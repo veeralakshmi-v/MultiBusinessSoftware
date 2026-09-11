@@ -18,7 +18,7 @@ export default function Login() {
 
   const [authMode, setAuthMode] = useState<'CLIENT' | 'SUPER_ADMIN'>(() => isTargetingSuperAdmin ? 'SUPER_ADMIN' : 'CLIENT');
   const [username, setUsername] = useState(() => isTargetingSuperAdmin ? 'superadmin' : 'admin');
-  const [password, setPassword] = useState(() => isTargetingSuperAdmin ? 'superadmin123' : 'admin123');
+  const [password, setPassword] = useState(() => isTargetingSuperAdmin ? 'Super@Admin2026#' : 'admin123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -39,7 +39,7 @@ export default function Login() {
     setError('');
     if (mode === 'SUPER_ADMIN') {
       setUsername('superadmin');
-      setPassword('superadmin123');
+      setPassword('Super@Admin2026#');
     } else {
       setUsername('admin');
       setPassword('admin123');
@@ -74,7 +74,7 @@ export default function Login() {
   const handleQuickSuperAdminLogin = () => {
     setAuthMode('SUPER_ADMIN');
     setUsername('superadmin');
-    setPassword('superadmin123');
+    setPassword('Super@Admin2026#');
     setLoading(true);
     performLogin('superadmin', 'SUPER_ADMIN', {
       id: 'user-super-admin',
