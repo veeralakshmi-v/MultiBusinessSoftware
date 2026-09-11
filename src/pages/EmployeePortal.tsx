@@ -566,7 +566,7 @@ export default function EmployeePortal() {
           {hasPosAccess && (
             <button
               onClick={() => handleNavigateModule('/dashboard/billing')}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] text-[#0A0A0B] font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
               title="Open Billing POS Interface"
             >
               <Receipt className="w-4 h-4" />

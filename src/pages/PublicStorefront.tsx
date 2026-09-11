@@ -195,12 +195,12 @@ export default function PublicStorefront() {
   const activeSlide = config.heroSlides[currentSlide] || config.heroSlides[0] || DEFAULT_WEBSITE_CONFIG.heroSlides[0];
 
   return (
-    <div className="public-website min-h-screen bg-theme-primary text-gray-900 font-sans relative overflow-x-hidden transition-colors duration-300 pt-20">
+    <div className="public-website min-h-screen bg-[#F8FAFC] text-gray-900 font-sans relative overflow-x-hidden transition-colors duration-300 pt-20">
 
       {/* ── TOAST NOTIFICATIONS ── */}
       {inquirySuccessToast && (
-        <div className="fixed top-24 right-6 z-50 bg-white/95 backdrop-blur-xl text-gray-900 p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300 max-w-sm border border-theme-accent/20">
-          <div className="w-9 h-9 rounded-xl bg-[#2563EB] text-white hover:bg-[#1D4ED8] flex items-center justify-center flex-shrink-0">
+        <div className="fixed top-24 right-6 z-50 bg-white/95 backdrop-blur-xl text-gray-900 p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300 max-w-sm border border-blue-200">
+          <div className="w-9 h-9 rounded-xl bg-[#2563EB] text-white hover:bg-[#1D4ED8] flex items-center justify-center flex-shrink-0 shadow-md">
             <Check className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -211,8 +211,8 @@ export default function PublicStorefront() {
       )}
 
       {newsletterToast && (
-        <div className="fixed top-24 right-6 z-50 bg-white/95 backdrop-blur-xl text-gray-900 p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300 max-w-sm border border-emerald-500/20">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
+        <div className="fixed top-24 right-6 z-50 bg-white/95 backdrop-blur-xl text-gray-900 p-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-in slide-in-from-top duration-300 max-w-sm border border-emerald-500/30">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
             <Check className="w-5 h-5" />
           </div>
           <div>
@@ -223,7 +223,7 @@ export default function PublicStorefront() {
       )}
 
       {/* ── 1. ULTRA-MODERN FLOATING CAPSULE NAVIGATION BAR ── */}
-      <header className="fixed top-4 left-1/2 -translate-x-1/2 max-w-6xl w-[94%] z-50 bg-white/85 backdrop-blur-2xl rounded-full shadow-2xl shadow-black/5 ring-1 ring-white/40 px-5 sm:px-7 py-3.5 flex items-center justify-between transition-all duration-300">
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 max-w-6xl w-[94%] z-50 bg-white/90 backdrop-blur-2xl rounded-full shadow-lg shadow-gray-200/50 border border-gray-200 px-5 sm:px-7 py-3 flex items-center justify-between transition-all duration-300">
         
         {/* Brand Logo & Name */}
         <a href="#" className="flex items-center gap-3 group min-w-0">
@@ -245,33 +245,33 @@ export default function PublicStorefront() {
         </a>
 
         {/* Center Navigation Links (Desktop Capsule Pills) */}
-        <nav className="hidden lg:flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase text-gray-900/80 bg-theme-primary/20 p-1.5 rounded-full backdrop-blur-md">
+        <nav className="hidden lg:flex items-center gap-1.5 text-xs font-semibold uppercase text-gray-700 bg-slate-100 border border-gray-200/80 p-1.5 rounded-full backdrop-blur-md">
           {config.showHero && (
-            <a href="#hero" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] transition-all shadow-sm">
+            <a href="#hero" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] hover:shadow-xs border border-transparent hover:border-gray-200 transition-all">
               Home
             </a>
           )}
           {config.showDestinations && (
-            <a href="#showcase" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] transition-all shadow-sm">
+            <a href="#showcase" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] hover:shadow-xs border border-transparent hover:border-gray-200 transition-all">
               Offerings
             </a>
           )}
           {config.showCurated && (
-            <a href="#why-us" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] transition-all shadow-sm">
+            <a href="#why-us" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] hover:shadow-xs border border-transparent hover:border-gray-200 transition-all">
               Why Us
             </a>
           )}
           {config.showCatalog && (
-            <a href="#catalog" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] transition-all shadow-sm">
+            <a href="#catalog" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] hover:shadow-xs border border-transparent hover:border-gray-200 transition-all">
               Live Store
             </a>
           )}
           {config.showJournal && (
-            <a href="#insights" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] transition-all shadow-sm">
+            <a href="#insights" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] hover:shadow-xs border border-transparent hover:border-gray-200 transition-all">
               Insights
             </a>
           )}
-          <a href="#contact" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] transition-all shadow-sm">
+          <a href="#contact" className="px-4 py-1.5 rounded-full hover:bg-white hover:text-[#2563EB] hover:shadow-xs border border-transparent hover:border-gray-200 transition-all">
             Contact
           </a>
         </nav>
@@ -280,7 +280,7 @@ export default function PublicStorefront() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsInquiryModalOpen(true)}
-            className="hidden sm:inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs tracking-wider uppercase shadow-lg shadow-theme-accent/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+            className="hidden sm:inline-flex items-center justify-center px-5 py-2.5 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs tracking-wider uppercase shadow-md shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
             <span>Get in Touch</span>
           </button>
@@ -288,7 +288,7 @@ export default function PublicStorefront() {
           {/* Mobile Navigation Toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(prev => !prev)}
-            className="lg:hidden p-2 rounded-full bg-theme-primary/20 text-gray-900 hover:text-[#2563EB] transition-colors"
+            className="lg:hidden p-2 rounded-full bg-slate-100 border border-gray-200 text-gray-900 hover:text-[#2563EB] transition-colors"
             aria-label="Toggle navigation menu"
           >
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -297,29 +297,29 @@ export default function PublicStorefront() {
 
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-2xl rounded-3xl p-6 space-y-4 animate-in slide-in-from-top-4 duration-300 shadow-2xl border border-white/20">
+          <div className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-2xl rounded-3xl p-6 space-y-4 animate-in slide-in-from-top-4 duration-300 shadow-2xl border border-gray-200">
             <nav className="flex flex-col gap-2 text-xs font-bold tracking-wider uppercase text-gray-900">
               {config.showDestinations && (
-                <a href="#showcase" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
+                <a href="#showcase" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                   Featured Offerings
                 </a>
               )}
               {config.showCurated && (
-                <a href="#why-us" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
+                <a href="#why-us" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                   Why Choose Us
                 </a>
               )}
               {config.showCatalog && (
-                <a href="#catalog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
+                <a href="#catalog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                   Live Store Catalog
                 </a>
               )}
               {config.showJournal && (
-                <a href="#insights" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
+                <a href="#insights" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                   News & Insights
                 </a>
               )}
-              <a href="#contact" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-theme-primary/10 transition-colors">
+              <a href="#contact" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[#2563EB] p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
                 Contact & Support
               </a>
             </nav>
@@ -343,7 +343,7 @@ export default function PublicStorefront() {
         <section id="hero" className="relative py-16 sm:py-24 lg:py-28 overflow-hidden">
           
           {/* Ambient Glowing Background Mesh Halos */}
-          <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-theme-accent/20 via-theme-primary/10 to-transparent rounded-full blur-[130px] pointer-events-none -z-10" />
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-transparent rounded-full blur-[130px] pointer-events-none -z-10" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
@@ -352,8 +352,8 @@ export default function PublicStorefront() {
               <div className="lg:col-span-7 space-y-7 text-left">
                 
                 {/* Dynamic Kicker Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-theme-accent/10 backdrop-blur-md text-[#2563EB] text-xs font-bold tracking-wider uppercase border border-theme-accent/20 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-theme-accent animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 backdrop-blur-md text-[#2563EB] text-xs font-bold tracking-wider uppercase border border-blue-200/80 shadow-xs">
+                  <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse" />
                   <span>{activeSlide?.kicker || config.brandTagline || 'Welcome to Our Store'}</span>
                 </div>
 
@@ -379,7 +379,7 @@ export default function PublicStorefront() {
                       const el = document.getElementById('showcase');
                       el?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-theme-accent/25 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
                   >
                     <span>{activeSlide?.ctaText || 'Explore Offerings'}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -395,27 +395,27 @@ export default function PublicStorefront() {
                 </div>
 
                 {/* Live Social Proof / Trust Indicators */}
-                <div className="pt-6 grid grid-cols-3 gap-4 border-t border-gray-100/10 max-w-lg">
+                <div className="pt-6 grid grid-cols-3 gap-4 border-t border-gray-200 max-w-lg">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-1 text-amber-500">
                       <Star className="w-3.5 h-3.5 fill-current" />
                       <span className="text-xs font-bold font-mono text-gray-900">4.9 / 5</span>
                     </div>
-                    <p className="text-[10px] text-theme-muted">Verified Client Rating</p>
+                    <p className="text-[10px] text-gray-500">Verified Client Rating</p>
                   </div>
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-1 text-emerald-600">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span className="text-xs font-bold font-mono text-gray-900">100% Quality</span>
                     </div>
-                    <p className="text-[10px] text-theme-muted">Enterprise Certified</p>
+                    <p className="text-[10px] text-gray-500">Enterprise Certified</p>
                   </div>
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-1 text-[#2563EB]">
                       <Zap className="w-3.5 h-3.5" />
                       <span className="text-xs font-bold font-mono text-gray-900">Instant Response</span>
                     </div>
-                    <p className="text-[10px] text-theme-muted">24/7 Support Desk</p>
+                    <p className="text-[10px] text-gray-500">24/7 Support Desk</p>
                   </div>
                 </div>
 
@@ -428,7 +428,7 @@ export default function PublicStorefront() {
                         onClick={() => setCurrentSlide(i)}
                         className={cn(
                           "h-2 rounded-full transition-all duration-300",
-                          i === currentSlide ? "w-8 bg-[#2563EB] text-white hover:bg-[#1D4ED8]" : "w-2 bg-theme-secondary/20 hover:bg-blue-50"
+                          i === currentSlide ? "w-8 bg-[#2563EB] text-white" : "w-2 bg-gray-300 hover:bg-blue-200"
                         )}
                         aria-label={`Slide ${i + 1}`}
                       />
@@ -439,7 +439,7 @@ export default function PublicStorefront() {
 
               {/* Right Column: Aspect-Locked Visual Preview Frame */}
               <div className="lg:col-span-5">
-                <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-white aspect-[4/3] group ring-1 ring-white/30">
+                <div className="relative rounded-3xl overflow-hidden shadow-xl bg-white aspect-[4/3] group border border-gray-200">
                   {activeSlide?.bgUrl ? (
                     <img
                       src={activeSlide.bgUrl}
@@ -447,17 +447,17 @@ export default function PublicStorefront() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-theme-surface via-theme-primary/5 to-theme-accent/10">
-                      <div className="w-16 h-16 rounded-3xl bg-theme-accent/15 flex items-center justify-center text-[#2563EB] mb-4 shadow-lg">
+                    <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-white via-blue-50/40 to-indigo-50/30">
+                      <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB] mb-4 shadow-sm">
                         <Sparkles className="w-8 h-8" />
                       </div>
                       <h3 className="font-extrabold text-xl text-gray-900">{config.brandName}</h3>
-                      <p className="text-xs text-theme-muted mt-1 max-w-xs">{config.brandTagline}</p>
+                      <p className="text-xs text-gray-500 mt-1 max-w-xs">{config.brandTagline}</p>
                     </div>
                   )}
 
                   {activeSlide?.featureBadge && (
-                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-white/90 backdrop-blur-xl shadow-xl flex items-center justify-between gap-3 border border-white/20">
+                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-white/95 backdrop-blur-xl shadow-xl flex items-center justify-between gap-3 border border-gray-200">
                       <div>
                         <span className="text-[10px] font-bold tracking-wider text-[#2563EB] uppercase block">
                           {activeSlide.featureBadge}
@@ -484,7 +484,7 @@ export default function PublicStorefront() {
           {/* Section Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
             <div className="space-y-3">
-              <span className="inline-block text-xs font-bold tracking-widest text-[#2563EB] uppercase bg-theme-accent/10 px-3.5 py-1.5 rounded-full">
+              <span className="inline-block text-xs font-bold tracking-widest text-[#2563EB] uppercase bg-blue-50 border border-blue-200/80 px-3.5 py-1.5 rounded-full">
                 {config.destinationsKicker || 'FEATURED OFFERINGS'}
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -492,7 +492,7 @@ export default function PublicStorefront() {
               </h2>
             </div>
 
-            <p className="text-sm text-theme-muted max-w-md font-normal leading-relaxed">
+            <p className="text-sm text-gray-600 max-w-md font-normal leading-relaxed">
               {config.destinationsSubtitle || 'Explore our handpicked selection of top-tier offerings, engineered for maximum value and performance.'}
             </p>
           </div>
@@ -504,11 +504,11 @@ export default function PublicStorefront() {
                 <div
                   key={item.id}
                   onClick={() => setSelectedItem(item)}
-                  className="group cursor-pointer glass-card rounded-3xl overflow-hidden flex flex-col justify-between hover:-translate-y-2 hover:shadow-2xl transition-all duration-500"
+                  className="group cursor-pointer bg-white border border-gray-200 rounded-3xl overflow-hidden flex flex-col justify-between hover:-translate-y-1.5 hover:border-blue-400 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 shadow-sm"
                 >
                   <div>
                     {/* Locked Aspect Image Container */}
-                    <div className="relative aspect-[4/3] overflow-hidden bg-theme-primary/10">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-slate-50 border-b border-gray-100">
                       {item.imageUrl ? (
                         <img
                           src={item.imageUrl}
@@ -516,7 +516,7 @@ export default function PublicStorefront() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-theme-secondary/5 text-[#2563EB]">
+                        <div className="w-full h-full flex items-center justify-center bg-blue-50/50 text-[#2563EB]">
                           <Box className="w-12 h-12" />
                         </div>
                       )}
@@ -524,16 +524,16 @@ export default function PublicStorefront() {
                       {/* Top Pill Badges */}
                       <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
                         {item.badge ? (
-                          <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-[#2563EB] shadow-md">
+                          <span className="px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-[#2563EB] shadow-xs border border-gray-200/80">
                             {item.badge}
                           </span>
                         ) : (
-                          <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-gray-900 shadow-md">
+                          <span className="px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold uppercase tracking-wider text-gray-900 shadow-xs border border-gray-200/80">
                             {item.category || 'Featured'}
                           </span>
                         )}
 
-                        <div className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-md text-gray-900 flex items-center justify-center group-hover:bg-theme-secondary group-hover:text-white transition-colors shadow-md ml-auto">
+                        <div className="w-8 h-8 rounded-full bg-white/95 backdrop-blur-md text-gray-900 flex items-center justify-center group-hover:bg-[#2563EB] group-hover:text-white transition-colors shadow-xs border border-gray-200/80 ml-auto">
                           <ArrowUpRight className="w-4 h-4" />
                         </div>
                       </div>
@@ -547,7 +547,7 @@ export default function PublicStorefront() {
                       <h3 className="text-lg font-extrabold text-gray-900 leading-snug group-hover:text-[#2563EB] transition-colors">
                         {item.name}
                       </h3>
-                      <p className="text-xs text-theme-muted line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
                         {item.subtitle || item.description}
                       </p>
                     </div>
@@ -573,7 +573,7 @@ export default function PublicStorefront() {
                         e.stopPropagation();
                         openItemInquiry(item);
                       }}
-                      className="bg-[#2563EB] text-white hover:bg-[#1D4ED8] text-xs font-bold px-4 py-2 rounded-xl shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+                      className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
                     >
                       <span>Inquire</span>
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -583,10 +583,10 @@ export default function PublicStorefront() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 px-6 rounded-3xl glass-card-static max-w-md mx-auto space-y-3">
-              <Box className="w-10 h-10 text-theme-muted mx-auto" />
+            <div className="text-center py-12 px-6 rounded-3xl bg-white border border-gray-200 shadow-sm max-w-md mx-auto space-y-3">
+              <Box className="w-10 h-10 text-gray-400 mx-auto" />
               <p className="text-sm font-semibold text-gray-900">No Featured Offerings Yet</p>
-              <p className="text-xs text-theme-muted">Configure your top products via CMS Builder in Settings.</p>
+              <p className="text-xs text-gray-500">Configure your top products via CMS Builder in Settings.</p>
             </div>
           )}
 
@@ -600,7 +600,7 @@ export default function PublicStorefront() {
             
             {/* Header */}
             <div className="max-w-2xl space-y-3">
-              <span className="inline-block text-xs font-bold tracking-widest uppercase text-[#2563EB] bg-theme-accent/10 px-3.5 py-1.5 rounded-full">
+              <span className="inline-block text-xs font-bold tracking-widest uppercase text-[#2563EB] bg-blue-50 border border-blue-200/80 px-3.5 py-1.5 rounded-full">
                 {config.curatedKicker || 'WHY CHOOSE US'}
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -616,12 +616,12 @@ export default function PublicStorefront() {
                   <div
                     key={pillar.id}
                     className={cn(
-                      "p-8 rounded-3xl glass-card flex flex-col justify-between hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden group",
-                      isLarge ? "md:col-span-8 bg-gradient-to-br from-theme-surface via-theme-surface to-theme-accent/5" : "md:col-span-4"
+                      "p-8 rounded-3xl bg-white border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/10 flex flex-col justify-between hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden group",
+                      isLarge ? "md:col-span-8 bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/20 border-blue-200/80" : "md:col-span-4"
                     )}
                   >
                     <div className="space-y-4">
-                      <div className="w-14 h-14 rounded-2xl bg-theme-accent/15 text-[#2563EB] flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                      <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 text-[#2563EB] flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
                         {renderPillarIcon(pillar.iconType)}
                       </div>
                       
@@ -629,7 +629,7 @@ export default function PublicStorefront() {
                         <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">
                           {pillar.title}
                         </h3>
-                        <p className="text-xs sm:text-sm text-theme-muted leading-relaxed mt-2">
+                        <p className="text-xs sm:text-sm text-gray-500 leading-relaxed mt-2">
                           {pillar.desc}
                         </p>
                       </div>
@@ -637,15 +637,15 @@ export default function PublicStorefront() {
                       {/* Flagship Bento Extra Features Checklist */}
                       {isLarge && (
                         <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-semibold text-gray-900">
-                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-theme-primary/10">
+                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-gray-200/80">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                             <span>100% Quality Verified & Tested</span>
                           </div>
-                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-theme-primary/10">
+                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-gray-200/80">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                             <span>Direct Concierge Support</span>
                           </div>
-                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-theme-primary/10">
+                          <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-gray-200/80">
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                             <span>Seamless Digital Billing</span>
                           </div>
@@ -654,7 +654,7 @@ export default function PublicStorefront() {
                     </div>
 
                     {(pillar as any).highlightBadge && (
-                      <span className="inline-block text-[10px] font-bold font-mono tracking-wider text-[#2563EB] bg-theme-accent/10 px-3 py-1 rounded-full w-fit mt-6">
+                      <span className="inline-block text-[10px] font-bold font-mono tracking-wider text-[#2563EB] bg-blue-50 border border-blue-200 px-3 py-1 rounded-full w-fit mt-6">
                         {(pillar as any).highlightBadge}
                       </span>
                     )}
@@ -674,7 +674,7 @@ export default function PublicStorefront() {
           {/* Header & Search Capsule Bar */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div className="space-y-3">
-              <span className="inline-block text-xs font-bold tracking-widest text-[#2563EB] uppercase bg-theme-accent/10 px-3.5 py-1.5 rounded-full">
+              <span className="inline-block text-xs font-bold tracking-widest text-[#2563EB] uppercase bg-blue-50 border border-blue-200/80 px-3.5 py-1.5 rounded-full">
                 INTEGRATED POS CATALOG
               </span>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -684,13 +684,13 @@ export default function PublicStorefront() {
 
             {/* Rounded Pill Search Input */}
             <div className="relative w-full md:w-80">
-              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-theme-muted" />
+              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={catalogSearch}
                 onChange={e => setCatalogSearch(e.target.value)}
                 placeholder="Search live items..."
-                className="w-full pl-11 pr-5 py-3 rounded-full glass-card-static text-xs text-gray-900 outline-none focus:ring-2 focus:ring-theme-accent shadow-md transition-all"
+                className="w-full pl-11 pr-5 py-3 rounded-full bg-white border border-gray-200 text-xs text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all"
               />
             </div>
           </div>
@@ -704,8 +704,8 @@ export default function PublicStorefront() {
                 className={cn(
                   "px-5 py-2.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer",
                   activeCatalogCategory === cat
-                    ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-lg shadow-theme-accent/25 scale-105"
-                    : "glass-card-static text-gray-900 hover:shadow-md"
+                    ? "bg-[#2563EB] text-white border border-blue-600 shadow-md shadow-blue-500/25 scale-105"
+                    : "bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 shadow-xs"
                 )}
               >
                 {cat}
@@ -719,23 +719,23 @@ export default function PublicStorefront() {
               {filteredCatalogItems.map(item => (
                 <div
                   key={item.id}
-                  className="glass-card rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:-translate-y-1.5 transition-all"
+                  className="bg-white border border-gray-200 rounded-3xl p-5 flex flex-col justify-between space-y-4 hover:-translate-y-1.5 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/10 shadow-sm transition-all group"
                 >
                   <div className="space-y-3">
                     {/* Item Image */}
-                    <div className="aspect-square rounded-2xl overflow-hidden bg-theme-primary/10 relative">
+                    <div className="aspect-square rounded-2xl overflow-hidden bg-slate-50 border border-gray-100 relative flex items-center justify-center">
                       {item.imageUrl ? (
-                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[#2563EB]">
+                        <div className="w-full h-full flex items-center justify-center text-[#2563EB] bg-blue-50/50">
                           <ShoppingBag className="w-10 h-10" />
                         </div>
                       )}
                       <span className={cn(
-                        "absolute top-2 right-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono shadow-sm",
+                        "absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono shadow-xs border",
                         (item.stock ?? 1) > 0 
-                          ? "bg-emerald-500/15 text-emerald-600 border border-emerald-500/30" 
-                          : "bg-red-500/15 text-red-600 border border-red-500/30"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                          : "bg-red-50 text-red-700 border-red-200"
                       )}>
                         {(item.stock ?? 1) > 0 ? 'In Stock' : 'Out of Stock'}
                       </span>
@@ -746,20 +746,20 @@ export default function PublicStorefront() {
                       <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-wider block">
                         {getCategoryName(item.category)}
                       </span>
-                      <h4 className="font-extrabold text-sm text-gray-900 line-clamp-1 mt-0.5">
+                      <h4 className="font-extrabold text-sm text-gray-900 line-clamp-1 mt-0.5 group-hover:text-[#2563EB] transition-colors">
                         {item.name}
                       </h4>
                     </div>
                   </div>
 
                   {/* Price & Quick Inquiry */}
-                  <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                     <span className="text-base font-extrabold text-gray-900 font-mono">
                       ₹{item.price || 0}
                     </span>
                     <button
                       onClick={() => handleWhatsAppInquiry(`Hi, I am interested in buying ${item.name} (Price: ₹${item.price}).`)}
-                      className="p-2.5 rounded-xl bg-theme-accent/15 text-[#2563EB] hover:bg-theme-accent hover:text-white transition-all shadow-sm cursor-pointer"
+                      className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-[#2563EB] hover:bg-[#2563EB] hover:text-white transition-all shadow-xs cursor-pointer"
                       title="Inquire on WhatsApp"
                     >
                       <MessageSquare className="w-4 h-4" />
@@ -769,10 +769,10 @@ export default function PublicStorefront() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 px-6 rounded-3xl glass-card-static max-w-md mx-auto space-y-2">
-              <ShoppingBag className="w-10 h-10 text-theme-muted mx-auto" />
+            <div className="text-center py-12 px-6 rounded-3xl bg-white border border-gray-200 shadow-sm max-w-md mx-auto space-y-2">
+              <ShoppingBag className="w-10 h-10 text-gray-400 mx-auto" />
               <p className="text-sm font-semibold text-gray-900">No Products Found</p>
-              <p className="text-xs text-theme-muted">No catalog items match your search or filter category.</p>
+              <p className="text-xs text-gray-500">No catalog items match your search or filter category.</p>
             </div>
           )}
 
@@ -787,7 +787,7 @@ export default function PublicStorefront() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
               <div className="space-y-3">
-                <span className="inline-block text-xs font-bold tracking-widest text-[#2563EB] uppercase bg-theme-accent/10 px-3.5 py-1.5 rounded-full">
+                <span className="inline-block text-xs font-bold tracking-widest text-[#2563EB] uppercase bg-blue-50 border border-blue-200/80 px-3.5 py-1.5 rounded-full">
                   {config.journalKicker || 'NEWS & INSIGHTS'}
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -795,7 +795,7 @@ export default function PublicStorefront() {
                 </h2>
               </div>
 
-              <p className="text-sm text-theme-muted max-w-md font-normal leading-relaxed">
+              <p className="text-sm text-gray-600 max-w-md font-normal leading-relaxed">
                 {config.journalSubtitle || 'Stay informed with our latest news, operational guides, and industry insights.'}
               </p>
             </div>
@@ -806,19 +806,19 @@ export default function PublicStorefront() {
                 <div
                   key={article.id}
                   onClick={() => setSelectedStory(article)}
-                  className="group cursor-pointer glass-card rounded-3xl overflow-hidden flex flex-col justify-between hover:-translate-y-2 transition-all duration-500"
+                  className="group cursor-pointer bg-white border border-gray-200 rounded-3xl overflow-hidden flex flex-col justify-between hover:-translate-y-1.5 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/10 shadow-sm transition-all duration-300"
                 >
                   <div>
                     {/* Article Cover Image */}
-                    <div className="aspect-[16/9] overflow-hidden bg-theme-primary/10 relative">
+                    <div className="aspect-[16/9] overflow-hidden bg-slate-50 border-b border-gray-100 relative">
                       {article.imageUrl ? (
                         <img src={article.imageUrl} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[#2563EB]">
+                        <div className="w-full h-full flex items-center justify-center text-[#2563EB] bg-blue-50/50">
                           <Sparkles className="w-10 h-10" />
                         </div>
                       )}
-                      <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-[#2563EB] shadow-md">
+                      <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold text-[#2563EB] shadow-xs border border-gray-200/80">
                         {article.readTime || '3 min read'}
                       </span>
                     </div>
@@ -831,7 +831,7 @@ export default function PublicStorefront() {
                       <h3 className="text-base font-extrabold text-gray-900 line-clamp-2 leading-snug group-hover:text-[#2563EB] transition-colors">
                         {article.title}
                       </h3>
-                      <p className="text-xs text-theme-muted line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
                         {article.excerpt}
                       </p>
                     </div>
@@ -850,12 +850,12 @@ export default function PublicStorefront() {
       )}
 
       {/* ── 7. FOOTER & FLOATING NEWSLETTER DISPATCH ── */}
-      <footer id="contact" className="bg-white text-gray-900 pt-20 pb-12">
+      <footer id="contact" className="bg-white border-t border-gray-200 text-gray-900 pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
           
           {/* Newsletter Capsule Bar */}
           {config.showNewsletter && (
-            <div className="bg-gradient-to-r from-theme-bg-secondary/80 via-theme-surface to-theme-bg-secondary/80 rounded-3xl p-8 sm:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 shadow-2xl ring-1 ring-white/30">
+            <div className="bg-gradient-to-r from-blue-50/80 via-white to-indigo-50/80 border border-blue-200/80 rounded-3xl p-8 sm:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 shadow-xl shadow-blue-500/5">
               <div className="space-y-2 max-w-xl text-center lg:text-left">
                 <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-[#2563EB] uppercase block">
                   NEWSLETTER DISPATCH
@@ -863,7 +863,7 @@ export default function PublicStorefront() {
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
                   {config.newsletterTitle || 'Stay Updated with Latest Releases'}
                 </h3>
-                <p className="text-xs text-theme-muted font-normal leading-relaxed">
+                <p className="text-xs text-gray-500 font-normal leading-relaxed">
                   {config.newsletterSubtitle || 'Subscribe to receive announcements, exclusive promotions, and seasonal specials.'}
                 </p>
               </div>
@@ -874,11 +874,11 @@ export default function PublicStorefront() {
                   placeholder="Enter your email address..."
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  className="w-full sm:w-72 px-5 py-3.5 bg-white rounded-full text-xs text-gray-900 placeholder:text-theme-muted outline-none focus:ring-2 focus:ring-theme-accent shadow-md transition-all"
+                  className="w-full sm:w-72 px-5 py-3.5 bg-white border border-gray-300 rounded-full text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all"
                 />
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8] text-white font-bold text-xs tracking-widest uppercase transition-all whitespace-nowrap shadow-lg shadow-theme-accent/25 hover:scale-105 active:scale-95"
+                  className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs tracking-widest uppercase transition-all whitespace-nowrap shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95"
                 >
                   Subscribe
                 </button>
@@ -996,18 +996,18 @@ export default function PublicStorefront() {
       {/* ── 9. OFFERING / SHOWCASE DETAIL MODAL ── */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-2xl w-full text-gray-900 overflow-hidden shadow-2xl my-8">
-            <div className="relative h-64 sm:h-72 bg-theme-primary/10">
+          <div className="bg-white border border-gray-200 rounded-3xl max-w-2xl w-full text-gray-900 overflow-hidden shadow-2xl my-8">
+            <div className="relative h-64 sm:h-72 bg-slate-50 border-b border-gray-100">
               <img src={selectedItem.imageUrl} alt={selectedItem.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-theme-surface via-transparent to-black/30" />
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/30" />
               <button
                 onClick={() => setSelectedItem(null)}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 backdrop-blur-md text-gray-900 hover:bg-white flex items-center justify-center transition-colors shadow-md cursor-pointer"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md border border-gray-200 text-gray-900 hover:bg-white flex items-center justify-center transition-colors shadow-md cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
               <div className="absolute bottom-4 left-6 right-6">
-                <span className="px-3 py-1 rounded-full bg-theme-accent/20 border border-theme-accent/30 text-[#2563EB] text-[10px] font-mono font-bold uppercase tracking-wider">
+                <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#2563EB] text-[10px] font-mono font-bold uppercase tracking-wider">
                   {selectedItem.category}
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1">
@@ -1017,13 +1017,13 @@ export default function PublicStorefront() {
             </div>
 
             <div className="p-6 sm:p-8 space-y-6 max-h-[60vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-theme-bg-secondary/40">
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-gray-200">
                 <div>
-                  <span className="text-[10px] font-mono text-theme-muted uppercase">Rate / Price</span>
+                  <span className="text-[10px] font-mono text-gray-500 uppercase font-semibold">Rate / Price</span>
                   <p className="font-mono text-2xl font-extrabold text-gray-900">{selectedItem.priceFrom}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] font-mono text-theme-muted uppercase">Format</span>
+                  <span className="text-[10px] font-mono text-gray-500 uppercase font-semibold">Format</span>
                   <p className="text-xs font-bold text-[#2563EB]">{selectedItem.duration || 'Complete'}</p>
                 </div>
               </div>
@@ -1032,7 +1032,7 @@ export default function PublicStorefront() {
                 <h4 className="text-xs font-bold uppercase text-[#2563EB] tracking-wider mb-2">
                   Overview
                 </h4>
-                <p className="text-xs sm:text-sm text-theme-muted font-normal leading-relaxed">
+                <p className="text-xs sm:text-sm text-gray-600 font-normal leading-relaxed">
                   {selectedItem.description}
                 </p>
               </div>
@@ -1044,7 +1044,7 @@ export default function PublicStorefront() {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {selectedItem.highlights.map((h, i) => (
-                      <div key={i} className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-gray-100 text-xs text-gray-900 shadow-sm">
+                      <div key={i} className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-gray-200 text-xs text-gray-900 shadow-xs">
                         <Sparkles className="w-3.5 h-3.5 text-[#2563EB] flex-shrink-0" />
                         <span>{h}</span>
                       </div>
@@ -1060,7 +1060,7 @@ export default function PublicStorefront() {
                   </h4>
                   <div className="space-y-1.5">
                     {selectedItem.inclusions.map((inc, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs text-theme-muted">
+                      <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
                         <Check className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
                         <span>{inc}</span>
                       </div>
@@ -1072,7 +1072,7 @@ export default function PublicStorefront() {
               <div className="pt-4 flex flex-col sm:flex-row items-center gap-3">
                 <button
                   onClick={() => openItemInquiry(selectedItem)}
-                  className="w-full sm:flex-1 py-3.5 rounded-2xl bg-[#2563EB] text-white hover:bg-[#1D4ED8] text-white font-bold text-xs uppercase tracking-widest transition-all text-center shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+                  className="w-full sm:flex-1 py-3.5 rounded-2xl bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs uppercase tracking-widest transition-all text-center shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   Inquire / Book Now
                 </button>
@@ -1092,18 +1092,18 @@ export default function PublicStorefront() {
       {/* ── 10. ARTICLE / STORY READER MODAL ── */}
       {selectedStory && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-2xl w-full text-gray-900 overflow-hidden shadow-2xl my-8">
-            <div className="relative h-64 bg-theme-primary/10">
+          <div className="bg-white border border-gray-200 rounded-3xl max-w-2xl w-full text-gray-900 overflow-hidden shadow-2xl my-8">
+            <div className="relative h-64 bg-slate-50 border-b border-gray-100">
               <img src={selectedStory.imageUrl} alt={selectedStory.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-theme-surface via-transparent to-black/30" />
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/30" />
               <button
                 onClick={() => setSelectedStory(null)}
-                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 backdrop-blur-md text-gray-900 hover:bg-white flex items-center justify-center transition-colors shadow-md cursor-pointer"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md border border-gray-200 text-gray-900 hover:bg-white flex items-center justify-center transition-colors shadow-md cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
               <div className="absolute bottom-4 left-6 right-6">
-                <span className="px-3 py-1 rounded-full bg-theme-accent/20 border border-theme-accent/30 text-[#2563EB] text-[10px] font-mono font-bold uppercase tracking-wider">
+                <span className="px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#2563EB] text-[10px] font-mono font-bold uppercase tracking-wider">
                   {selectedStory.category}
                 </span>
                 <h3 className="text-xl sm:text-2xl font-extrabold text-gray-900 mt-1">
@@ -1113,12 +1113,12 @@ export default function PublicStorefront() {
             </div>
 
             <div className="p-6 sm:p-8 space-y-4 max-h-[60vh] overflow-y-auto">
-              <div className="flex items-center justify-between text-xs text-theme-muted pb-3">
+              <div className="flex items-center justify-between text-xs text-gray-500 pb-3 border-b border-gray-100">
                 <span>By {selectedStory.author}</span>
                 <span>{selectedStory.date} • {selectedStory.readTime}</span>
               </div>
 
-              <div className="space-y-4 text-xs sm:text-sm text-theme-muted font-normal leading-relaxed">
+              <div className="space-y-4 text-xs sm:text-sm text-gray-600 font-normal leading-relaxed">
                 {selectedStory.content?.map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
@@ -1127,7 +1127,7 @@ export default function PublicStorefront() {
               <div className="pt-4">
                 <button
                   onClick={() => setSelectedStory(null)}
-                  className="w-full py-3 rounded-2xl bg-white border border-gray-100 hover:bg-blue-50 text-gray-900 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                  className="w-full py-3 rounded-2xl bg-white border border-gray-200 hover:bg-slate-50 text-gray-900 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
                 >
                   Close Article
                 </button>
@@ -1140,10 +1140,10 @@ export default function PublicStorefront() {
       {/* ── 11. GENERAL INQUIRY / GET IN TOUCH MODAL ── */}
       {isInquiryModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xl flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-lg w-full text-gray-900 p-6 sm:p-8 shadow-2xl relative my-8">
+          <div className="bg-white border border-gray-200 rounded-3xl max-w-lg w-full text-gray-900 p-6 sm:p-8 shadow-2xl relative my-8">
             <button
               onClick={() => setIsInquiryModalOpen(false)}
-              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-theme-bg-secondary text-gray-900 hover:bg-blue-50 flex items-center justify-center transition-colors cursor-pointer"
+              className="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 border border-gray-200 text-gray-900 hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -1155,7 +1155,7 @@ export default function PublicStorefront() {
               <h3 className="text-2xl font-extrabold text-gray-900">
                 Get in Touch with {config.brandName}
               </h3>
-              <p className="text-xs text-theme-muted font-normal">
+              <p className="text-xs text-gray-500 font-normal">
                 Fill out the details below and our team will get back to you promptly.
               </p>
             </div>
@@ -1169,7 +1169,7 @@ export default function PublicStorefront() {
                   value={inquiryForm.name}
                   onChange={e => setInquiryForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="e.g. John Doe"
-                  className="w-full px-3.5 py-2.5 bg-theme-bg-primary border border-gray-100 rounded-xl text-gray-900 outline-none focus:ring-2 focus:ring-theme-accent"
+                  className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-xs"
                 />
               </div>
 
@@ -1182,7 +1182,7 @@ export default function PublicStorefront() {
                     value={inquiryForm.phone}
                     onChange={e => setInquiryForm(f => ({ ...f, phone: e.target.value }))}
                     placeholder="e.g. 9876543210"
-                    className="w-full px-3.5 py-2.5 bg-theme-bg-primary border border-gray-100 rounded-xl text-gray-900 outline-none focus:ring-2 focus:ring-theme-accent"
+                    className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-xs"
                   />
                 </div>
 
@@ -1193,7 +1193,7 @@ export default function PublicStorefront() {
                     value={inquiryForm.email}
                     onChange={e => setInquiryForm(f => ({ ...f, email: e.target.value }))}
                     placeholder="e.g. john@example.com"
-                    className="w-full px-3.5 py-2.5 bg-theme-bg-primary border border-gray-100 rounded-xl text-gray-900 outline-none focus:ring-2 focus:ring-theme-accent"
+                    className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-xs"
                   />
                 </div>
               </div>
@@ -1205,7 +1205,7 @@ export default function PublicStorefront() {
                     type="text"
                     disabled
                     value={inquiryForm.offeringName}
-                    className="w-full px-3.5 py-2.5 bg-white border border-gray-100 rounded-xl text-[#2563EB] font-bold outline-none cursor-not-allowed"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-[#2563EB] font-bold outline-none cursor-not-allowed"
                   />
                 </div>
               )}
@@ -1217,14 +1217,14 @@ export default function PublicStorefront() {
                   value={inquiryForm.notes}
                   onChange={e => setInquiryForm(f => ({ ...f, notes: e.target.value }))}
                   placeholder="Tell us about your requirements, questions, or desired timeline..."
-                  className="w-full px-3.5 py-2.5 bg-theme-bg-primary border border-gray-100 rounded-xl text-gray-900 outline-none focus:ring-2 focus:ring-theme-accent"
+                  className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-xs"
                 />
               </div>
 
               <div className="pt-2 flex items-center gap-3">
                 <button
                   type="submit"
-                  className="flex-1 py-3.5 rounded-xl bg-[#2563EB] text-white hover:bg-[#1D4ED8] text-white font-bold text-xs uppercase tracking-widest transition-all shadow-md hover:scale-105 active:scale-95 cursor-pointer"
+                  className="flex-1 py-3.5 rounded-xl bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs uppercase tracking-widest transition-all shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   Send Inquiry
                 </button>

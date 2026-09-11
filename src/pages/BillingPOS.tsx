@@ -5,9 +5,10 @@ import {
   Search, Plus, Minus, Trash2, X, IndianRupee, Printer, Save, Tag, 
   ShoppingCart, Check, User, QrCode, CreditCard, CheckCircle2, 
   RefreshCw, Barcode, ShieldAlert, Sparkles, Layers, UserPlus, 
-  ArrowRight, ArrowRightLeft, Clock, Receipt, Banknote, PauseCircle, PlayCircle, PackagePlus
+  ArrowRight, ArrowRightLeft, Clock, Receipt, Banknote, PauseCircle, PlayCircle, PackagePlus,
+  Image as ImageIcon, Upload
 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, compressImageFile } from '../lib/utils';
 import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceModal';
 import { COMMON_UNITS } from './Inventory';
 import { NotificationEngine } from '../lib/notifications/notificationEngine';
@@ -33,6 +34,7 @@ interface MenuItem {
   description?: string;
   isAvailable: boolean;
   showInWebsite?: boolean;
+  imageUrl?: string;
 }
 
 interface CartItem {
@@ -174,6 +176,7 @@ export default function BillingPOS() {
   const [newItemGst, setNewItemGst] = useState<number>(businessProfile.defaultTaxRate || 5);
   const [newItemStock, setNewItemStock] = useState<number | ''>(50);
   const [newItemUnit, setNewItemUnit] = useState('Pcs');
+  const [newItemImageUrl, setNewItemImageUrl] = useState('');
 
   // New Customer Form
   const [newCustName, setNewCustName] = useState('');
@@ -258,16 +261,20 @@ export default function BillingPOS() {
           const availMap = new Map(existing.map((it: any) => [it.id, it.isAvailable]));
           const websiteMap = new Map(existing.map((it: any) => [it.id, it.showInWebsite]));
           const nameWebsiteMap = new Map(existing.map((it: any) => [it.name?.toLowerCase(), it.showInWebsite]));
+          const imageMap = new Map(existing.map((it: any) => [it.id, it.imageUrl]));
+          const nameImageMap = new Map(existing.map((it: any) => [it.name?.toLowerCase(), it.imageUrl]));
 
           const merged = data.map((d: any) => {
             const savedStock = stockMap.get(d.id) ?? nameStockMap.get(d.name?.toLowerCase());
             const savedAvail = availMap.get(d.id);
             const savedWeb = websiteMap.get(d.id) ?? nameWebsiteMap.get(d.name?.toLowerCase());
+            const savedImg = imageMap.get(d.id) ?? nameImageMap.get(d.name?.toLowerCase());
             return {
               ...d,
               currentStock: (savedStock !== undefined && savedStock !== null) ? savedStock : (d.currentStock ?? 50),
               isAvailable: savedAvail !== undefined ? savedAvail : (d.isAvailable !== false),
               showInWebsite: savedWeb !== undefined ? savedWeb : (d.showInWebsite === true),
+              imageUrl: d.imageUrl || savedImg || '',
             };
           });
 
@@ -692,6 +699,7 @@ export default function BillingPOS() {
       currentStock: newItemStock !== '' ? Number(newItemStock) : 50,
       isAvailable: true,
       sku: `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+      imageUrl: newItemImageUrl || undefined,
     };
 
     setMenuItems(prev => [itemData, ...prev]);
@@ -710,6 +718,7 @@ export default function BillingPOS() {
     setNewItemName('');
     setNewItemPrice('');
     setNewItemStock(50);
+    setNewItemImageUrl('');
   };
 
   // Complete Order and Trigger Invoice Print
@@ -971,18 +980,23 @@ export default function BillingPOS() {
                       </div>
                     )}
 
-                    <div>
-                      <div className="flex items-start justify-between gap-1">
-                        <h4 className={cn(
-                          "font-bold text-gray-900 text-xs leading-snug line-clamp-2 group-hover:text-[#2563EB] transition-colors",
-                          inCart ? "pr-6" : ""
-                        )}>
-                          {item.name}
-                        </h4>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-mono mt-1">
-                        <span>{item.unit || 'Pcs'}</span>
-                        {item.gst > 0 && <span>• {item.gst}% GST</span>}
+                    <div className="flex items-start gap-2.5">
+                      {item.imageUrl && (
+                        <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded-xl object-cover border border-gray-200 flex-shrink-0 bg-gray-50 mt-0.5" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-1">
+                          <h4 className={cn(
+                            "font-bold text-gray-900 text-xs leading-snug line-clamp-2 group-hover:text-[#2563EB] transition-colors",
+                            inCart && !item.imageUrl ? "pr-6" : ""
+                          )}>
+                            {item.name}
+                          </h4>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-mono mt-1">
+                          <span>{item.unit || 'Pcs'}</span>
+                          {item.gst > 0 && <span>• {item.gst}% GST</span>}
+                        </div>
                       </div>
                     </div>
 
@@ -1502,20 +1516,20 @@ export default function BillingPOS() {
       {/* Quick Add Product Modal in POS */}
       {isAddItemModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#141416] border border-gray-200 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#222225] pb-3">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
-                <PackagePlus className="w-5 h-5 text-[#C5A059]" />
-                <h3 className="font-bold text-white text-base">Add New Product</h3>
+                <PackagePlus className="w-5 h-5 text-[#2563EB]" />
+                <h3 className="font-bold text-gray-900 text-base">Add New Product</h3>
               </div>
-              <button onClick={() => setIsAddItemModalOpen(false)} className="text-gray-400 hover:text-white">
+              <button onClick={() => setIsAddItemModalOpen(false)} className="text-gray-400 hover:text-gray-700">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleQuickAddItem} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Product Name *</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Product Name *</label>
                 <input
                   type="text"
                   required
@@ -1528,7 +1542,7 @@ export default function BillingPOS() {
 
               {categories.length > 0 && (
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Category</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Category</label>
                   <select
                     value={newItemCatId}
                     onChange={(e) => setNewItemCatId(e.target.value)}
@@ -1543,7 +1557,7 @@ export default function BillingPOS() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Price ({currency}) *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Price ({currency}) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -1552,12 +1566,12 @@ export default function BillingPOS() {
                     placeholder="0.00"
                     value={newItemPrice}
                     onChange={(e) => setNewItemPrice(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Stock Quantity</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Stock Quantity</label>
                   <input
                     type="number"
                     min="0"
@@ -1570,7 +1584,7 @@ export default function BillingPOS() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">GST / Tax Rate (%)</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">GST / Tax Rate (%)</label>
                   <select
                     value={newItemGst}
                     onChange={(e) => setNewItemGst(Number(e.target.value))}
@@ -1585,7 +1599,7 @@ export default function BillingPOS() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1">Unit</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Unit</label>
                   <select
                     value={newItemUnit}
                     onChange={(e) => setNewItemUnit(e.target.value)}
@@ -1606,17 +1620,82 @@ export default function BillingPOS() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#222225]">
+              {/* Product Image Upload Field */}
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                <label className="block text-xs font-semibold text-gray-700">Product Image (Optional)</label>
+                <div className="flex items-center gap-3">
+                  {newItemImageUrl ? (
+                    <div className="relative group w-14 h-14 rounded-xl border border-gray-200 overflow-hidden bg-white shadow-xs flex-shrink-0">
+                      <img src={newItemImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setNewItemImageUrl('')}
+                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[8px] font-bold gap-0.5"
+                        title="Remove photo"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <span>Remove</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 flex-shrink-0">
+                      <ImageIcon className="w-4 h-4 stroke-[1.5]" />
+                      <span className="text-[7px] mt-0.5 font-semibold">No Image</span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 hover:border-[#2563EB] text-[#2563EB] text-xs font-bold shadow-xs hover:bg-blue-50 transition-all">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{newItemImageUrl ? 'Change Photo' : 'Upload Photo'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const dataUrl = await compressImageFile(file);
+                                setNewItemImageUrl(dataUrl);
+                              } catch (err: any) {
+                                alert(err?.message || 'Failed to upload image');
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+
+                      {newItemImageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setNewItemImageUrl('')}
+                          className="px-2 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold border border-red-200 transition-all inline-flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Remove</span>
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-500">
+                      Auto-compressed JPEG for fastest loading.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setIsAddItemModalOpen(false)}
-                  className="px-4 py-2 bg-gray-50 text-gray-400 hover:text-white rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 bg-gray-50 text-gray-500 hover:text-gray-900 rounded-xl text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold rounded-xl text-xs hover:bg-[#b08d4a]"
+                  className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-xl text-xs shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 >
                   Save & Add to Cart
                 </button>
@@ -1628,25 +1707,25 @@ export default function BillingPOS() {
 
       {/* Held Bills Recall Modal */}
       {isHeldModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#141416] border border-gray-200 rounded-2xl w-full max-w-md p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#222225] pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-md p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
-                <PlayCircle className="w-5 h-5 text-amber-400" />
-                <h3 className="font-bold text-white text-sm">Parked / Held Bills ({heldBills.length})</h3>
+                <PlayCircle className="w-5 h-5 text-amber-500" />
+                <h3 className="font-bold text-gray-900 text-sm">Parked / Held Bills ({heldBills.length})</h3>
               </div>
               <div className="flex items-center gap-2">
                 {heldBills.length > 0 && (
                   <button
                     onClick={handleClearAllHeldBills}
-                    className="text-[11px] font-bold text-red-400 hover:text-red-300 hover:underline px-2 py-0.5 rounded transition-colors"
+                    className="text-[11px] font-bold text-red-500 hover:text-red-600 hover:underline px-2 py-0.5 rounded transition-colors cursor-pointer"
                   >
                     Clear All
                   </button>
                 )}
                 <button
                   onClick={() => setIsHeldModalOpen(false)}
-                  className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+                  className="text-gray-400 hover:text-gray-900 p-1 rounded-lg transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1655,32 +1734,32 @@ export default function BillingPOS() {
 
             {heldBills.length === 0 ? (
               <div className="py-8 text-center text-gray-500 text-xs space-y-1">
-                <p className="font-semibold text-gray-400">No parked bills</p>
-                <p className="text-[11px] text-gray-500">Parked bills will appear here when you hold a cart.</p>
+                <p className="font-semibold text-gray-700">No parked bills</p>
+                <p className="text-[11px] text-gray-400">Parked bills will appear here when you hold a cart.</p>
               </div>
             ) : (
-              <div className="max-h-72 overflow-y-auto space-y-2.5 divide-y divide-[#222225] pr-1">
+              <div className="max-h-72 overflow-y-auto space-y-2.5 divide-y divide-gray-100 pr-1">
                 {heldBills.map(h => (
                   <div key={h.id} className="pt-2.5 first:pt-0 flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="font-bold text-white text-xs truncate">{h.billNumber} • {h.time}</div>
-                      <div className="text-[11px] text-gray-400 truncate">
+                      <div className="font-bold text-gray-900 text-xs truncate">{h.billNumber} • {h.time}</div>
+                      <div className="text-[11px] text-gray-500 truncate">
                         {h.customer ? h.customer.name : 'Walk-in'} • {h.cart.length} items
                       </div>
-                      <div className="font-mono font-bold text-[#C5A059] text-xs mt-0.5">
+                      <div className="font-mono font-bold text-[#2563EB] text-xs mt-0.5">
                         {currency}{h.total.toFixed(2)}
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button
                         onClick={() => handleRecallHeldBill(h)}
-                        className="px-3 py-1.5 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-lg hover:bg-[#b08d4a] transition-colors shadow-xs"
+                        className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
                       >
                         Resume Bill
                       </button>
                       <button
                         onClick={(e) => handleDeleteHeldBill(e, h.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                         title="Delete parked bill"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1696,21 +1775,21 @@ export default function BillingPOS() {
 
       {/* Add New Customer Modal */}
       {isAddCustomerModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-[#141416] border border-gray-200 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#222225] pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-[#C5A059]" />
-                <h3 className="font-bold text-white text-sm">Quick Add Customer</h3>
+                <UserPlus className="w-5 h-5 text-[#2563EB]" />
+                <h3 className="font-bold text-gray-900 text-sm">Quick Add Customer</h3>
               </div>
-              <button onClick={() => setIsAddCustomerModalOpen(false)} className="text-gray-400 hover:text-white">
+              <button onClick={() => setIsAddCustomerModalOpen(false)} className="text-gray-400 hover:text-gray-900 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSaveNewCustomer} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Customer Name *</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Customer Name *</label>
                 <input
                   type="text"
                   required
@@ -1722,7 +1801,7 @@ export default function BillingPOS() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Mobile Number *</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Mobile Number *</label>
                 <input
                   type="tel"
                   required
@@ -1734,7 +1813,7 @@ export default function BillingPOS() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Email (Optional)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Email (Optional)</label>
                 <input
                   type="email"
                   placeholder="e.g. ramesh@gmail.com"
@@ -1745,7 +1824,7 @@ export default function BillingPOS() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-300 mb-1">Billing Address (Optional)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Billing Address (Optional)</label>
                 <input
                   type="text"
                   placeholder="e.g. Chennai, Tamil Nadu"
@@ -1759,13 +1838,13 @@ export default function BillingPOS() {
                 <button
                   type="button"
                   onClick={() => setIsAddCustomerModalOpen(false)}
-                  className="px-3.5 py-2 bg-gray-50 text-gray-400 hover:text-white rounded-xl text-xs"
+                  className="px-3.5 py-2 bg-white hover:bg-slate-50 border border-gray-200 text-gray-700 rounded-xl text-xs font-semibold cursor-pointer shadow-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold rounded-xl text-xs hover:bg-[#b08d4a]"
+                  className="px-5 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-xl text-xs shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 >
                   Save & Select
                 </button>

@@ -3,9 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import { 
   Package, Plus, Search, Edit2, Trash2, Tag, Check, X, 
   AlertCircle, DollarSign, Layers, Filter, CheckCircle2, ShieldAlert, Sparkles,
-  Boxes, Barcode, ArrowUpDown, ChevronRight, FolderPlus, HelpCircle, Globe
+  Boxes, Barcode, ArrowUpDown, ChevronRight, FolderPlus, HelpCircle, Globe,
+  Image as ImageIcon, Upload
 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, compressImageFile } from '../lib/utils';
 
 interface Category {
   id: string;
@@ -73,6 +74,7 @@ export default function MenuManagement() {
   const [itemDesc, setItemDesc] = useState('');
   const [itemAvailable, setItemAvailable] = useState<boolean>(true);
   const [itemShowInWebsite, setItemShowInWebsite] = useState<boolean>(false);
+  const [itemImageUrl, setItemImageUrl] = useState<string>('');
 
   // Refresh from server and sync
   const refreshCatalog = () => {
@@ -255,6 +257,7 @@ export default function MenuManagement() {
       setItemDesc(item.description || '');
       setItemAvailable(item.isAvailable !== false);
       setItemShowInWebsite(item.showInWebsite === true);
+      setItemImageUrl(item.imageUrl || '');
     } else {
       setEditingItem(null);
       setItemName('');
@@ -272,6 +275,7 @@ export default function MenuManagement() {
       setItemDesc('');
       setItemAvailable(true);
       setItemShowInWebsite(false);
+      setItemImageUrl('');
     }
     setIsItemModalOpen(true);
   };
@@ -300,6 +304,7 @@ export default function MenuManagement() {
       description: itemDesc.trim() || undefined,
       isAvailable: itemAvailable,
       showInWebsite: itemShowInWebsite,
+      imageUrl: itemImageUrl || undefined,
     };
 
     if (editingItem) {
@@ -582,10 +587,21 @@ export default function MenuManagement() {
                 return (
                   <tr key={item.id} className="hover:bg-gray-50 transition-colors group">
                     <td className="p-3.5">
-                      <div className="font-bold text-gray-900 text-sm">{item.name}</div>
-                      <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5">
-                        {item.sku && <span>SKU: {item.sku}</span>}
-                        {item.barcode && <span>• Barcode: {item.barcode}</span>}
+                      <div className="flex items-center gap-3">
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} className="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0 bg-gray-50" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0">
+                            <Package className="w-4 h-4" />
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-bold text-gray-900 text-sm">{item.name}</div>
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5">
+                            {item.sku && <span>SKU: {item.sku}</span>}
+                            {item.barcode && <span>• Barcode: {item.barcode}</span>}
+                          </div>
+                        </div>
                       </div>
                     </td>
 
@@ -921,6 +937,71 @@ export default function MenuManagement() {
                   />
                 </div>
 
+                {/* Product Image Upload Field */}
+                <div className="sm:col-span-2 p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                  <label className="block text-xs font-semibold text-gray-600">Product Image (Optional)</label>
+                  <div className="flex items-center gap-3.5">
+                    {itemImageUrl ? (
+                      <div className="relative group w-16 h-16 rounded-xl border border-gray-200 overflow-hidden bg-white shadow-xs flex-shrink-0">
+                        <img src={itemImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setItemImageUrl('')}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[9px] font-bold gap-0.5"
+                          title="Remove photo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 flex-shrink-0">
+                        <ImageIcon className="w-5 h-5 stroke-[1.5]" />
+                        <span className="text-[8px] mt-0.5 font-semibold">No Image</span>
+                      </div>
+                    )}
+
+                    <div className="flex-1 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 hover:border-[#2563EB] text-[#2563EB] text-xs font-bold shadow-xs hover:bg-blue-50 transition-all">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{itemImageUrl ? 'Change Photo' : 'Upload Product Photo'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const dataUrl = await compressImageFile(file);
+                                  setItemImageUrl(dataUrl);
+                                } catch (err: any) {
+                                  alert(err?.message || 'Failed to upload image');
+                                }
+                              }
+                            }}
+                          />
+                        </label>
+
+                        {itemImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setItemImageUrl('')}
+                            className="px-2.5 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold border border-red-200 transition-all inline-flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Remove</span>
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-gray-500">
+                        Upload PNG, JPG, or WEBP. Automatically optimized for fast loading across Billing & Website.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Active Status & Website Toggles */}
                 <div className="sm:col-span-2 space-y-2.5 pt-1">
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -930,18 +1011,18 @@ export default function MenuManagement() {
                       onChange={(e) => setItemAvailable(e.target.checked)}
                       className="rounded border-gray-200 text-[#2563EB] focus:ring-0 bg-gray-50 w-4 h-4"
                     />
-                    <span className="text-xs text-gray-200 font-semibold">Available for active billing in POS</span>
+                    <span className="text-xs text-gray-700 font-semibold">Available for active billing in POS</span>
                   </label>
 
                   {/* Website Visibility Checkbox */}
                   <div className="p-3 bg-white border border-gray-200 rounded-xl flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 flex-shrink-0">
                         <Globe className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-white">Show in Website / Online Catalog</div>
-                        <div className="text-[10px] text-gray-400">If checked, this product will be visible to customers on your public website</div>
+                        <div className="text-xs font-semibold text-gray-900">Show in Website / Online Catalog</div>
+                        <div className="text-[10px] text-gray-500">If checked, this product will be visible to customers on your public website</div>
                       </div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -951,7 +1032,7 @@ export default function MenuManagement() {
                         onChange={(e) => setItemShowInWebsite(e.target.checked)}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                      <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
                     </label>
                   </div>
                 </div>

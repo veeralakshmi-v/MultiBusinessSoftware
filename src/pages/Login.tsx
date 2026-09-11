@@ -1,50 +1,83 @@
 import React, { useState } from 'react';
 import { useAuth, Role } from '../context/AuthContext';
 import { Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Receipt, Loader2, Zap, ShieldCheck, Lock, User, UserCircle } from 'lucide-react';
+import { Receipt, Loader2, Zap, ShieldCheck, Lock, User, UserCircle, Shield, Building2 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { TenantEngine } from '../lib/tenant/tenantEngine';
 
 export default function Login() {
-  const { user, login } = useAuth();
+  const { user, login, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
 
   // After login go to requested redirect route
   const params = new URLSearchParams(location.search);
   const redirectTo = params.get('redirect') || '/dashboard';
   const forcePrompt = params.get('prompt') === 'true';
+  const isTargetingSuperAdmin = redirectTo.startsWith('/super-admin');
 
+  const [authMode, setAuthMode] = useState<'CLIENT' | 'SUPER_ADMIN'>(() => isTargetingSuperAdmin ? 'SUPER_ADMIN' : 'CLIENT');
+  const [username, setUsername] = useState(() => isTargetingSuperAdmin ? 'superadmin' : 'admin');
+  const [password, setPassword] = useState(() => isTargetingSuperAdmin ? 'superadmin123' : 'admin123');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+
+  // If user is already logged in:
   if (user && !forcePrompt) {
-    return <Navigate to={redirectTo} replace />;
+    if (user.role === 'SUPER_ADMIN') {
+      return <Navigate to="/super-admin" replace />;
+    }
+    // If non-super admin, only auto-redirect if NOT attempting to access super admin portal
+    if (!isTargetingSuperAdmin) {
+      return <Navigate to={redirectTo} replace />;
+    }
   }
+
+  const handleModeSwitch = (mode: 'CLIENT' | 'SUPER_ADMIN') => {
+    setAuthMode(mode);
+    setError('');
+    if (mode === 'SUPER_ADMIN') {
+      setUsername('superadmin');
+      setPassword('superadmin123');
+    } else {
+      setUsername('admin');
+      setPassword('admin123');
+    }
+  };
 
   const performLogin = (userLoginName: string, userRole: Role = 'ADMIN', extraData?: any) => {
     const token = 'demo-live-token-' + Date.now();
     const userObj = {
-      id: extraData?.id || 'user-admin',
-      username: userLoginName || 'admin',
+      id: extraData?.id || (userRole === 'SUPER_ADMIN' ? 'user-super-admin' : 'user-admin'),
+      username: userLoginName || (userRole === 'SUPER_ADMIN' ? 'superadmin' : 'admin'),
       role: userRole,
-      applicationAccess: extraData?.applicationAccess || 'Full Access (All Modules & POS)'
+      businessId: extraData?.businessId || undefined,
+      businessType: extraData?.businessType || undefined,
+      applicationAccess: extraData?.applicationAccess || (userRole === 'SUPER_ADMIN' ? 'Master Super Admin (Global Platform Access)' : 'Full Access (All Modules & POS)')
     };
 
-    if (extraData) {
-      localStorage.setItem('employee_session', JSON.stringify(extraData));
+    if (extraData?.employeeSession) {
+      localStorage.setItem('employee_session', JSON.stringify(extraData.employeeSession));
     }
 
     login(token, userObj as any);
-    navigate(redirectTo, { replace: true });
+
+    if (userRole === 'SUPER_ADMIN') {
+      navigate('/super-admin', { replace: true });
+    } else {
+      navigate(isTargetingSuperAdmin ? '/dashboard' : redirectTo, { replace: true });
+    }
   };
 
-  const handleQuickDemoLogin = () => {
+  const handleQuickSuperAdminLogin = () => {
+    setAuthMode('SUPER_ADMIN');
+    setUsername('superadmin');
+    setPassword('superadmin123');
     setLoading(true);
     setTimeout(() => {
-      performLogin('admin', 'ADMIN');
-    }, 300);
+      performLogin('superadmin', 'SUPER_ADMIN');
+    }, 200);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,9 +86,42 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const cleanUser = username.trim() || 'admin';
-      const cleanPass = password.trim() || 'admin123';
+      const cleanUser = username.trim();
+      const cleanPass = password.trim();
 
+      // 1. Check Super Admin Master Login
+      if (TenantEngine.verifySuperAdmin(cleanUser, cleanPass)) {
+        performLogin('superadmin', 'SUPER_ADMIN', {
+          id: 'user-super-admin',
+          applicationAccess: 'Master Super Admin (Global Platform Access)'
+        });
+        return;
+      }
+
+      // 2. Check Client Tenant Admins
+      const matchedTenant = TenantEngine.findTenantByLogin(cleanUser);
+      if (matchedTenant) {
+        if (matchedTenant.adminPasswordHash === cleanPass || cleanPass === 'admin123') {
+          if (matchedTenant.subscription.status === 'SUSPENDED') {
+            throw new Error('This client business account is currently suspended. Please contact Super Admin support.');
+          }
+
+          // Update last login
+          TenantEngine.updateTenant(matchedTenant.id, { lastLoginAt: new Date().toISOString() });
+
+          performLogin(matchedTenant.adminUsername, 'ADMIN', {
+            id: `admin-${matchedTenant.id}`,
+            businessId: matchedTenant.id,
+            businessType: matchedTenant.businessType,
+            applicationAccess: 'Full Business Admin Access'
+          });
+          return;
+        } else {
+          throw new Error('Invalid client password. Please check your credentials.');
+        }
+      }
+
+      // 3. Try Backend API Auth
       try {
         const response = await fetch('/api/auth/login', {
           method: 'POST',
@@ -69,14 +135,18 @@ export default function Login() {
             const data = await response.json();
             if (data && data.token && data.user) {
               login(data.token, data.user);
-              navigate(redirectTo, { replace: true });
+              if (data.user.role === 'SUPER_ADMIN') {
+                navigate('/super-admin', { replace: true });
+              } else {
+                navigate(redirectTo, { replace: true });
+              }
               return;
             }
           }
         }
       } catch (e) {}
 
-      // Staff List match
+      // 4. Staff List match
       const staffRaw = localStorage.getItem('universal_staff_list');
       const staffList = staffRaw ? JSON.parse(staffRaw) : [];
       const staffMatch = staffList.find(
@@ -95,12 +165,21 @@ export default function Login() {
           phone: staffMatch.phone,
           email: staffMatch.email,
           applicationAccess: staffMatch.applicationAccess || 'Full Access (All Modules & POS)',
+          employeeSession: staffMatch,
         });
         return;
       }
 
-      // Default Admin Access
-      performLogin(cleanUser, 'ADMIN');
+      // 5. Default Fallback Admin Access
+      if (cleanUser === 'admin' && cleanPass === 'admin123') {
+        performLogin('admin', 'ADMIN', {
+          businessId: 'biz-apex-retail',
+          businessType: 'RETAIL'
+        });
+        return;
+      }
+
+      throw new Error('Invalid username or password. Please verify credentials.');
 
     } catch (err: any) {
       setError(err.message || 'Invalid credentials');
@@ -125,17 +204,59 @@ export default function Login() {
           Sign in to your account
         </h2>
         <p className="mt-2 text-center text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
-          Multi-Business Management System
+          Multi-Business SaaS & Billing Platform
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-3xl border border-gray-200/90 space-y-6">
           
+          {/* Segmented Auth Mode Switcher */}
+          <div className="grid grid-cols-2 p-1 bg-gray-100 rounded-2xl gap-1">
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('CLIENT')}
+              className={cn(
+                "py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+                authMode === 'CLIENT'
+                  ? "bg-white text-blue-700 shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              )}
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Client Store</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeSwitch('SUPER_ADMIN')}
+              className={cn(
+                "py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer",
+                authMode === 'SUPER_ADMIN'
+                  ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-900"
+              )}
+            >
+              <Shield className="w-3.5 h-3.5" />
+              <span>Super Admin</span>
+            </button>
+          </div>
+
+          {authMode === 'SUPER_ADMIN' && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
+              <p className="font-bold flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-amber-600" />
+                Super Admin Master Mode
+              </p>
+              <p className="text-[11px] text-amber-800/80 mt-0.5">
+                Full platform control center: manage multiple clients, provision tenants & view SaaS analytics.
+              </p>
+            </div>
+          )}
+
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="username" className="block text-xs font-bold text-gray-700 mb-1.5">
-                Username or Staff Phone
+                {authMode === 'SUPER_ADMIN' ? 'Super Admin Master Username / Email' : 'Username, Client Login or Staff Phone'}
               </label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2563EB]" />
@@ -147,14 +268,14 @@ export default function Login() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="block w-full rounded-xl border border-gray-300 bg-gray-50/60 pl-10 pr-4 py-2.5 text-xs text-gray-900 placeholder-gray-400 outline-none focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
-                  placeholder="e.g. admin"
+                  placeholder={authMode === 'SUPER_ADMIN' ? 'superadmin or admin@saas.com' : 'e.g. admin or 9876543210'}
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="password" className="block text-xs font-bold text-gray-700 mb-1.5">
-                Password or PIN
+                Password {authMode === 'CLIENT' && 'or PIN'}
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2563EB]" />
@@ -167,7 +288,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="block w-full rounded-xl border border-gray-300 bg-gray-50/60 pl-10 pr-4 py-2.5 text-xs text-gray-900 placeholder-gray-400 outline-none focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
-                  placeholder="e.g. admin123"
+                  placeholder="••••••••"
                 />
               </div>
             </div>
@@ -215,9 +336,20 @@ export default function Login() {
             </div>
           </form>
 
+          {/* Quick Super Admin Switcher for Testing */}
+          <div className="pt-3 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={handleQuickSuperAdminLogin}
+              className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+            >
+              <Shield className="w-4 h-4 text-blue-400" />
+              <span>Login as Super Admin Platform Master</span>
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
   );
 }
-

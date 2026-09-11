@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Settings, LogOut, Receipt, Package,
   Boxes, BarChart3, ChevronLeft, ChevronRight, Menu, X, Globe,
-  PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList, ShieldAlert, Palette
+  PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList, ShieldAlert, Palette, ShieldCheck, Crown
 } from 'lucide-react';
 
 import { cn } from '../lib/utils';
@@ -12,7 +12,7 @@ import NotificationCenter from '../components/notifications/NotificationCenter';
 import { ThemeEngine } from '../lib/theme/themeEngine';
 
 export default function DashboardLayout() {
-  const { user, logout, businessProfile } = useAuth();
+  const { user, logout, businessProfile, isSuperAdmin, activeTenant } = useAuth();
   const location = useLocation();
 
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -233,11 +233,44 @@ export default function DashboardLayout() {
                 </Link>
               );
             })}
+
+            {/* Super Admin Control Center Link (if Super Admin role) */}
+            {isSuperAdmin && (
+              <Link
+                to="/super-admin"
+                title={isCollapsed ? "Super Admin Portal" : undefined}
+                className={cn(
+                  'flex items-center px-3 py-3 text-sm font-bold rounded-xl transition-all duration-150 relative group mt-3',
+                  isCollapsed ? "justify-center" : "justify-start",
+                  'bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-900 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-300'
+                )}
+              >
+                <ShieldCheck className={cn('h-5 w-5 flex-shrink-0 text-amber-600', isCollapsed ? '' : 'mr-3')} />
+                {!isCollapsed && <span className="truncate">Super Admin</span>}
+                {isCollapsed && (
+                  <div className="absolute left-full ml-3 px-3 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Super Admin Portal
+                  </div>
+                )}
+              </Link>
+            )}
           </nav>
         </div>
 
         {/* Sidebar Footer & Collapse Toggle */}
         <div className="p-3 border-t border-gray-200 space-y-1">
+          {activeTenant && !isCollapsed && (
+            <div className="px-3 py-2 mb-1 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between">
+              <div className="truncate">
+                <p className="text-[10px] uppercase font-bold text-gray-400">Current Plan</p>
+                <p className="text-xs font-bold text-gray-800">{activeTenant.subscription?.plan || 'GROWTH'}</p>
+              </div>
+              <span className="px-1.5 py-0.5 text-[9px] font-black uppercase rounded-md bg-emerald-100 text-emerald-800">
+                {activeTenant.subscription?.status || activeTenant.status || 'ACTIVE'}
+              </span>
+            </div>
+          )}
+
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={cn(
@@ -382,6 +415,18 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            {/* Quick Super Admin Button (if Super Admin role) */}
+            {isSuperAdmin && (
+              <Link
+                to="/super-admin"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
+                title="Super Admin SaaS Control Center"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span className="hidden md:inline">Super Admin</span>
+              </Link>
+            )}
+
             {/* Quick Theme Customizer Button */}
             <Link
               to="/dashboard/settings?tab=theme"

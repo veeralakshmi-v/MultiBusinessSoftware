@@ -858,14 +858,14 @@ export default function EmployeeDirectory() {
                       <button
                         type="button"
                         onClick={() => setSelectedAppAccess([...PROJECT_MENU_ITEMS])}
-                        className="text-[11px] text-[#2563EB] hover:underline font-bold px-2.5 py-1 rounded-lg bg-[#C5A059]/10 border border-[#2563EB]/30 transition-all hover:bg-blue-50"
+                        className="text-[11px] text-[#2563EB] hover:underline font-bold px-2.5 py-1 rounded-lg bg-blue-50 border border-[#2563EB]/30 transition-all hover:bg-blue-100"
                       >
                         Select All (Full Access)
                       </button>
                       <button
                         type="button"
                         onClick={() => setSelectedAppAccess([])}
-                        className="text-[11px] text-gray-400 hover:text-gray-900 px-2 py-1 rounded-lg bg-white/5 border border-white/10 transition-all hover:bg-white/10"
+                        className="text-[11px] text-gray-400 hover:text-gray-900 px-2 py-1 rounded-lg bg-slate-100 border border-gray-200 transition-all hover:bg-slate-200"
                       >
                         Clear All
                       </button>
@@ -922,7 +922,7 @@ export default function EmployeeDirectory() {
                                 setSelectedAppAccess(prev => prev.filter(i => i !== item));
                               }
                             }}
-                            className="w-4 h-4 rounded accent-[#C5A059] cursor-pointer flex-shrink-0"
+                            className="w-4 h-4 rounded text-[#2563EB] focus:ring-blue-500 cursor-pointer flex-shrink-0"
                           />
                           <span className="truncate">{item}</span>
                         </label>

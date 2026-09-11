@@ -547,10 +547,10 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         <button
           onClick={() => handleTabChange('profile')}
           className={cn(
-            "px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0",
+            "px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 cursor-pointer",
             activeTab === 'profile'
-              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 font-extrabold"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/25 font-extrabold"
+              : "bg-white hover:bg-slate-50 text-gray-700 border border-gray-200 shadow-xs"
           )}
         >
           <Building2 className="w-4 h-4" />
@@ -560,10 +560,10 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         <button
           onClick={() => handleTabChange('billing')}
           className={cn(
-            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
             activeTab === 'billing'
-              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/25 font-extrabold"
+              : "bg-white hover:bg-slate-50 text-gray-700 border border-gray-200 shadow-xs"
           )}
         >
           <Printer className="w-4 h-4" />
@@ -573,10 +573,10 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         <button
           onClick={() => handleTabChange('staff')}
           className={cn(
-            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
             activeTab === 'staff'
-              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/25 font-extrabold"
+              : "bg-white hover:bg-slate-50 text-gray-700 border border-gray-200 shadow-xs"
           )}
         >
           <Users className="w-4 h-4" />
@@ -586,10 +586,10 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         <button
           onClick={() => handleTabChange('landing')}
           className={cn(
-            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
             activeTab === 'landing'
-              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/25 font-extrabold"
+              : "bg-white hover:bg-slate-50 text-gray-700 border border-gray-200 shadow-xs"
           )}
         >
           <Monitor className="w-4 h-4" />
@@ -599,10 +599,10 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         <button
           onClick={() => handleTabChange('security')}
           className={cn(
-            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
             activeTab === 'security'
-              ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/25 font-extrabold"
+              : "bg-white hover:bg-slate-50 text-gray-700 border border-gray-200 shadow-xs"
           )}
         >
           <Lock className="w-4 h-4" />
@@ -612,10 +612,10 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         <button
           onClick={() => handleTabChange('theme')}
           className={cn(
-            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap",
+            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
             activeTab === 'theme'
-              ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md"
-              : "bg-[#131315] text-gray-400 hover:text-white border border-gray-200"
+              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/25 font-extrabold"
+              : "bg-white hover:bg-slate-50 text-gray-700 border border-gray-200 shadow-xs"
           )}
         >
           <Palette className="w-4 h-4" />
@@ -853,7 +853,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
             </div>
             <button
               onClick={() => handleOpenStaffModal()}
-              className="px-3.5 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-xl hover:bg-[#b08d4a] flex items-center gap-1.5"
+              className="px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               <span>Add Staff</span>
@@ -871,20 +871,20 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                   <th className="p-3.5 whitespace-nowrap">DOB</th>
                   <th className="p-3.5 whitespace-nowrap">DOJ</th>
                   <th className="p-3.5 whitespace-nowrap">DOR</th>
-                  <th className="p-3.5 text-[#C5A059] whitespace-nowrap">Aadhar No. *</th>
+                  <th className="p-3.5 text-[#2563EB] whitespace-nowrap">Aadhar No. *</th>
                   <th className="p-3.5 whitespace-nowrap">Contact No.</th>
                   <th className="p-3.5 text-right whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1F1F21]">
+              <tbody className="divide-y divide-gray-100">
                 {staffList.map(st => (
                   <tr key={st.id} className="hover:bg-gray-50 transition-colors">
                     <td className="p-3.5">
                       <div className="flex items-center gap-3">
                         {st.photoUrl ? (
-                          <img src={st.photoUrl} alt="" className="w-9 h-9 rounded-xl object-cover border border-[#C5A059]/30 flex-shrink-0" />
+                          <img src={st.photoUrl} alt="" className="w-9 h-9 rounded-xl object-cover border border-blue-200 flex-shrink-0" />
                         ) : (
-                          <div className="w-9 h-9 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/25 flex items-center justify-center font-bold text-[#C5A059] text-xs flex-shrink-0">
+                          <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 text-[#2563EB] flex items-center justify-center font-bold text-xs flex-shrink-0">
                             {st.name.charAt(0).toUpperCase()}
                           </div>
                         )}
@@ -900,9 +900,9 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     <td className="p-3.5 whitespace-nowrap">
                       <span className={cn(
                         "px-2.5 py-0.5 rounded-full text-[10px] font-bold",
-                        st.role === 'ADMIN' ? "bg-purple-500/10 text-purple-400 border border-purple-500/30" :
-                          st.role === 'MANAGER' ? "bg-blue-500/10 text-blue-400 border border-blue-500/30" :
-                            "bg-green-500/10 text-green-400 border border-green-500/30"
+                        st.role === 'ADMIN' ? "bg-purple-50 text-purple-700 border border-purple-200" :
+                          st.role === 'MANAGER' ? "bg-blue-50 text-blue-700 border border-blue-200" :
+                            "bg-emerald-50 text-emerald-700 border border-emerald-200"
                       )}>
                         {st.role}
                       </span>
@@ -910,8 +910,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     <td className="p-3.5 whitespace-nowrap">
                       <span className={cn(
                         "px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase",
-                        st.status === 'ACTIVE' ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25" :
-                          "bg-red-500/15 text-red-400 border border-red-500/25"
+                        st.status === 'ACTIVE' ? "bg-emerald-50 text-emerald-700 border border-emerald-200" :
+                          "bg-red-50 text-red-700 border border-red-200"
                       )}>
                         {st.status || 'ACTIVE'}
                       </span>
@@ -925,8 +925,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     <td className="p-3.5 font-mono text-gray-400 text-[11px] whitespace-nowrap">
                       {st.dor || '—'}
                     </td>
-                    <td className="p-3.5 font-mono text-[#C5A059] font-bold text-[11px] whitespace-nowrap">
-                      {st.aadharNumber ? st.aadharNumber : <span className="text-red-400 text-[10px]">Required *</span>}
+                    <td className="p-3.5 font-mono text-[#2563EB] font-bold text-[11px] whitespace-nowrap">
+                      {st.aadharNumber ? st.aadharNumber : <span className="text-red-500 text-[10px]">Required *</span>}
                     </td>
                     <td className="p-3.5 font-mono text-gray-600 text-[11px] whitespace-nowrap">
                       {st.phone || '—'}
@@ -935,14 +935,14 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenStaffModal(st)}
-                          className="p-1.5 bg-gray-50 hover:bg-[#252528] text-gray-600 hover:text-[#C5A059] border border-gray-200 rounded-lg"
+                          className="p-1.5 bg-gray-50 hover:bg-blue-50 text-gray-600 hover:text-[#2563EB] border border-gray-200 rounded-lg transition-colors cursor-pointer"
                           title="Edit Staff"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteStaff(st.id)}
-                          className="p-1.5 bg-gray-50 hover:bg-red-500/10 text-gray-400 hover:text-red-400 border border-gray-200 rounded-lg"
+                          className="p-1.5 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 border border-gray-200 rounded-lg transition-colors cursor-pointer"
                           title="Delete Staff"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -959,16 +959,16 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
 
       {/* Staff Add/Edit Modal */}
       {isStaffModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in overflow-y-auto">
-          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[#222225] pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in overflow-y-auto">
+          <div className="bg-white border border-gray-200 rounded-3xl w-full max-w-2xl p-6 shadow-2xl space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#2563EB]" />
                 <h3 className="font-bold text-gray-900 text-base">
                   {editingStaff ? 'Edit Staff Details' : 'New Employee Details'}
                 </h3>
               </div>
-              <button onClick={() => setIsStaffModalOpen(false)} className="text-gray-400 hover:text-white p-1">
+              <button onClick={() => setIsStaffModalOpen(false)} className="text-gray-400 hover:text-gray-900 p-1 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -977,20 +977,20 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
               {/* Employee Photo Upload Card */}
               <div className="flex items-center gap-4 p-3 bg-gray-50 border border-gray-200 rounded-xl">
                 {staffPhoto ? (
-                  <img src={staffPhoto} alt="" className="w-14 h-14 rounded-xl object-cover border-2 border-[#C5A059]/40 flex-shrink-0" />
+                  <img src={staffPhoto} alt="" className="w-14 h-14 rounded-xl object-cover border-2 border-blue-200 flex-shrink-0" />
                 ) : (
-                  <div className="w-14 h-14 rounded-xl bg-[#252528] border border-gray-200 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-semibold">
+                  <div className="w-14 h-14 rounded-xl bg-slate-100 border border-gray-200 flex items-center justify-center text-gray-500 text-xs flex-shrink-0 font-semibold">
                     No Photo
                   </div>
                 )}
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold text-white">Employee Photo</p>
-                  <p className="text-[10px] text-gray-400">Upload profile photo or identity picture (PNG/JPG)</p>
+                  <p className="text-xs font-semibold text-gray-900">Employee Photo</p>
+                  <p className="text-[10px] text-gray-500">Upload profile photo or identity picture (PNG/JPG)</p>
                   <div className="flex items-center gap-2 pt-0.5">
                     <button
                       type="button"
                       onClick={() => staffPhotoInputRef.current?.click()}
-                      className="px-3 py-1 bg-[#252528] hover:bg-gray-200 border border-gray-200 text-gray-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all"
+                      className="px-3 py-1 bg-white hover:bg-slate-50 border border-gray-200 text-gray-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
                     >
                       <Upload className="w-3.5 h-3.5 text-[#2563EB]" />
                       <span>{staffPhoto ? 'Change Photo' : 'Upload Photo'}</span>
@@ -999,7 +999,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                       <button
                         type="button"
                         onClick={() => setStaffPhoto('')}
-                        className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 font-semibold"
+                        className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1 font-semibold cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" /> Remove
                       </button>
@@ -1031,11 +1031,11 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     className={cn(
                       "w-full rounded-xl px-3 py-2 text-xs font-mono outline-none cursor-not-allowed opacity-80 transition-all",
                       isStaffPhoneDuplicate
-                        ? "bg-red-950/20 border border-red-500/50 text-red-300"
-                        : "bg-[#141416] border border-[#222225] text-gray-400"
+                        ? "bg-red-50 border border-red-300 text-red-700"
+                        : "bg-gray-100 border border-gray-200 text-gray-700"
                     )}
                   />
-                  <p className={cn("text-[10px] mt-1 flex items-center gap-1 font-medium", isStaffPhoneDuplicate ? "text-red-400 font-bold" : "text-gray-400")}>
+                  <p className={cn("text-[10px] mt-1 flex items-center gap-1 font-medium", isStaffPhoneDuplicate ? "text-red-500 font-bold" : "text-gray-500")}>
                     {isStaffPhoneDuplicate ? "⚠️ this number is already exits, give another number" : "ℹ️ Mobile number is default username"}
                   </p>
                 </div>
@@ -1066,14 +1066,14 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
 
                   {isCustomCategory && (
                     <div className="mt-2 animate-in fade-in">
-                      <label className="block text-[11px] font-semibold text-[#C5A059] mb-1">Custom Department Name *</label>
+                      <label className="block text-[11px] font-semibold text-[#2563EB] mb-1">Custom Department Name *</label>
                       <input
                         type="text"
                         required
                         placeholder="e.g. IT & Security, Quality Control, Logistics"
                         value={customCategoryTitle}
                         onChange={(e) => setCustomCategoryTitle(e.target.value)}
-                        className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none font-medium"
+                        className="w-full bg-gray-50 border border-blue-300 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none font-medium"
                       />
                     </div>
                   )}
@@ -1105,14 +1105,14 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
 
                   {isCustomRole && (
                     <div className="mt-2 animate-in fade-in">
-                      <label className="block text-[11px] font-semibold text-[#C5A059] mb-1">Custom Role Name *</label>
+                      <label className="block text-[11px] font-semibold text-[#2563EB] mb-1">Custom Role Name *</label>
                       <input
                         type="text"
                         required
                         placeholder="e.g. Supervisor, Storekeeper, Delivery Executive"
                         value={customRoleTitle}
                         onChange={(e) => setCustomRoleTitle(e.target.value)}
-                        className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none font-medium"
+                        className="w-full bg-gray-50 border border-blue-300 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none font-medium"
                       />
                     </div>
                   )}
@@ -1120,21 +1120,21 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
 
                 <div className="sm:col-span-2 space-y-2.5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <label className="block text-xs font-semibold text-gray-300">
-                      Application Access * <span className="text-[10px] text-[#C5A059] font-normal">(Select allowed Project Menu items)</span>
+                    <label className="block text-xs font-semibold text-gray-700">
+                      Application Access * <span className="text-[10px] text-[#2563EB] font-normal">(Select allowed Project Menu items)</span>
                     </label>
                     <div className="flex items-center gap-2 text-xs">
                       <button
                         type="button"
                         onClick={() => setSelectedAppAccess([...PROJECT_MENU_ITEMS])}
-                        className="text-[11px] text-[#C5A059] hover:underline font-bold px-2.5 py-1 rounded-lg bg-[#C5A059]/10 border border-[#C5A059]/30 transition-all hover:bg-[#C5A059]/20"
+                        className="text-[11px] text-[#2563EB] hover:underline font-bold px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 transition-all hover:bg-blue-100 cursor-pointer"
                       >
                         Select All (Full Access)
                       </button>
                       <button
                         type="button"
                         onClick={() => setSelectedAppAccess([])}
-                        className="text-[11px] text-gray-400 hover:text-white px-2 py-1 rounded-lg bg-white/5 border border-white/10 transition-all hover:bg-white/10"
+                        className="text-[11px] text-gray-500 hover:text-gray-900 px-2 py-1 rounded-lg bg-slate-100 border border-gray-200 transition-all hover:bg-slate-200 cursor-pointer"
                       >
                         Clear All
                       </button>
@@ -1147,21 +1147,21 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Billing POS', 'Customers', 'Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#2563EB] hover:border-blue-300 transition-all cursor-pointer"
                     >
                       POS Cashier
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Dashboard', 'Billing POS', 'Categories & Items', 'Inventory', 'Sales Reports', 'Customers', 'Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#2563EB] hover:border-blue-300 transition-all cursor-pointer"
                     >
                       Store Manager
                     </button>
                     <button
                       type="button"
                       onClick={() => setSelectedAppAccess(['Staff Attendance'])}
-                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#C5A059] hover:border-[#C5A059]/50 transition-all"
+                      className="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 hover:text-[#2563EB] hover:border-blue-300 transition-all cursor-pointer"
                     >
                       Attendance Only
                     </button>
@@ -1177,8 +1177,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                           className={cn(
                             "flex items-center gap-2.5 p-2.5 rounded-xl border text-xs cursor-pointer transition-all select-none",
                             isChecked
-                              ? "bg-[#C5A059]/15 border-[#C5A059]/50 text-white font-bold shadow-sm"
-                              : "bg-[#141416] border-[#222225] text-gray-400 hover:border-gray-600 hover:text-gray-200"
+                              ? "bg-blue-50 border-blue-400 text-blue-900 font-bold shadow-xs"
+                              : "bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900"
                           )}
                         >
                           <input
@@ -1191,7 +1191,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                                 setSelectedAppAccess(prev => prev.filter(i => i !== item));
                               }
                             }}
-                            className="w-4 h-4 rounded accent-[#C5A059] cursor-pointer flex-shrink-0"
+                            className="w-4 h-4 rounded text-[#2563EB] focus:ring-blue-500 cursor-pointer flex-shrink-0"
                           />
                           <span className="truncate">{item}</span>
                         </label>
@@ -1199,12 +1199,12 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     })}
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-gray-400 px-1 pt-0.5">
+                  <div className="flex items-center justify-between text-[11px] text-gray-500 px-1 pt-0.5">
                     <span>
                       {selectedAppAccess.length === PROJECT_MENU_ITEMS.length ? (
-                        <span className="text-emerald-400 font-semibold">⚡ Full Access (All 9 Menu Modules Selected)</span>
+                        <span className="text-emerald-600 font-semibold">⚡ Full Access (All 9 Menu Modules Selected)</span>
                       ) : selectedAppAccess.length === 0 ? (
-                        <span className="text-red-400 font-semibold">⚠️ No access selected (Please check at least 1 menu module)</span>
+                        <span className="text-red-500 font-semibold">⚠️ No access selected (Please check at least 1 menu module)</span>
                       ) : (
                         <span>Selected <strong className="text-[#2563EB]">{selectedAppAccess.length}</strong> of {PROJECT_MENU_ITEMS.length} menu modules</span>
                       )}
@@ -1219,19 +1219,19 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     type="date"
                     value={staffDob}
                     onChange={(e) => setStaffDob(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400 [color-scheme:dark]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1 text-[#2563EB]">Aadhar Number *</label>
+                  <label className="block text-xs font-semibold mb-1 text-[#2563EB]">Aadhar Number *</label>
                   <input
                     type="text"
                     required
                     placeholder="1234 5678 9012"
                     value={staffAadhar}
                     onChange={(e) => setStaffAadhar(e.target.value)}
-                    className="w-full bg-gray-50 border border-[#C5A059]/40 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none"
                   />
                 </div>
 
@@ -1241,7 +1241,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     type="date"
                     value={staffDoj}
                     onChange={(e) => setStaffDoj(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400 [color-scheme:dark]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
                   />
                 </div>
 
@@ -1251,12 +1251,12 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     type="date"
                     value={staffDor}
                     onChange={(e) => setStaffDor(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400 [color-scheme:dark]"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
                   />
                 </div>
 
                 <div>
-                  <label className={cn("block text-xs font-semibold mb-1", isStaffPhoneDuplicate ? "text-red-400 font-bold" : "text-[#2563EB]")}>
+                  <label className={cn("block text-xs font-semibold mb-1", isStaffPhoneDuplicate ? "text-red-500 font-bold" : "text-[#2563EB]")}>
                     Contact Number (Default Username) *
                   </label>
                   <input
@@ -1272,12 +1272,12 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     className={cn(
                       "w-full bg-gray-50 rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
                       isStaffPhoneDuplicate
-                        ? "border-2 border-red-500 text-red-300 focus:border-red-400"
-                        : "border border-[#C5A059]/40 focus:border-blue-400 text-white"
+                        ? "border-2 border-red-500 text-red-700 focus:border-red-400"
+                        : "border border-gray-200 focus:border-blue-400 text-gray-900"
                     )}
                   />
                   {isStaffPhoneDuplicate && (
-                    <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-bold animate-in fade-in">
+                    <p className="text-[11px] text-red-500 mt-1 flex items-center gap-1 font-bold animate-in fade-in">
                       ⚠️ this number is already exits, give another number
                     </p>
                   )}
@@ -1331,15 +1331,15 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
 
                 <div className="sm:col-span-2 flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl">
                   <div>
-                    <p className="text-xs font-semibold text-white">Employment Status</p>
-                    <p className="text-[10px] text-gray-400">
+                    <p className="text-xs font-semibold text-gray-900">Employment Status</p>
+                    <p className="text-[10px] text-gray-500">
                       {staffRole === 'ADMIN'
                         ? "Admin accounts are protected and strictly maintained as Active"
                         : "Set whether this staff account is currently Active or Inactive"}
                     </p>
                   </div>
                   {staffRole === 'ADMIN' ? (
-                    <div className="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                    <div className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>ALWAYS ACTIVE (ADMIN)</span>
                     </div>
@@ -1349,10 +1349,10 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                         type="button"
                         onClick={() => setStaffStatus('ACTIVE')}
                         className={cn(
-                          "px-3 py-1 rounded-lg text-xs font-bold transition-all",
+                          "px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer",
                           staffStatus === 'ACTIVE'
-                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                            : "bg-[#141416] text-gray-400 hover:text-white"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-xs"
+                            : "bg-white border border-gray-200 text-gray-500 hover:text-gray-900"
                         )}
                       >
                         ACTIVE
@@ -1361,10 +1361,10 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                         type="button"
                         onClick={() => setStaffStatus('INACTIVE')}
                         className={cn(
-                          "px-3 py-1 rounded-lg text-xs font-bold transition-all",
+                          "px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer",
                           staffStatus === 'INACTIVE'
-                            ? "bg-red-500/20 text-red-400 border border-red-500/40"
-                            : "bg-[#141416] text-gray-400 hover:text-white"
+                            ? "bg-red-50 text-red-700 border border-red-300 shadow-xs"
+                            : "bg-white border border-gray-200 text-gray-500 hover:text-gray-900"
                         )}
                       >
                         INACTIVE
@@ -1374,17 +1374,17 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#222225]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setIsStaffModalOpen(false)}
-                  className="px-4 py-2 bg-gray-50 text-gray-400 hover:text-white rounded-xl text-xs font-semibold"
+                  className="px-4 py-2 bg-white hover:bg-slate-50 border border-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold rounded-xl text-xs hover:bg-[#b08d4a]"
+                  className="px-6 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold rounded-xl text-xs shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
                 >
                   Save Staff Member
                 </button>
@@ -1414,28 +1414,28 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     className="w-24 h-24 rounded-2xl object-contain border-2 border-gray-200 bg-gray-50"
                   />
                 ) : (
-                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#C5A059] to-[#8C6D2B] flex items-center justify-center text-[#0A0A0B] font-bold text-4xl font-serif">
+                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-4xl font-serif shadow-md">
                     {businessProfile.businessName?.charAt(0)?.toUpperCase() || 'B'}
                   </div>
                 )}
               </div>
 
               <div className="space-y-3">
-                <p className="text-sm font-semibold text-white">Upload Your Business Logo</p>
-                <p className="text-xs text-gray-400">PNG, JPG, or SVG. Displayed in the landing page header and printed invoices.</p>
+                <p className="text-sm font-semibold text-gray-900">Upload Your Business Logo</p>
+                <p className="text-xs text-gray-500">PNG, JPG, or SVG. Displayed in the landing page header and printed invoices.</p>
                 <button
                   type="button"
                   onClick={() => logoInputRef.current?.click()}
-                  className="px-4 py-2.5 bg-gray-50 hover:bg-[#252528] border border-gray-200 hover:border-[#C5A059] text-gray-200 hover:text-[#C5A059] text-xs font-bold rounded-xl flex items-center gap-2 transition-all"
+                  className="px-4 py-2.5 bg-white hover:bg-slate-50 border border-gray-200 hover:border-blue-400 text-gray-800 hover:text-[#2563EB] text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-xs cursor-pointer"
                 >
-                  <Upload className="w-4 h-4" />
+                  <Upload className="w-4 h-4 text-[#2563EB]" />
                   Choose Logo File
                 </button>
                 {businessProfile.logoUrl && (
                   <button
                     type="button"
                     onClick={() => updateBusinessProfile({ logoUrl: '' })}
-                    className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
+                    className="text-xs text-red-500 hover:text-red-600 flex items-center gap-1 cursor-pointer"
                   >
                     <X className="w-3.5 h-3.5" /> Remove Logo
                   </button>
@@ -1459,7 +1459,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
               value={landingTagline}
               onChange={e => setLandingTagline(e.target.value)}
               placeholder="e.g. Your trusted store for quality products and fast billing since 2010."
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-gray-500 outline-none focus:border-blue-400 resize-none"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-blue-400 resize-none"
             />
           </div>
 
@@ -1473,7 +1473,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
               <span className="text-xs text-gray-500">{landingSlides.length} slide{landingSlides.length !== 1 ? 's' : ''}</span>
             </div>
 
-            <p className="text-xs text-gray-400 mb-4">
+            <p className="text-xs text-gray-500 mb-4">
               Add images that will auto-rotate on the landing page. Great for founder photos, store interior, products, team, about us, etc.
             </p>
 
@@ -1481,13 +1481,13 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
               {landingSlides.map((slide, idx) => (
                 <div key={slide.id} className="flex items-start gap-3 p-3.5 bg-gray-50 border border-gray-200 rounded-xl">
                   {/* Image Thumbnail */}
-                  <label className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 border-dashed border-gray-200 hover:border-[#C5A059] transition-colors cursor-pointer">
+                  <label className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 border-dashed border-gray-200 hover:border-blue-400 transition-colors cursor-pointer bg-white">
                     {slide.imageUrl ? (
                       <img src={slide.imageUrl} className="w-full h-full object-cover" alt="slide" />
                     ) : (
-                      <div className="flex flex-col items-center justify-center w-full h-full text-gray-500">
-                        <ImageIcon className="w-5 h-5" />
-                        <span className="text-[9px] mt-1 font-mono">Upload</span>
+                      <div className="flex flex-col items-center justify-center w-full h-full text-gray-400">
+                        <ImageIcon className="w-5 h-5 text-blue-500" />
+                        <span className="text-[9px] mt-1 font-mono text-gray-500">Upload</span>
                       </div>
                     )}
                     <input
@@ -1507,7 +1507,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                         placeholder="Caption (e.g. Our Founder — Mr. Ramesh Kumar)"
                         value={slide.caption}
                         onChange={e => updateSlide(slide.id, { caption: e.target.value })}
-                        className="flex-1 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-blue-400"
+                        className="flex-1 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder-gray-400 outline-none focus:border-blue-400"
                       />
                     </div>
                     <input
@@ -1515,14 +1515,14 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                       placeholder="Sub-caption (e.g. Founded in 2010, serving 5000+ customers)"
                       value={slide.subCaption || ''}
                       onChange={e => updateSlide(slide.id, { subCaption: e.target.value })}
-                      className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 outline-none focus:border-blue-400"
+                      className="w-full bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder-gray-400 outline-none focus:border-blue-400"
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={() => deleteSlide(slide.id)}
-                    className="p-1.5 text-gray-500 hover:text-red-400 transition-colors flex-shrink-0"
+                    className="p-1.5 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0 cursor-pointer"
                     title="Remove slide"
                   >
                     <X className="w-4 h-4" />
@@ -1531,8 +1531,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
               ))}
 
               {landingSlides.length === 0 && (
-                <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">
-                  <ImageIcon className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                  <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-xs text-gray-500">No slides yet — click Add Slide to upload your first image</p>
                 </div>
               )}
@@ -1541,7 +1541,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
             <button
               type="button"
               onClick={addSlide}
-              className="w-full py-2.5 border-2 border-dashed border-gray-200 hover:border-[#C5A059]/60 rounded-xl text-xs text-gray-400 hover:text-[#C5A059] font-semibold flex items-center justify-center gap-2 transition-all"
+              className="w-full py-2.5 border-2 border-dashed border-gray-200 hover:border-blue-400 hover:bg-blue-50/30 rounded-xl text-xs text-gray-500 hover:text-[#2563EB] font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add New Slide
@@ -1554,7 +1554,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-xs text-[#C5A059] hover:text-[#b08d4a] font-semibold transition-colors"
+              className="flex items-center gap-2 text-xs text-[#2563EB] hover:text-[#1D4ED8] font-semibold transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
               Preview Landing Page
@@ -1562,14 +1562,14 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
 
             <div className="flex items-center gap-3">
               {saveToast && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/30 text-green-400 rounded-xl text-xs font-bold animate-in fade-in">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold animate-in fade-in">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Landing Page Saved!</span>
                 </div>
               )}
               <button
                 type="submit"
-                className="px-6 py-3 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#b08d4a] hover:to-[#8C6D2B] text-[#0A0A0B] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 flex items-center gap-2"
+                className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Landing Page</span>
@@ -1584,24 +1584,24 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         <div className="space-y-6">
           <form onSubmit={handleChangeAdminPassword} className="bg-white/90 border border-gray-100 rounded-2xl p-6 shadow-lg shadow-gray-200/40 space-y-5 max-w-2xl">
             <div className="flex items-center gap-3 border-b border-gray-200 pb-3">
-              <div className="w-10 h-10 rounded-xl bg-[#C5A059]/15 border border-[#C5A059]/30 flex items-center justify-center text-[#2563EB]">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB] shadow-xs">
                 <KeyRound className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-gray-900 text-base font-serif">Change Administrator Password</h3>
-                <p className="text-xs text-gray-400">Update your Admin login credentials for system access security</p>
+                <h3 className="font-bold text-gray-900 text-base">Change Administrator Password</h3>
+                <p className="text-xs text-gray-500">Update your Admin login credentials for system access security</p>
               </div>
             </div>
 
             {passwordError && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2">
                 <X className="w-4 h-4" />
                 <span>{passwordError}</span>
               </div>
             )}
 
             {passwordSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
                 <span>{passwordSuccess}</span>
               </div>
@@ -1622,7 +1622,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                   <button
                     type="button"
                     onClick={() => setShowCurrentPass(!showCurrentPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
                   >
                     {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -1643,7 +1643,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                   <button
                     type="button"
                     onClick={() => setShowNewPass(!showNewPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
                   >
                     {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -1666,7 +1666,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
             <div className="pt-2 flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-gradient-to-r from-[#C5A059] to-[#9E7B35] hover:from-[#d4b06a] hover:to-[#b08d4a] text-[#080809] font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 flex items-center gap-2 transition-all"
+                className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md shadow-blue-500/25 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all cursor-pointer"
               >
                 <Save className="w-4 h-4" />
                 <span>Update Admin Password</span>
@@ -1676,19 +1676,20 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
 
           {/* Security Information Card */}
           <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xl max-w-2xl space-y-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-gray-300">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>Administrator Account Security Status</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
                 <p className="text-[10px] text-gray-500 font-semibold uppercase">Admin Username</p>
-                <p className="font-bold text-gray-900 font-mono text-xs mt-0.5">admin</p>
+                <p className="font-mono font-bold text-gray-900 mt-0.5">admin</p>
               </div>
               <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
-                <p className="text-[10px] text-gray-500 font-semibold uppercase">Security Level</p>
-                <p className="font-bold text-emerald-400 text-xs mt-0.5 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Protected
+                <p className="text-[10px] text-gray-500 font-semibold uppercase">Password Protection</p>
+                <p className="font-semibold text-emerald-600 mt-0.5 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Encrypted in Secure Local Storage</span>
                 </p>
               </div>
             </div>

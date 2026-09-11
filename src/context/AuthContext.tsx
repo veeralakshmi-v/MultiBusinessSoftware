@@ -3,8 +3,9 @@ import { BusinessTemplate, BusinessType } from '../types/template';
 import { ModuleId, EnabledModulesState, UserRole } from '../types/module';
 import { TemplateResolver } from '../lib/templates/templateResolver';
 import { ModuleEngine } from '../lib/modules/moduleEngine';
+import { TenantEngine, Tenant, TenantPlan, TenantStatus, SAAS_PLANS } from '../lib/tenant/tenantEngine';
 
-export type Role = 'ADMIN' | 'MANAGER' | 'CASHIER' | 'STAFF' | string;
+export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'CASHIER' | 'STAFF' | string;
 
 export interface User {
   id: string;
@@ -93,9 +94,21 @@ interface AuthContextType {
   login: (token: string, user: User) => void;
   logout: () => void;
   isLoading: boolean;
+  // Multi-Tenant SaaS & Super Admin
+  isSuperAdmin: boolean;
+  tenants: Tenant[];
+  activeTenant: Tenant | null;
+  impersonatingTenant: Tenant | null;
+  impersonateTenant: (tenantId: string) => void;
+  exitImpersonation: () => void;
+  createTenant: (data: Parameters<typeof TenantEngine.createTenant>[0]) => Tenant;
+  updateTenant: (tenantId: string, updates: Partial<Tenant>) => Tenant | null;
+  deleteTenant: (tenantId: string) => boolean;
+  setTenantStatus: (tenantId: string, status: TenantStatus) => Tenant | null;
+  refreshTenants: () => void;
 }
 
-const DEFAULT_BUSINESS_ID = 'biz-default-business';
+const DEFAULT_BUSINESS_ID = 'biz-apex-retail';
 const DEFAULT_BUSINESS_TYPE: BusinessType = 'RETAIL';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -111,28 +124,125 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   const [token, setToken] = useState<string | null>(localStorage.getItem('token') || null);
   const [isLoading, setIsLoading] = useState(false);
-  const [businessId, setBusinessId] = useState<string>(
-    localStorage.getItem('businessId') || DEFAULT_BUSINESS_ID
-  );
-  const [businessType, setBusinessTypeState] = useState<BusinessType>(
-    (localStorage.getItem('businessType') as BusinessType) || DEFAULT_BUSINESS_TYPE
-  );
 
-  // Universal Business Profile State
+  // SaaS Tenants Registry State
+  const [tenants, setTenants] = useState<Tenant[]>(() => TenantEngine.getTenants());
+
+  const refreshTenants = () => {
+    setTenants(TenantEngine.getTenants());
+  };
+
+  useEffect(() => {
+    const handleTenantsUpdated = () => refreshTenants();
+    window.addEventListener('saas_tenants_updated', handleTenantsUpdated);
+    return () => window.removeEventListener('saas_tenants_updated', handleTenantsUpdated);
+  }, []);
+
+  // Super Admin Impersonation State
+  const [impersonatingTenantId, setImpersonatingTenantId] = useState<string | null>(() => {
+    return localStorage.getItem('saas_impersonating_tenant_id') || null;
+  });
+
+  const isSuperAdmin = useMemo(() => {
+    return user?.role === 'SUPER_ADMIN' || user?.username === 'superadmin' || user?.username === 'admin@saas.com';
+  }, [user]);
+
+  // Determine active tenant
+  const activeTenant = useMemo(() => {
+    if (impersonatingTenantId) {
+      return tenants.find(t => t.id === impersonatingTenantId) || null;
+    }
+    if (user?.businessId) {
+      return tenants.find(t => t.id === user.businessId) || null;
+    }
+    return tenants[0] || null;
+  }, [tenants, impersonatingTenantId, user?.businessId]);
+
+  const impersonatingTenant = useMemo(() => {
+    if (impersonatingTenantId) {
+      return tenants.find(t => t.id === impersonatingTenantId) || null;
+    }
+    return null;
+  }, [tenants, impersonatingTenantId]);
+
+  const [businessId, setBusinessId] = useState<string>(() => {
+    return impersonatingTenantId || user?.businessId || localStorage.getItem('businessId') || DEFAULT_BUSINESS_ID;
+  });
+
+  const [businessType, setBusinessTypeState] = useState<BusinessType>(() => {
+    if (activeTenant) return activeTenant.businessType;
+    return (localStorage.getItem('businessType') as BusinessType) || DEFAULT_BUSINESS_TYPE;
+  });
+
+  // Keep businessId and businessType in sync with activeTenant
+  useEffect(() => {
+    if (activeTenant) {
+      setBusinessId(activeTenant.id);
+      setBusinessTypeState(activeTenant.businessType);
+      localStorage.setItem('businessId', activeTenant.id);
+      localStorage.setItem('businessType', activeTenant.businessType);
+    }
+  }, [activeTenant]);
+
+  // Universal Business Profile State (isolated per tenant when activeTenant is set)
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(() => {
-    const saved = localStorage.getItem('universal_business_profile');
+    const tenantPrefix = activeTenant ? `tenant_${activeTenant.id}_` : '';
+    const saved = localStorage.getItem(`${tenantPrefix}business_profile`) || localStorage.getItem('universal_business_profile');
     if (saved) {
       try {
         return { ...DEFAULT_BUSINESS_PROFILE, ...JSON.parse(saved) };
       } catch {}
     }
+    if (activeTenant) {
+      return {
+        ...DEFAULT_BUSINESS_PROFILE,
+        businessName: activeTenant.businessName,
+        legalName: activeTenant.legalEntityName,
+        phone: activeTenant.ownerPhone,
+        email: activeTenant.ownerEmail,
+        gstin: activeTenant.gstin || '',
+        city: activeTenant.city || 'Chennai',
+        state: activeTenant.state || 'Tamil Nadu',
+        currencySymbol: activeTenant.currencySymbol || '₹',
+        currencyCode: activeTenant.currency || 'INR',
+      };
+    }
     return DEFAULT_BUSINESS_PROFILE;
   });
+
+  // Reload business profile when activeTenant changes
+  useEffect(() => {
+    if (activeTenant) {
+      const tenantPrefix = `tenant_${activeTenant.id}_`;
+      const saved = localStorage.getItem(`${tenantPrefix}business_profile`);
+      if (saved) {
+        try {
+          setBusinessProfile({ ...DEFAULT_BUSINESS_PROFILE, ...JSON.parse(saved) });
+          return;
+        } catch {}
+      }
+      setBusinessProfile({
+        ...DEFAULT_BUSINESS_PROFILE,
+        businessName: activeTenant.businessName,
+        legalName: activeTenant.legalEntityName,
+        phone: activeTenant.ownerPhone,
+        email: activeTenant.ownerEmail,
+        gstin: activeTenant.gstin || '',
+        city: activeTenant.city || 'Chennai',
+        state: activeTenant.state || 'Tamil Nadu',
+        currencySymbol: activeTenant.currencySymbol || '₹',
+        currencyCode: activeTenant.currency || 'INR',
+        invoicePrefix: `${activeTenant.businessName.slice(0, 3).toUpperCase()}/2026/`,
+      });
+    }
+  }, [activeTenant?.id]);
 
   const updateBusinessProfile = (updates: Partial<BusinessProfile>) => {
     setBusinessProfile(prev => {
       const updated = { ...prev, ...updates };
       try {
+        const tenantPrefix = activeTenant ? `tenant_${activeTenant.id}_` : '';
+        localStorage.setItem(`${tenantPrefix}business_profile`, JSON.stringify(updated));
         localStorage.setItem('universal_business_profile', JSON.stringify(updated));
       } catch (err) {
         console.error('Failed to persist business profile to localStorage:', err);
@@ -144,12 +254,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updated),
-        }).catch(err => console.error('Failed to save settings to API:', err));
+        }).catch(() => {});
       } catch (e) {}
 
       return updated;
     });
     window.dispatchEvent(new Event('settings_updated'));
+  };
+
+  const impersonateTenant = (tenantId: string) => {
+    const t = TenantEngine.getTenantById(tenantId);
+    if (!t) return;
+    setImpersonatingTenantId(t.id);
+    localStorage.setItem('saas_impersonating_tenant_id', t.id);
+    setBusinessId(t.id);
+    setBusinessTypeState(t.businessType);
+    window.dispatchEvent(new Event('saas_tenants_updated'));
+  };
+
+  const exitImpersonation = () => {
+    setImpersonatingTenantId(null);
+    localStorage.removeItem('saas_impersonating_tenant_id');
+    window.dispatchEvent(new Event('saas_tenants_updated'));
+  };
+
+  const createTenant = (data: Parameters<typeof TenantEngine.createTenant>[0]): Tenant => {
+    const created = TenantEngine.createTenant(data);
+    refreshTenants();
+    return created;
+  };
+
+  const updateTenant = (tenantId: string, updates: Partial<Tenant>): Tenant | null => {
+    const updated = TenantEngine.updateTenant(tenantId, updates);
+    refreshTenants();
+    return updated;
+  };
+
+  const deleteTenant = (tenantId: string): boolean => {
+    const res = TenantEngine.deleteTenant(tenantId);
+    if (impersonatingTenantId === tenantId) {
+      exitImpersonation();
+    }
+    refreshTenants();
+    return res;
+  };
+
+  const setTenantStatus = (tenantId: string, status: TenantStatus): Tenant | null => {
+    const updated = TenantEngine.setTenantStatus(tenantId, status);
+    refreshTenants();
+    return updated;
   };
   // Sync Business Profile settings from backend database API on mount
   useEffect(() => {
@@ -358,6 +511,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         isLoading,
+        isSuperAdmin,
+        tenants,
+        activeTenant,
+        impersonatingTenant,
+        impersonateTenant,
+        exitImpersonation,
+        createTenant,
+        updateTenant,
+        deleteTenant,
+        setTenantStatus,
+        refreshTenants,
       }}
     >
       {children}

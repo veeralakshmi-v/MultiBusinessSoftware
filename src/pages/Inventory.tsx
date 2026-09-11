@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Package, Truck, ArrowRightLeft, DollarSign, AlertTriangle, Search, Plus, Trash2, Edit2, Link, CalendarClock, FlaskConical, Globe } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { Package, Truck, ArrowRightLeft, DollarSign, AlertTriangle, Search, Plus, Trash2, Edit2, Link, CalendarClock, FlaskConical, Globe, Image as ImageIcon, Upload } from 'lucide-react';
+import { cn, compressImageFile } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { NotificationEngine } from '../lib/notifications/notificationEngine';
 
@@ -92,6 +92,7 @@ function getCombinedMaterials(): Promise<any[]> {
             isAvailable: it.isAvailable !== false,
             showInWebsite: it.showInWebsite === true,
             description: it.description || '',
+            imageUrl: it.imageUrl || '',
           }));
         }
       }
@@ -121,6 +122,7 @@ function getCombinedMaterials(): Promise<any[]> {
                 isAvailable: d.isAvailable !== false,
                 showInWebsite: d.showInWebsite === true,
                 description: d.description || '',
+                imageUrl: d.imageUrl || '',
               });
             }
           });
@@ -299,7 +301,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
 
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({
-    id: '', name: '', categoryId: '', price: 0, costPrice: 0, currentStock: 0, minStock: 10, unit: '', sku: '', barcode: '', hsnCode: '', gst: 5, isAvailable: true, showInWebsite: false, description: ''
+    id: '', name: '', categoryId: '', supplierId: '', price: 0, costPrice: 0, currentStock: 0, minStock: 10, unit: '', sku: '', barcode: '', hsnCode: '', gst: 5, isAvailable: true, showInWebsite: false, description: '', imageUrl: ''
   });
 
   const fetchMats = () => {
@@ -311,12 +313,32 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         if (Array.isArray(parsed) && parsed.length > 0) setCategories(parsed);
       }
     } catch {}
+    try {
+      const savedSups = localStorage.getItem('universal_suppliers');
+      if (savedSups) {
+        const parsed = JSON.parse(savedSups);
+        if (Array.isArray(parsed) && parsed.length > 0) setSuppliers(parsed);
+      }
+    } catch {}
   };
 
   useEffect(() => {
     fetchMats();
     window.addEventListener('storage', fetchMats);
-    fetch('/api/inventory/suppliers').then(r => r.json()).then(setSuppliers).catch(() => {});
+    fetch('/api/inventory/suppliers')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setSuppliers(prev => {
+            const ids = new Set(prev.map(p => p.id));
+            const merged = [...prev];
+            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
+            localStorage.setItem('universal_suppliers', JSON.stringify(merged));
+            return merged;
+          });
+        }
+      })
+      .catch(() => {});
     fetch('/api/categories').then(r => r.json()).then(data => {
       if (Array.isArray(data) && data.length > 0) setCategories(data);
     }).catch(() => {});
@@ -324,7 +346,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
   }, []);
 
   const [form, setForm] = useState({
-    name: '', unit: 'Pcs', minStockLevel: 10, pricePerUnit: 0, costPrice: 0, supplierId: '', categoryId: '', sku: '', barcode: '', hsnCode: '', gst: 5, showInWebsite: false
+    name: '', unit: 'Pcs', minStockLevel: 10, pricePerUnit: 0, costPrice: 0, supplierId: '', categoryId: '', sku: '', barcode: '', hsnCode: '', gst: 5, showInWebsite: false, imageUrl: ''
   });
   const [showForm, setShowForm] = useState(false);
 
@@ -332,12 +354,15 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
     e.preventDefault();
 
     const selectedCat = categories.find(c => c.id === form.categoryId) || categories[0] || { id: 'cat-1', name: 'Grocery' };
+    const selectedSup = suppliers.find(s => s.id === form.supplierId);
 
     const newItem = {
       id: `item-${Date.now()}`,
       name: form.name.trim(),
       categoryId: selectedCat.id,
       categoryName: selectedCat.name,
+      supplierId: form.supplierId || '',
+      supplierName: selectedSup?.name || '',
       price: Number(form.pricePerUnit),
       costPrice: Number(form.costPrice),
       unit: form.unit.trim() || 'Pcs',
@@ -349,6 +374,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       gst: Number(form.gst) || 5,
       isAvailable: true,
       showInWebsite: form.showInWebsite === true,
+      imageUrl: form.imageUrl || '',
     };
 
     let existing: any[] = [];
@@ -372,7 +398,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       body: JSON.stringify({...form, minStockLevel: Number(form.minStockLevel), pricePerUnit: Number(form.pricePerUnit)})
     });
     fetchMats();
-    setForm({ name: '', unit: 'Pcs', minStockLevel: 10, pricePerUnit: 0, costPrice: 0, supplierId: '', categoryId: '', sku: '', barcode: '', hsnCode: '', gst: 5, showInWebsite: false });
+    setForm({ name: '', unit: 'Pcs', minStockLevel: 10, pricePerUnit: 0, costPrice: 0, supplierId: '', categoryId: '', sku: '', barcode: '', hsnCode: '', gst: 5, showInWebsite: false, imageUrl: '' });
     setShowForm(false);
   };
 
@@ -455,6 +481,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       id: item.id,
       name: item.name,
       categoryId: item.categoryId || '',
+      supplierId: item.supplierId || '',
       price: item.pricePerUnit || item.price || 0,
       costPrice: item.costPrice || 0,
       currentStock: item.currentStock ?? 50,
@@ -467,6 +494,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       isAvailable: item.isAvailable !== false,
       showInWebsite: item.showInWebsite === true,
       description: item.description || '',
+      imageUrl: item.imageUrl || '',
     });
   };
 
@@ -475,6 +503,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
     if (!editForm.name.trim()) return;
 
     const selectedCat = categories.find(c => c.id === editForm.categoryId) || categories[0] || { id: 'cat-1', name: 'Grocery' };
+    const selectedSup = suppliers.find(s => s.id === editForm.supplierId);
 
     let existing: any[] = [];
     try {
@@ -489,6 +518,8 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
           name: editForm.name.trim(),
           categoryId: selectedCat.id,
           categoryName: selectedCat.name,
+          supplierId: editForm.supplierId || '',
+          supplierName: selectedSup?.name || '',
           price: Number(editForm.price),
           costPrice: Number(editForm.costPrice),
           currentStock: Number(editForm.currentStock),
@@ -501,6 +532,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
           isAvailable: editForm.isAvailable,
           showInWebsite: editForm.showInWebsite === true,
           description: editForm.description.trim(),
+          imageUrl: editForm.imageUrl || '',
         };
       }
       return item;
@@ -705,6 +737,71 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
               </select>
             </div>
 
+            {/* Product Image Upload Dropzone / Field */}
+            <div className="col-span-1 sm:col-span-2 md:col-span-4 p-3.5 bg-gray-50 border border-gray-100 rounded-xl space-y-2">
+              <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase block">Product Image (Optional)</label>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
+                {form.imageUrl ? (
+                  <div className="relative group w-16 h-16 rounded-xl border border-gray-200 overflow-hidden bg-white shadow-xs flex-shrink-0">
+                    <img src={form.imageUrl} alt="Product preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, imageUrl: '' })}
+                      className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[9px] font-bold gap-0.5"
+                      title="Remove image"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      <span>Remove</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 flex-shrink-0">
+                    <ImageIcon className="w-5 h-5 stroke-[1.5]" />
+                    <span className="text-[8px] mt-0.5 font-semibold">No Image</span>
+                  </div>
+                )}
+
+                <div className="flex-1 space-y-1.5 w-full">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 hover:border-[#2563EB] text-[#2563EB] text-xs font-bold shadow-xs hover:bg-blue-50 transition-all">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{form.imageUrl ? 'Change Photo' : 'Upload Product Photo'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            try {
+                              const dataUrl = await compressImageFile(file);
+                              setForm(prev => ({ ...prev, imageUrl: dataUrl }));
+                            } catch (err: any) {
+                              alert(err?.message || 'Failed to upload image');
+                            }
+                          }
+                        }}
+                      />
+                    </label>
+
+                    {form.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, imageUrl: '' })}
+                        className="px-2.5 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold border border-red-200 transition-all inline-flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Remove</span>
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-gray-500">
+                    Upload PNG, JPG, or WEBP. Automatically optimized for fast loading across Billing & Website.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Website Visibility Checkbox */}
             <div className="col-span-1 sm:col-span-2 md:col-span-4 p-3.5 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -817,6 +914,78 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 <label className="text-[10px] font-bold text-gray-600 uppercase">Barcode</label>
                 <input value={editForm.barcode} onChange={e => setEditForm({ ...editForm, barcode: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1" />
               </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-600 uppercase">Supplier</label>
+                <select value={editForm.supplierId} onChange={e => setEditForm({ ...editForm, supplierId: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1">
+                  <option value="">No Supplier</option>
+                  {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+
+              {/* Edit Modal Image Upload Dropzone */}
+              <div className="col-span-2 p-3.5 bg-gray-50 border border-gray-100 rounded-xl space-y-2">
+                <label className="text-[10px] font-bold text-gray-600 uppercase block">Product Image</label>
+                <div className="flex items-center gap-3.5">
+                  {editForm.imageUrl ? (
+                    <div className="relative group w-16 h-16 rounded-xl border border-gray-200 overflow-hidden bg-white shadow-xs flex-shrink-0">
+                      <img src={editForm.imageUrl} alt="Product preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setEditForm({ ...editForm, imageUrl: '' })}
+                        className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[9px] font-bold gap-0.5"
+                        title="Remove photo"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <span>Remove</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 flex-shrink-0">
+                      <ImageIcon className="w-5 h-5 stroke-[1.5]" />
+                      <span className="text-[8px] mt-0.5 font-semibold">No Image</span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 hover:border-[#2563EB] text-[#2563EB] text-xs font-bold shadow-xs hover:bg-blue-50 transition-all">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{editForm.imageUrl ? 'Change Photo' : 'Upload Product Photo'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const dataUrl = await compressImageFile(file);
+                                setEditForm(prev => ({ ...prev, imageUrl: dataUrl }));
+                              } catch (err: any) {
+                                alert(err?.message || 'Failed to upload image');
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+
+                      {editForm.imageUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, imageUrl: '' })}
+                          className="px-2.5 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold border border-red-200 transition-all inline-flex items-center gap-1"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span>Remove</span>
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-gray-500">
+                      Auto-compressed JPEG for fastest loading.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               {/* Edit Modal Website Visibility Checkbox */}
               <div className="col-span-2 p-3 bg-gray-50 border border-gray-100 rounded-xl flex items-center justify-between">
@@ -862,23 +1031,32 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         ) : (
           filtered.map(m => (
             <div key={m.id} className="bg-white border border-gray-100 rounded-xl p-3.5 space-y-2.5">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h4 className="font-bold text-gray-900 text-sm leading-tight">{m.name}</h4>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] text-gray-500">{m.categoryName || 'General'}</span>
-                    <button
-                      onClick={() => handleToggleWebsiteVisibility(m)}
-                      className={cn(
-                        "px-1.5 py-0.2 rounded text-[9px] font-bold border inline-flex items-center gap-1",
-                        m.showInWebsite === true
-                          ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                          : 'bg-gray-500/15 text-gray-400 border-gray-500/30'
-                      )}
-                    >
-                      <Globe className="w-2.5 h-2.5" />
-                      {m.showInWebsite === true ? 'Website: Yes' : 'Website: No'}
-                    </button>
+              <div className="flex items-start justify-between gap-2.5">
+                <div className="flex items-center gap-2.5">
+                  {m.imageUrl ? (
+                    <img src={m.imageUrl} alt={m.name} className="w-11 h-11 rounded-xl object-cover border border-gray-200 flex-shrink-0 bg-gray-50" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0">
+                      <Package className="w-5 h-5" />
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-sm leading-tight">{m.name}</h4>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] text-gray-500">{m.categoryName || 'General'}</span>
+                      <button
+                        onClick={() => handleToggleWebsiteVisibility(m)}
+                        className={cn(
+                          "px-1.5 py-0.2 rounded text-[9px] font-bold border inline-flex items-center gap-1",
+                          m.showInWebsite === true
+                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                            : 'bg-gray-500/15 text-gray-400 border-gray-500/30'
+                        )}
+                      >
+                        <Globe className="w-2.5 h-2.5" />
+                        {m.showInWebsite === true ? 'Website: Yes' : 'Website: No'}
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <span className="font-mono font-bold text-[#2563EB] text-sm flex-shrink-0">
@@ -964,11 +1142,22 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
             ) : filtered.map(m => (
               <tr key={m.id} className="hover:bg-gray-50/60 transition-colors">
                 <td className="px-4 py-3 font-bold text-gray-900">
-                  <div>{m.name}</div>
-                  <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5">
-                    {m.sku && <span>SKU: {m.sku}</span>}
-                    {m.barcode && <span>• Barcode: {m.barcode}</span>}
-                    {m.hsnCode && <span>• HSN: {m.hsnCode}</span>}
+                  <div className="flex items-center gap-3">
+                    {m.imageUrl ? (
+                      <img src={m.imageUrl} alt={m.name} className="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0 bg-gray-50" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0">
+                        <Package className="w-4 h-4" />
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-sm font-bold text-gray-900">{m.name}</div>
+                      <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5">
+                        {m.sku && <span>SKU: {m.sku}</span>}
+                        {m.barcode && <span>• Barcode: {m.barcode}</span>}
+                        {m.hsnCode && <span>• HSN: {m.hsnCode}</span>}
+                      </div>
+                    </div>
                   </div>
                 </td>
                 <td className="px-4 py-3 text-gray-900 opacity-80 text-xs">{m.categoryName || 'General'}</td>
@@ -1219,6 +1408,7 @@ function SuppliersTab() {
     const updated = [newSup, ...suppliers];
     setSuppliers(updated);
     localStorage.setItem('universal_suppliers', JSON.stringify(updated));
+    window.dispatchEvent(new Event('storage'));
 
     try {
       await fetch('/api/inventory/suppliers', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(newSup) });
@@ -1231,6 +1421,7 @@ function SuppliersTab() {
       const updated = suppliers.filter(s => s.id !== id);
       setSuppliers(updated);
       localStorage.setItem('universal_suppliers', JSON.stringify(updated));
+      window.dispatchEvent(new Event('storage'));
     }
   };
 
@@ -1923,30 +2114,30 @@ function BatchExpiryTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white">Batch & Expiry Tracking</h3>
-          <p className="text-xs text-gray-400">Track product batches, manufacturing & expiry dates</p>
+          <h3 className="text-sm font-bold text-gray-900">Batch & Expiry Tracking</h3>
+          <p className="text-xs text-gray-500">Track product batches, manufacturing & expiry dates</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-xl hover:bg-[#b08d4a]"
+          className="flex items-center gap-2 px-4 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" /> Add Batch
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-[#131315] border border-[#C5A059]/30 p-5 rounded-2xl">
-          <h3 className="text-sm font-bold text-white mb-4">Add New Batch</h3>
+        <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-md">
+          <h3 className="text-sm font-bold text-gray-900 mb-4">Add New Batch</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="col-span-2"><label className="text-[10px] font-bold text-gray-400 uppercase">Product Name</label><input required value={form.productName} onChange={e => setForm({...form, productName: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Batch No.</label><input required value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Mfg. Date</label><input type="date" required value={form.mfgDate} onChange={e => setForm({...form, mfgDate: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Expiry Date</label><input type="date" required value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">Quantity</label><input type="number" required value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-400 uppercase">MRP (₹)</label><input type="number" required value={form.mrp} onChange={e => setForm({...form, mrp: e.target.value as any})} className="w-full bg-[#F8FAFC] border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-white text-sm outline-none mt-1" /></div>
+            <div className="col-span-2"><label className="text-[10px] font-bold text-gray-500 uppercase">Product Name</label><input required value={form.productName} onChange={e => setForm({...form, productName: e.target.value})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Batch No.</label><input required value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Mfg. Date</label><input type="date" required value={form.mfgDate} onChange={e => setForm({...form, mfgDate: e.target.value})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Expiry Date</label><input type="date" required value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Quantity</label><input type="number" required value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value as any})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">MRP (₹)</label><input type="number" required value={form.mrp} onChange={e => setForm({...form, mrp: e.target.value as any})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
             <div className="col-span-3 flex gap-3 mt-2">
-              <button type="submit" className="px-6 py-2 bg-[#C5A059] text-[#0A0A0B] font-bold text-xs rounded-xl uppercase hover:bg-[#b08d4a]">Save Batch</button>
-              <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-gray-50 text-gray-400 font-bold text-xs rounded-xl uppercase hover:text-white">Cancel</button>
+              <button type="submit" className="px-6 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl uppercase shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer">Save Batch</button>
+              <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-white hover:bg-slate-50 border border-gray-200 text-gray-700 font-bold text-xs rounded-xl uppercase transition-all cursor-pointer shadow-xs">Cancel</button>
             </div>
           </form>
         </div>

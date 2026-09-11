@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import DashboardLayout from './layouts/DashboardLayout';
 import ErrorBoundary from './components/ErrorBoundary';
+import SuperAdminImpersonationBanner from './components/SuperAdminImpersonationBanner';
 import { Loader2 } from 'lucide-react';
 
 // Lazy Loaded Pages
@@ -22,6 +23,7 @@ const StaffAttendance = lazy(() => import('./pages/StaffAttendance'));
 const EmployeeDirectory = lazy(() => import('./pages/EmployeeDirectory'));
 const WebsiteBuilder    = lazy(() => import('./pages/WebsiteBuilder'));
 const PublicStorefront  = lazy(() => import('./pages/PublicStorefront'));
+const SuperAdmin        = lazy(() => import('./pages/SuperAdmin'));
 
 function PageLoader() {
   return (
@@ -43,11 +45,24 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** Guard for the Super Admin Control Center */
+function SuperAdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading, isSuperAdmin } = useAuth();
+  const location = useLocation();
+  if (isLoading) return <PageLoader />;
+  if (!user || !isSuperAdmin) {
+    const redirectParam = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?redirect=${redirectParam}`} replace />;
+  }
+  return <>{children}</>;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
         <BrowserRouter>
+          <SuperAdminImpersonationBanner />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* ── PUBLIC ROUTES ───────────────────────────────── */}
@@ -56,6 +71,16 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/store" element={<PublicStorefront />} />
               <Route path="/website" element={<PublicStorefront />} />
+
+              {/* ── SUPER ADMIN SAAS CONTROL CENTER ─────────────── */}
+              <Route
+                path="/super-admin"
+                element={
+                  <SuperAdminRoute>
+                    <SuperAdmin />
+                  </SuperAdminRoute>
+                }
+              />
 
               {/* ── EMPLOYEE ROUTES ─────────────────────────────── */}
               <Route path="/employee-login" element={<EmployeeLogin />} />
