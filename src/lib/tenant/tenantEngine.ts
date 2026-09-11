@@ -239,7 +239,23 @@ export class TenantEngine {
       const saved = localStorage.getItem(TENANTS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((t: any) => ({
+            ...t,
+            subscription: {
+              plan: t.subscription?.plan || 'GROWTH',
+              status: t.subscription?.status || t.status || 'ACTIVE',
+              startDate: t.subscription?.startDate || t.createdAt || new Date().toISOString(),
+              expiryDate: t.subscription?.expiryDate || new Date(Date.now() + 365*24*3600*1000).toISOString(),
+              monthlyFee: t.subscription?.monthlyFee || 1999,
+              maxStaff: t.subscription?.maxStaff || 10,
+              maxInvoicesPerMonth: t.subscription?.maxInvoicesPerMonth || 5000,
+              allowWebsite: t.subscription?.allowWebsite ?? true,
+              allowCustomDomain: t.subscription?.allowCustomDomain ?? false,
+              autoRenew: t.subscription?.autoRenew ?? true,
+            }
+          }));
+        }
       }
     } catch {}
     // Initialize default tenants

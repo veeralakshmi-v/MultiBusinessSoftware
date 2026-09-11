@@ -397,14 +397,16 @@ export default function SuperAdmin() {
                   className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 outline-none"
                 >
                   <option value="ALL">All Business Types</option>
-                  <option value="RETAIL">Supermarket & Retail</option>
+                  <option value="RETAIL">Retail Store</option>
+                  <option value="SUPERMARKET">Supermarket & Grocery</option>
                   <option value="RESTAURANT">Restaurant & Cafe</option>
-                  <option value="APPAREL">Apparel & Garments</option>
-                  <option value="PHARMACY">Pharmacy & Healthcare</option>
-                  <option value="ELECTRONICS">Electronics & Hardware</option>
-                  <option value="AUTOMOBILE">Automobile & Workshop</option>
+                  <option value="GARMENTS">Garments & Apparel</option>
+                  <option value="MEDICAL">Pharmacy & Healthcare</option>
+                  <option value="ELECTRONICS">Electronics & Mobile</option>
+                  <option value="HARDWARE">Hardware & Sanitary</option>
                   <option value="SALON">Salon & Spa</option>
                   <option value="WHOLESALE">Wholesale & Distribution</option>
+                  <option value="SERVICE_CENTER">Service Center</option>
                 </select>
               </div>
             </div>
