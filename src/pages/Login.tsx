@@ -63,10 +63,11 @@ export default function Login() {
 
     login(token, userObj as any);
 
-    if (userRole === 'SUPER_ADMIN') {
-      navigate('/super-admin', { replace: true });
+    if (userRole === 'SUPER_ADMIN' || userLoginName === 'superadmin') {
+      window.location.href = '/super-admin';
     } else {
-      navigate(isTargetingSuperAdmin ? '/dashboard' : redirectTo, { replace: true });
+      const dest = (!redirectTo || redirectTo.startsWith('/super-admin')) ? '/dashboard' : redirectTo;
+      window.location.href = dest;
     }
   };
 
@@ -75,9 +76,21 @@ export default function Login() {
     setUsername('superadmin');
     setPassword('superadmin123');
     setLoading(true);
-    setTimeout(() => {
-      performLogin('superadmin', 'SUPER_ADMIN');
-    }, 200);
+    performLogin('superadmin', 'SUPER_ADMIN', {
+      id: 'user-super-admin',
+      applicationAccess: 'Master Super Admin (Global Platform Access)'
+    });
+  };
+
+  const handleQuickClientLogin = () => {
+    setAuthMode('CLIENT');
+    setUsername('admin');
+    setPassword('admin123');
+    setLoading(true);
+    performLogin('admin', 'ADMIN', {
+      businessId: 'biz-apex-supermarket',
+      businessType: 'SUPERMARKET'
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -189,19 +202,6 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickClientLogin = () => {
-    setAuthMode('CLIENT');
-    setUsername('admin');
-    setPassword('admin123');
-    setLoading(true);
-    setTimeout(() => {
-      performLogin('admin', 'ADMIN', {
-        businessId: 'biz-apex-supermarket',
-        businessType: 'SUPERMARKET'
-      });
-    }, 150);
   };
 
   return (
