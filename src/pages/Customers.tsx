@@ -39,6 +39,23 @@ export interface Customer {
   orders?: any[];
 }
 
+function getCustomerPendingBalance(customer: Customer, allOrders: any[]): number {
+  if (customer.pendingBalance !== undefined && customer.pendingBalance > 0) {
+    return customer.pendingBalance;
+  }
+  const custOrders = allOrders.filter((o: any) => {
+    if (o.customerId && o.customerId === customer.id) return true;
+    if (o.customerMobile && customer.mobile && o.customerMobile === customer.mobile) return true;
+    if (o.customerName && customer.name && o.customerName.toLowerCase() === customer.name.toLowerCase()) return true;
+    return false;
+  });
+
+  return custOrders.reduce((sum: number, o: any) => {
+    const bal = o.balanceAmount !== undefined ? o.balanceAmount : ((o.paymentMethod || '').toUpperCase() === 'CREDIT' ? o.total : 0);
+    return sum + (bal > 0 ? bal : 0);
+  }, 0);
+}
+
 export default function Customers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState('');
@@ -84,6 +101,28 @@ export default function Customers() {
     return () => clearTimeout(delay);
   }, [search]);
 
+  // Load all universal orders to compute real-time credit due balances
+  const allOrders = useMemo(() => {
+    let loaded: any[] = [];
+    try {
+      const saved = localStorage.getItem('universal_orders');
+      if (saved) loaded = JSON.parse(saved);
+      const savedGst = localStorage.getItem('universal_gst_bills');
+      if (savedGst) {
+        const parsed = JSON.parse(savedGst);
+        const ids = new Set(loaded.map(o => o.id));
+        parsed.forEach((o: any) => { if (!ids.has(o.id)) loaded.push(o); });
+      }
+      const savedNonGst = localStorage.getItem('universal_nongst_bills');
+      if (savedNonGst) {
+        const parsed = JSON.parse(savedNonGst);
+        const ids = new Set(loaded.map(o => o.id));
+        parsed.forEach((o: any) => { if (!ids.has(o.id)) loaded.push(o); });
+      }
+    } catch {}
+    return loaded;
+  }, [customers]);
+
   // Today MM-DD lookup for celebrations
   const todayMMDD = useMemo(() => {
     const now = new Date();
@@ -100,6 +139,11 @@ export default function Customers() {
       return bdayMMDD === todayMMDD || annivMMDD === todayMMDD;
     });
   }, [customers, todayMMDD]);
+
+  // Count of customers with pending dues
+  const dueCustomersCount = useMemo(() => {
+    return customers.filter(c => getCustomerPendingBalance(c, allOrders) > 0).length;
+  }, [customers, allOrders]);
 
   // Filtered customers
   const filteredCustomers = useMemo(() => {
@@ -119,7 +163,10 @@ export default function Customers() {
       // Filter tabs
       if (filterType === 'INDIVIDUAL') return (c.type || 'INDIVIDUAL') === 'INDIVIDUAL';
       if (filterType === 'COMPANY') return c.type === 'COMPANY';
-      if (filterType === 'DUE') return (c.pendingBalance || 0) > 0;
+      if (filterType === 'DUE') {
+        const bal = getCustomerPendingBalance(c, allOrders);
+        return bal > 0;
+      }
       if (filterType === 'CELEBRATIONS') {
         const bdayMMDD = c.birthday ? c.birthday.slice(5) : '';
         const annivMMDD = c.anniversary ? c.anniversary.slice(5) : '';
@@ -127,7 +174,7 @@ export default function Customers() {
       }
       return true;
     });
-  }, [customers, search, filterType, todayMMDD]);
+  }, [customers, search, filterType, todayMMDD, allOrders]);
 
   const fetchCustomerDetails = (id: string) => {
     const found = customers.find(c => c.id === id);
@@ -233,7 +280,7 @@ export default function Customers() {
               { id: 'INDIVIDUAL', label: '👤 Individual' },
               { id: 'COMPANY', label: '🏢 Company' },
               { id: 'CELEBRATIONS', label: `🎉 Today (${celebrationsToday.length})` },
-              { id: 'DUE', label: 'Due' },
+              { id: 'DUE', label: `⚠️ Due (${dueCustomersCount})` },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -274,7 +321,7 @@ export default function Customers() {
             ) : (
               filteredCustomers.map(c => {
                 const isSelected = selectedCustomer?.id === c.id;
-                const cBalance = c.pendingBalance || 0;
+                const cBalance = getCustomerPendingBalance(c, allOrders);
                 const isCompany = c.type === 'COMPANY';
                 const isBdayToday = c.birthday && c.birthday.slice(5) === todayMMDD;
                 const isAnnivToday = c.anniversary && c.anniversary.slice(5) === todayMMDD;
