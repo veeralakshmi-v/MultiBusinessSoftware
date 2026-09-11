@@ -627,12 +627,12 @@ export class TenantEngine {
     const u = username.trim().toLowerCase();
     const p = password.trim();
     
-    // Check custom saved superadmin credentials or default master
+    // Check custom saved superadmin credentials
     try {
       const saved = localStorage.getItem(SUPER_ADMIN_CREDENTIALS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.username?.toLowerCase() === u && (parsed.password === p || p === 'superadmin123' || p === 'admin123')) {
+        if (parsed.username?.toLowerCase() === u && parsed.password === p) {
           return true;
         }
       }
@@ -667,6 +667,34 @@ export class TenantEngine {
     list[idx].updatedAt = new Date().toISOString();
     this.saveTenants(list);
     return true;
+  }
+
+  /**
+   * Updates master super admin password
+   */
+  static setSuperAdminPassword(newPassword: string, username = 'superadmin'): void {
+    try {
+      localStorage.setItem(SUPER_ADMIN_CREDENTIALS_KEY, JSON.stringify({
+        username,
+        password: newPassword,
+        updatedAt: new Date().toISOString()
+      }));
+    } catch (e) {
+      console.error('Failed to update Super Admin credentials', e);
+    }
+  }
+
+  /**
+   * Retrieves master super admin info
+   */
+  static getSuperAdminCredentials(): { username: string; updatedAt?: string } {
+    try {
+      const saved = localStorage.getItem(SUPER_ADMIN_CREDENTIALS_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {}
+    return { username: 'superadmin' };
   }
 
   /**

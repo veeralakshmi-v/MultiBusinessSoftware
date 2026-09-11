@@ -8,7 +8,8 @@ import {
   PauseCircle, PlayCircle, Trash2, CheckCircle2, AlertTriangle,
   Receipt, DollarSign, X, Check,
   ChevronRight, RefreshCw, Lock, LogOut, ArrowLeft,
-  ChevronLeft, PanelLeftClose, PanelLeftOpen, Menu, Store, Crown, Sparkles
+  ChevronLeft, PanelLeftClose, PanelLeftOpen, Menu, Store, Crown, Sparkles,
+  Settings as SettingsIcon, Download, Upload, Eye, EyeOff, Save, KeyRound
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -86,7 +87,7 @@ export default function SuperAdmin() {
       setLoginLoading(false);
     } else {
       setLoginLoading(false);
-      setLoginError('Invalid super admin credentials. Default username: superadmin');
+      setLoginError('Invalid super admin credentials.');
     }
   };
 
@@ -110,18 +111,30 @@ export default function SuperAdmin() {
     logout();
   };
 
+  // Active Menu: 'CLIENTS' or 'SETTINGS'
+  const [activeTab, setActiveTab] = useState<'CLIENTS' | 'SETTINGS'>('CLIENTS');
+
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | TenantStatus>('ALL');
   const [typeFilter, setTypeFilter] = useState<'ALL' | BusinessType>('ALL');
 
-  // Modals
+  // Modals & Toast State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [passwordResetTenant, setPasswordResetTenant] = useState<Tenant | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [deleteConfirmTenant, setDeleteConfirmTenant] = useState<Tenant | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Super Admin Password Change State
+  const [superAdminPassForm, setSuperAdminPassForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [showPass, setShowPass] = useState(false);
+  const [passError, setPassError] = useState('');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -240,6 +253,60 @@ export default function SuperAdmin() {
     setDeleteConfirmTenant(null);
   };
 
+  // Change Super Admin Master Password Handler
+  const handleChangeSuperAdminPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassError('');
+
+    const { newPassword: np, confirmPassword: cp } = superAdminPassForm;
+
+    if (!np.trim() || np.trim().length < 6) {
+      setPassError('New password must be at least 6 characters long.');
+      return;
+    }
+
+    if (np !== cp) {
+      setPassError('New password and confirm password do not match.');
+      return;
+    }
+
+    TenantEngine.setSuperAdminPassword(np.trim(), 'superadmin');
+    showToast('Super Admin master password changed successfully!');
+    setSuperAdminPassForm({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+  };
+
+  const handleExportBackup = () => {
+    TenantEngine.exportTenantsBackup();
+    showToast('Platform database backup downloaded!');
+  };
+
+  const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (Array.isArray(json?.tenants) || Array.isArray(json)) {
+          const list = Array.isArray(json) ? json : json.tenants;
+          TenantEngine.saveTenants(list);
+          refreshTenants();
+          showToast(`Successfully restored ${list.length} client databases!`);
+        } else {
+          alert('Invalid backup JSON format.');
+        }
+      } catch {
+        alert('Failed to parse JSON file.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   // -------------------------------------------------------------
   // RENDER: Clean Login Screen if unauthenticated
   // -------------------------------------------------------------
@@ -323,7 +390,7 @@ export default function SuperAdmin() {
   }
 
   // -------------------------------------------------------------
-  // RENDER: Clean Super Admin Dashboard (Focused on Clients)
+  // RENDER: Super Admin Layout with Sidebar Menu & Settings
   // -------------------------------------------------------------
   return (
     <div className="flex h-screen bg-[#F8FAFC] text-[#0F172A] font-sans overflow-hidden">
@@ -372,20 +439,59 @@ export default function SuperAdmin() {
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-4 space-y-1 px-3 no-scrollbar">
           <nav className="space-y-1.5">
-            <div
+            {/* 1. Client Stores */}
+            <button
+              onClick={() => setActiveTab('CLIENTS')}
+              title={isCollapsed ? "Client Stores" : undefined}
               className={cn(
-                'w-full flex items-center px-3 py-3 text-sm font-medium rounded-xl border-l-4 shadow-xs font-bold bg-blue-50 text-[#2563EB] border-[#2563EB]',
-                isCollapsed ? "justify-center" : "justify-start"
+                'w-full flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-150 relative group cursor-pointer',
+                isCollapsed ? "justify-center" : "justify-start",
+                activeTab === 'CLIENTS'
+                  ? 'border-l-4 shadow-xs font-bold bg-blue-50 text-[#2563EB] border-[#2563EB]'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               )}
             >
-              <Building2 className={cn('h-5 w-5 flex-shrink-0 text-[#2563EB]', isCollapsed ? '' : 'mr-3')} />
+              <Building2
+                className={cn(
+                  'h-5 w-5 flex-shrink-0 transition-colors',
+                  isCollapsed ? '' : 'mr-3',
+                  activeTab === 'CLIENTS' ? 'text-[#2563EB]' : 'text-gray-400 group-hover:text-gray-700'
+                )}
+              />
               {!isCollapsed && <span className="truncate font-semibold flex-1 text-left">Client Stores</span>}
               {!isCollapsed && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-200/70 text-[#2563EB]">
+                <span
+                  className={cn(
+                    'px-2 py-0.5 rounded-full text-[10px] font-black',
+                    activeTab === 'CLIENTS' ? 'bg-blue-200/70 text-[#2563EB]' : 'bg-gray-100 text-gray-600'
+                  )}
+                >
                   {tenants.length}
                 </span>
               )}
-            </div>
+            </button>
+
+            {/* 2. Settings */}
+            <button
+              onClick={() => setActiveTab('SETTINGS')}
+              title={isCollapsed ? "Settings" : undefined}
+              className={cn(
+                'w-full flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-150 relative group cursor-pointer',
+                isCollapsed ? "justify-center" : "justify-start",
+                activeTab === 'SETTINGS'
+                  ? 'border-l-4 shadow-xs font-bold bg-blue-50 text-[#2563EB] border-[#2563EB]'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              )}
+            >
+              <SettingsIcon
+                className={cn(
+                  'h-5 w-5 flex-shrink-0 transition-colors',
+                  isCollapsed ? '' : 'mr-3',
+                  activeTab === 'SETTINGS' ? 'text-[#2563EB]' : 'text-gray-400 group-hover:text-gray-700'
+                )}
+              />
+              {!isCollapsed && <span className="truncate font-semibold flex-1 text-left">Settings</span>}
+            </button>
 
             {/* Switch to Client Store View */}
             <Link
@@ -460,25 +566,37 @@ export default function SuperAdmin() {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-serif font-bold text-gray-900">
-                  Client Stores Directory
+                  {activeTab === 'CLIENTS' ? 'Client Stores Directory' : 'Super Admin Settings'}
                 </h2>
                 <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#2563EB] text-[10px] font-extrabold uppercase border border-blue-200">
                   Super Admin
                 </span>
               </div>
               <p className="text-xs text-gray-500 hidden sm:block">
-                Master management panel for isolated multi-tenant stores
+                {activeTab === 'CLIENTS'
+                  ? 'Master management panel for isolated multi-tenant stores'
+                  : 'Master credentials, security, and global platform configuration'}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {activeTab === 'CLIENTS' && (
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="px-4 py-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Client Store</span>
+              </button>
+            )}
+
             <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="px-4 py-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              onClick={handleExportBackup}
+              title="Download Platform JSON Backup"
+              className="p-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-xl text-xs border border-gray-200 transition-all cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
-              <span>Add Client Store</span>
+              <Download className="w-4 h-4" />
             </button>
 
             <Link
@@ -508,11 +626,33 @@ export default function SuperAdmin() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                <div className="mt-4 space-y-2">
-                  <div className="p-3 bg-blue-50 text-[#2563EB] font-bold rounded-xl text-sm flex items-center gap-2">
+                <div className="mt-4 space-y-1">
+                  <button
+                    onClick={() => {
+                      setActiveTab('CLIENTS');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                      'w-full p-3 font-bold rounded-xl text-sm flex items-center gap-2',
+                      activeTab === 'CLIENTS' ? 'bg-blue-50 text-[#2563EB]' : 'text-gray-700'
+                    )}
+                  >
                     <Building2 className="w-4 h-4" />
                     <span>Client Stores ({tenants.length})</span>
-                  </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab('SETTINGS');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                      'w-full p-3 font-bold rounded-xl text-sm flex items-center gap-2',
+                      activeTab === 'SETTINGS' ? 'bg-blue-50 text-[#2563EB]' : 'text-gray-700'
+                    )}
+                  >
+                    <SettingsIcon className="w-4 h-4" />
+                    <span>Settings</span>
+                  </button>
                 </div>
               </div>
               <button
@@ -528,247 +668,380 @@ export default function SuperAdmin() {
 
         {/* Main Content Body */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6">
-          {/* Summary Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Client Stores</span>
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center">
-                  <Building2 className="w-5 h-5" />
+          {/* TAB 1: CLIENT STORES */}
+          {activeTab === 'CLIENTS' && (
+            <div className="space-y-6">
+              {/* Summary Metric Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Client Stores</span>
+                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center">
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 mt-2">
+                    {metrics.totalClients}
+                  </div>
+                  <div className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{metrics.activeClients} Active Subscriptions</span>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Monthly Recurring (MRR)</span>
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <DollarSign className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 mt-2">
+                    ₹{metrics.totalMRR.toLocaleString('en-IN')}
+                  </div>
+                  <div className="text-[11px] text-gray-500 mt-1">From active SaaS plans</div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Platform Invoices</span>
+                    <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <Receipt className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 mt-2">
+                    {metrics.totalInvoices.toLocaleString('en-IN')}
+                  </div>
+                  <div className="text-[11px] text-gray-500 mt-1">Generated across all client databases</div>
                 </div>
               </div>
-              <div className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 mt-2">
-                {metrics.totalClients}
-              </div>
-              <div className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>{metrics.activeClients} Active Subscriptions</span>
-              </div>
-            </div>
 
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Monthly Recurring (MRR)</span>
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <DollarSign className="w-5 h-5" />
+              {/* Search & Filter Bar */}
+              <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center gap-3">
+                <div className="relative flex-1 w-full">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search client stores by name, owner, email, phone, city..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40 focus:border-[#2563EB]"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value as any)}
+                    aria-label="Filter by subscription status"
+                    className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-700 font-semibold focus:outline-none"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="TRIAL">Trial</option>
+                    <option value="SUSPENDED">Suspended</option>
+                  </select>
+
+                  <select
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value as any)}
+                    aria-label="Filter by business category"
+                    className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-700 font-semibold focus:outline-none"
+                  >
+                    <option value="ALL">All Categories</option>
+                    <option value="GARMENTS">Garments & Textiles</option>
+                    <option value="SUPERMARKET">Supermarket & Grocery</option>
+                    <option value="MEDICAL">Medical & Pharmacy</option>
+                    <option value="HARDWARE">Hardware & Electrical</option>
+                    <option value="ELECTRONICS">Electronics & Mobile</option>
+                    <option value="RESTAURANT">Restaurant & Bar</option>
+                    <option value="CAFE">Cafe & Bakery</option>
+                    <option value="RETAIL">General Retail</option>
+                  </select>
                 </div>
               </div>
-              <div className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 mt-2">
-                ₹{metrics.totalMRR.toLocaleString('en-IN')}
-              </div>
-              <div className="text-[11px] text-gray-500 mt-1">From active SaaS plans</div>
-            </div>
 
-            <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Platform Invoices</span>
-                <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                  <Receipt className="w-5 h-5" />
-                </div>
-              </div>
-              <div className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 mt-2">
-                {metrics.totalInvoices.toLocaleString('en-IN')}
-              </div>
-              <div className="text-[11px] text-gray-500 mt-1">Generated across all client databases</div>
-            </div>
-          </div>
-
-          {/* Search & Filter Bar */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center gap-3">
-            <div className="relative flex-1 w-full">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search client stores by name, owner, email, phone, city..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40 focus:border-[#2563EB]"
-              />
-            </div>
-
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                aria-label="Filter by subscription status"
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-700 font-semibold focus:outline-none"
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="ACTIVE">Active</option>
-                <option value="TRIAL">Trial</option>
-                <option value="SUSPENDED">Suspended</option>
-              </select>
-
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as any)}
-                aria-label="Filter by business category"
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-700 font-semibold focus:outline-none"
-              >
-                <option value="ALL">All Categories</option>
-                <option value="GARMENTS">Garments & Textiles</option>
-                <option value="SUPERMARKET">Supermarket & Grocery</option>
-                <option value="MEDICAL">Medical & Pharmacy</option>
-                <option value="HARDWARE">Hardware & Electrical</option>
-                <option value="ELECTRONICS">Electronics & Mobile</option>
-                <option value="RESTAURANT">Restaurant & Bar</option>
-                <option value="CAFE">Cafe & Bakery</option>
-                <option value="RETAIL">General Retail</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Client Stores Table */}
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-gray-50/80 text-gray-600 font-bold border-b border-gray-200 uppercase tracking-wider text-[10px]">
-                  <tr>
-                    <th className="px-6 py-4">Client Store</th>
-                    <th className="px-4 py-4">Owner & Contact</th>
-                    <th className="px-4 py-4">Plan & Billing</th>
-                    <th className="px-4 py-4">Status</th>
-                    <th className="px-4 py-4">Invoices</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredTenants.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
-                        <Building2 className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                        <p className="font-semibold">No client stores found matching search.</p>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredTenants.map((t) => {
-                      const isSuspended = t.subscription?.status === 'SUSPENDED';
-                      return (
-                        <tr key={t.id} className="hover:bg-blue-50/30 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="font-bold text-gray-900 text-sm">{t.businessName}</div>
-                            <div className="flex items-center gap-1.5 text-gray-500 text-[11px] mt-0.5">
-                              <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#2563EB] font-bold text-[10px]">
-                                {t.businessType}
-                              </span>
-                              <span>•</span>
-                              <span>{t.city || 'Chennai'}</span>
-                            </div>
-                          </td>
-
-                          <td className="px-4 py-4">
-                            <div className="text-gray-800 font-semibold">{t.ownerName}</div>
-                            <div className="text-gray-500 text-[11px]">{t.ownerEmail}</div>
-                            <div className="text-gray-400 text-[10px] font-mono">{t.ownerPhone}</div>
-                          </td>
-
-                          <td className="px-4 py-4">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold text-[10px] border border-indigo-200">
-                              {t.subscription?.plan || 'STARTER'}
-                            </span>
-                            <div className="text-gray-700 text-xs font-bold mt-1">
-                              ₹{(t.subscription?.monthlyFee || 0).toLocaleString('en-IN')}/mo
-                            </div>
-                          </td>
-
-                          <td className="px-4 py-4">
-                            <span
-                              className={cn(
-                                'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase',
-                                t.subscription?.status === 'ACTIVE'
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : t.subscription?.status === 'TRIAL'
-                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                  : 'bg-red-50 text-red-700 border border-red-200'
-                              )}
-                            >
-                              <span
-                                className={cn(
-                                  'w-1.5 h-1.5 rounded-full',
-                                  t.subscription?.status === 'ACTIVE'
-                                    ? 'bg-emerald-500'
-                                    : t.subscription?.status === 'TRIAL'
-                                    ? 'bg-amber-500'
-                                    : 'bg-red-500'
-                                )}
-                              />
-                              {t.subscription?.status || 'ACTIVE'}
-                            </span>
-                          </td>
-
-                          <td className="px-4 py-4">
-                            <div className="text-gray-800 font-bold">{t.totalInvoicesCount || 0} Bills</div>
-                            <div className="text-gray-500 text-[11px]">
-                              ₹{(t.totalRevenueGenerated || 0).toLocaleString('en-IN')} vol
-                            </div>
-                          </td>
-
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              {/* Open Store */}
-                              <button
-                                onClick={() => handleImpersonate(t)}
-                                title="Open Client Store POS & Dashboard"
-                                className="px-3 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-lg text-xs flex items-center gap-1 shadow-xs transition-all cursor-pointer"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                                <span>Open Store</span>
-                              </button>
-
-                              {/* Toggle Status */}
-                              <button
-                                onClick={() => {
-                                  const nextStatus = isSuspended ? 'ACTIVE' : 'SUSPENDED';
-                                  setTenantStatus(t.id, nextStatus);
-                                  showToast(`Client "${t.businessName}" status set to ${nextStatus}`);
-                                }}
-                                title={isSuspended ? 'Activate Client' : 'Suspend Client'}
-                                className={cn(
-                                  'p-1.5 rounded-lg text-xs transition-all cursor-pointer border',
-                                  isSuspended
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                                    : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
-                                )}
-                              >
-                                {isSuspended ? <PlayCircle className="w-4 h-4" /> : <PauseCircle className="w-4 h-4" />}
-                              </button>
-
-                              {/* Reset Password */}
-                              <button
-                                onClick={() => setPasswordResetTenant(t)}
-                                title="Reset Admin Password"
-                                className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-xs border border-gray-200 transition-all cursor-pointer"
-                              >
-                                <Key className="w-4 h-4" />
-                              </button>
-
-                              {/* Edit */}
-                              <button
-                                onClick={() => setEditingTenant({ ...t })}
-                                title="Edit Client Info"
-                                className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-xs border border-gray-200 transition-all cursor-pointer"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-
-                              {/* Delete */}
-                              <button
-                                onClick={() => setDeleteConfirmTenant(t)}
-                                title="Delete Client Store"
-                                className="p-1.5 bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-lg text-xs border border-gray-200 hover:border-red-200 transition-all cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
+              {/* Client Stores Table */}
+              <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-gray-50/80 text-gray-600 font-bold border-b border-gray-200 uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="px-6 py-4">Client Store</th>
+                        <th className="px-4 py-4">Owner & Contact</th>
+                        <th className="px-4 py-4">Plan & Billing</th>
+                        <th className="px-4 py-4">Status</th>
+                        <th className="px-4 py-4">Invoices</th>
+                        <th className="px-6 py-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {filteredTenants.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                            <Building2 className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                            <p className="font-semibold">No client stores found matching search.</p>
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                      ) : (
+                        filteredTenants.map((t) => {
+                          const isSuspended = t.subscription?.status === 'SUSPENDED';
+                          return (
+                            <tr key={t.id} className="hover:bg-blue-50/30 transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="font-bold text-gray-900 text-sm">{t.businessName}</div>
+                                <div className="flex items-center gap-1.5 text-gray-500 text-[11px] mt-0.5">
+                                  <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#2563EB] font-bold text-[10px]">
+                                    {t.businessType}
+                                  </span>
+                                  <span>•</span>
+                                  <span>{t.city || 'Chennai'}</span>
+                                </div>
+                              </td>
+
+                              <td className="px-4 py-4">
+                                <div className="text-gray-800 font-semibold">{t.ownerName}</div>
+                                <div className="text-gray-500 text-[11px]">{t.ownerEmail}</div>
+                                <div className="text-gray-400 text-[10px] font-mono">{t.ownerPhone}</div>
+                              </td>
+
+                              <td className="px-4 py-4">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold text-[10px] border border-indigo-200">
+                                  {t.subscription?.plan || 'STARTER'}
+                                </span>
+                                <div className="text-gray-700 text-xs font-bold mt-1">
+                                  ₹{(t.subscription?.monthlyFee || 0).toLocaleString('en-IN')}/mo
+                                </div>
+                              </td>
+
+                              <td className="px-4 py-4">
+                                <span
+                                  className={cn(
+                                    'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase',
+                                    t.subscription?.status === 'ACTIVE'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      : t.subscription?.status === 'TRIAL'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-red-50 text-red-700 border border-red-200'
+                                  )}
+                                >
+                                  <span
+                                    className={cn(
+                                      'w-1.5 h-1.5 rounded-full',
+                                      t.subscription?.status === 'ACTIVE'
+                                        ? 'bg-emerald-500'
+                                        : t.subscription?.status === 'TRIAL'
+                                        ? 'bg-amber-500'
+                                        : 'bg-red-500'
+                                    )}
+                                  />
+                                  {t.subscription?.status || 'ACTIVE'}
+                                </span>
+                              </td>
+
+                              <td className="px-4 py-4">
+                                <div className="text-gray-800 font-bold">{t.totalInvoicesCount || 0} Bills</div>
+                                <div className="text-gray-500 text-[11px]">
+                                  ₹{(t.totalRevenueGenerated || 0).toLocaleString('en-IN')} vol
+                                </div>
+                              </td>
+
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {/* Open Store */}
+                                  <button
+                                    onClick={() => handleImpersonate(t)}
+                                    title="Open Client Store POS & Dashboard"
+                                    className="px-3 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-lg text-xs flex items-center gap-1 shadow-xs transition-all cursor-pointer"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    <span>Open Store</span>
+                                  </button>
+
+                                  {/* Toggle Status */}
+                                  <button
+                                    onClick={() => {
+                                      const nextStatus = isSuspended ? 'ACTIVE' : 'SUSPENDED';
+                                      setTenantStatus(t.id, nextStatus);
+                                      showToast(`Client "${t.businessName}" status set to ${nextStatus}`);
+                                    }}
+                                    title={isSuspended ? 'Activate Client' : 'Suspend Client'}
+                                    className={cn(
+                                      'p-1.5 rounded-lg text-xs transition-all cursor-pointer border',
+                                      isSuspended
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                        : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                                    )}
+                                  >
+                                    {isSuspended ? <PlayCircle className="w-4 h-4" /> : <PauseCircle className="w-4 h-4" />}
+                                  </button>
+
+                                  {/* Reset Password */}
+                                  <button
+                                    onClick={() => setPasswordResetTenant(t)}
+                                    title="Reset Admin Password"
+                                    className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-xs border border-gray-200 transition-all cursor-pointer"
+                                  >
+                                    <Key className="w-4 h-4" />
+                                  </button>
+
+                                  {/* Edit */}
+                                  <button
+                                    onClick={() => setEditingTenant({ ...t })}
+                                    title="Edit Client Info"
+                                    className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-xs border border-gray-200 transition-all cursor-pointer"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+
+                                  {/* Delete */}
+                                  <button
+                                    onClick={() => setDeleteConfirmTenant(t)}
+                                    title="Delete Client Store"
+                                    className="p-1.5 bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-lg text-xs border border-gray-200 hover:border-red-200 transition-all cursor-pointer"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* TAB 2: SETTINGS (Change Super Admin Password & Backups) */}
+          {activeTab === 'SETTINGS' && (
+            <div className="max-w-3xl mx-auto space-y-6">
+              {/* Change Super Admin Password Card */}
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center border border-blue-200 text-[#2563EB]">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-serif font-bold text-gray-900">Change Super Admin Password</h2>
+                    <p className="text-xs text-gray-500">
+                      Update your master password for Super Admin control center authentication.
+                    </p>
+                  </div>
+                </div>
+
+                {passError && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 text-red-500" />
+                    <span>{passError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleChangeSuperAdminPassword} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block text-gray-700 font-bold mb-1">Master Username</label>
+                    <input
+                      type="text"
+                      disabled
+                      value="superadmin"
+                      className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3.5 py-2.5 text-gray-500 font-mono font-bold cursor-not-allowed"
+                    />
+                    <span className="text-[10px] text-gray-400 mt-1 block">Master Super Admin account</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-gray-700 font-bold mb-1">New Master Password *</label>
+                      <div className="relative">
+                        <input
+                          type={showPass ? 'text' : 'password'}
+                          required
+                          placeholder="Enter new password (min 6 chars)..."
+                          value={superAdminPassForm.newPassword}
+                          onChange={(e) => setSuperAdminPassForm({ ...superAdminPassForm, newPassword: e.target.value })}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 pr-10 text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPass(!showPass)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 cursor-pointer"
+                        >
+                          {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-gray-700 font-bold mb-1">Confirm New Password *</label>
+                      <input
+                        type={showPass ? 'text' : 'password'}
+                        required
+                        placeholder="Re-enter new password..."
+                        value={superAdminPassForm.confirmPassword}
+                        onChange={(e) => setSuperAdminPassForm({ ...superAdminPassForm, confirmPassword: e.target.value })}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all cursor-pointer"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>Save New Super Admin Password</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Platform Database Backup Card */}
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center border border-indigo-200 text-indigo-600">
+                    <Download className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-serif font-bold text-gray-900">Platform Database Backups</h2>
+                    <p className="text-xs text-gray-500">
+                      Export or restore all client store databases and settings in JSON format.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-3">
+                    <div className="font-bold text-gray-900">Download All Databases Backup</div>
+                    <p className="text-gray-500 text-[11px]">
+                      Creates a JSON snapshot of all {tenants.length} client store databases.
+                    </p>
+                    <button
+                      onClick={handleExportBackup}
+                      className="w-full py-2.5 px-4 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Export JSON Backup</span>
+                    </button>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl space-y-3">
+                    <div className="font-bold text-gray-900">Restore Databases from Backup</div>
+                    <p className="text-gray-500 text-[11px]">
+                      Import a previously downloaded platform JSON backup file.
+                    </p>
+                    <label className="w-full py-2.5 px-4 bg-white hover:bg-gray-100 text-gray-800 font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer border border-gray-300 transition-all text-center">
+                      <Upload className="w-4 h-4 text-gray-500" />
+                      <span>Upload JSON Backup</span>
+                      <input type="file" accept=".json" onChange={handleImportBackup} className="hidden" />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
