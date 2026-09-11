@@ -4,6 +4,18 @@ import {
   CheckCircle2, AlertCircle, MapPin, UserX, Plus, ShieldCheck
 } from 'lucide-react';
 
+export interface PunchSession {
+  id: string;
+  punchIn: string;
+  punchInSelfie?: string | null;
+  punchInLocation?: string | null;
+  punchOut?: string | null;
+  punchOutSelfie?: string | null;
+  punchOutLocation?: string | null;
+  type?: 'NORMAL' | 'BREAK' | 'PERMISSION' | string;
+  notes?: string;
+}
+
 export interface RawAttendanceRecord {
   id: string;
   date: string;
@@ -13,6 +25,7 @@ export interface RawAttendanceRecord {
   punchOut: string | null;
   punchOutSelfie: string | null;
   punchOutLocation: string | null;
+  sessions?: PunchSession[];
 }
 
 export interface LeaveRecord {
@@ -60,6 +73,22 @@ function calcWorkedHours(punchIn: string, punchOut: string | null): number {
   const inMin = parseTimeToMinutes(punchIn);
   const outMin = parseTimeToMinutes(punchOut);
   return Math.max(0, (outMin - inMin) / 60);
+}
+
+function calcRecordWorkedHours(att: RawAttendanceRecord): number {
+  if (att.sessions && att.sessions.length > 0) {
+    let totalMins = 0;
+    for (const s of att.sessions) {
+      if (s.punchIn && s.punchOut) {
+        const inMin = parseTimeToMinutes(s.punchIn);
+        const outMin = parseTimeToMinutes(s.punchOut);
+        const diff = outMin - inMin;
+        if (diff > 0) totalMins += diff;
+      }
+    }
+    return Math.round((totalMins / 60) * 10) / 10;
+  }
+  return calcWorkedHours(att.punchIn, att.punchOut);
 }
 
 function normalizeDateStr(dStr: string): string {
@@ -435,8 +464,9 @@ export default function AttendanceCalendar({
             // Rejected leave request -> REJECTED LEAVE (Slate Gray)
             dayStatus = 'REJECTED_LEAVE';
           } else if (att) {
-            if (att.punchOut) {
-              const worked = calcWorkedHours(att.punchIn, att.punchOut);
+            const isCurrentlyActive = !att.punchOut || (att.sessions && att.sessions.some(s => !s.punchOut));
+            if (!isCurrentlyActive) {
+              const worked = calcRecordWorkedHours(att);
               if (worked < 1) {
                 dayStatus = 'ABSENT'; // Less than 1 hr -> ABSENT (Red)
               } else if (worked < 4) {
@@ -534,32 +564,60 @@ export default function AttendanceCalendar({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-            {selectedRecord && (
-              <div className="space-y-1 p-2 bg-white rounded-lg border border-gray-100">
-                {selectedRecord.punchOut && calcWorkedHours(selectedRecord.punchIn, selectedRecord.punchOut) < 1 ? (
-                  <p className="font-bold text-red-500 flex items-center gap-1">
-                    <UserX className="w-3 h-3" /> Absent (Worked &lt; 1 hr)
-                  </p>
-                ) : selectedRecord.punchOut && calcWorkedHours(selectedRecord.punchIn, selectedRecord.punchOut) < 4 ? (
-                  <p className="font-bold text-cyan-500 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Half Day (Worked 1-4 hrs)
-                  </p>
-                ) : (
-                  <p className="font-bold text-emerald-500 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Present / Attendance
-                  </p>
-                )}
-                <p className="text-gray-900">Punch IN: <span className="font-mono text-emerald-500 font-bold">{selectedRecord.punchIn}</span></p>
-                {selectedRecord.punchOut && (
-                  <p className="text-gray-900">Punch OUT: <span className="font-mono text-red-500 font-bold">{selectedRecord.punchOut}</span></p>
-                )}
-                {selectedRecord.punchInLocation && (
-                  <p className="text-[9px] text-[#2563EB] font-mono flex items-center gap-1">
-                    <MapPin className="w-2.5 h-2.5" /> {selectedRecord.punchInLocation}
-                  </p>
-                )}
-              </div>
-            )}
+            {selectedRecord && (() => {
+              const worked = calcRecordWorkedHours(selectedRecord);
+              const isCurrentlyActive = !selectedRecord.punchOut || (selectedRecord.sessions && selectedRecord.sessions.some(s => !s.punchOut));
+              const isAbsent = !isCurrentlyActive && worked < 1;
+              const isHalfDay = !isCurrentlyActive && worked >= 1 && worked < 4;
+
+              return (
+                <div className="space-y-1.5 p-2.5 bg-white rounded-lg border border-gray-100 shadow-sm">
+                  {isCurrentlyActive ? (
+                    <p className="font-bold text-emerald-500 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Currently Active Shift / Clocked In
+                    </p>
+                  ) : isAbsent ? (
+                    <p className="font-bold text-red-500 flex items-center gap-1">
+                      <UserX className="w-3.5 h-3.5" /> Absent (Worked {worked} hrs &lt; 1 hr)
+                    </p>
+                  ) : isHalfDay ? (
+                    <p className="font-bold text-cyan-500 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" /> Half Day (Worked {worked} hrs)
+                    </p>
+                  ) : (
+                    <p className="font-bold text-emerald-500 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Present / Completed ({worked} hrs worked)
+                    </p>
+                  )}
+
+                  <div className="text-gray-800 text-xs">
+                    <p>Total Worked: <span className="font-bold font-mono text-[#2563EB]">{worked} hrs</span></p>
+                    <p className="text-[10px] text-gray-500 font-mono">First IN: {selectedRecord.punchIn} {selectedRecord.punchOut ? `· Last OUT: ${selectedRecord.punchOut}` : ''}</p>
+                  </div>
+
+                  {selectedRecord.sessions && selectedRecord.sessions.length > 0 && (
+                    <div className="pt-1.5 border-t border-gray-100 space-y-1">
+                      <p className="text-[10px] font-bold text-gray-600 uppercase">Sessions ({selectedRecord.sessions.length}):</p>
+                      {selectedRecord.sessions.map((sess, sIdx) => (
+                        <div key={sess.id || sIdx} className="flex items-center justify-between text-[10px] bg-gray-50 px-2 py-1 rounded">
+                          <span className="font-mono">#{sIdx + 1} IN: {sess.punchIn} → OUT: {sess.punchOut || 'Active'}</span>
+                          <div className="flex items-center gap-1">
+                            {sess.punchInSelfie && <img src={sess.punchInSelfie} alt="in" className="w-4 h-4 rounded object-cover" />}
+                            {sess.punchOutSelfie && <img src={sess.punchOutSelfie} alt="out" className="w-4 h-4 rounded object-cover" />}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedRecord.punchInLocation && (
+                    <p className="text-[9px] text-[#2563EB] font-mono flex items-center gap-1">
+                      <MapPin className="w-2.5 h-2.5" /> {selectedRecord.punchInLocation}
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
 
             {selectedLeave && (
               <div className="space-y-1 p-2 bg-white rounded-lg border border-gray-100">

@@ -13,10 +13,23 @@ import AttendanceCalendar from '../components/attendance/AttendanceCalendar';
 type AttendanceStatus = 'ON_TIME' | 'LATE' | 'HALF_DAY' | 'ABSENT' | 'LEAVE' | 'HOLIDAY';
 type LeaveStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
+export interface PunchSession {
+  id: string;
+  punchIn: string;
+  punchInSelfie?: string | null;
+  punchInLocation?: string | null;
+  punchOut?: string | null;
+  punchOutSelfie?: string | null;
+  punchOutLocation?: string | null;
+  type?: 'NORMAL' | 'BREAK' | 'PERMISSION';
+  notes?: string;
+}
+
 interface RawAttendanceRecord {
   id: string; date: string;
   punchIn: string; punchInSelfie: string; punchInLocation: string;
   punchOut: string | null; punchOutSelfie: string | null; punchOutLocation: string | null;
+  sessions?: PunchSession[];
 }
 
 interface LeaveRecord {
@@ -56,7 +69,30 @@ function calcWorkedHours(punchIn: string, punchOut: string | null): number {
   if (!punchOut) return 0;
   const inMin = parseTimeToMinutes(punchIn);
   const outMin = parseTimeToMinutes(punchOut);
-  return Math.max(0, (outMin - inMin) / 60);
+  if (outMin >= inMin) {
+    return Math.max(0, (outMin - inMin) / 60);
+  }
+  return Math.max(0, (1440 - inMin + outMin) / 60);
+}
+
+export function calcTotalWorkedHours(rec: RawAttendanceRecord | undefined): number {
+  if (!rec) return 0;
+  if (Array.isArray(rec.sessions) && rec.sessions.length > 0) {
+    let totalMin = 0;
+    for (const s of rec.sessions) {
+      if (s.punchIn && s.punchOut) {
+        const inM = parseTimeToMinutes(s.punchIn);
+        const outM = parseTimeToMinutes(s.punchOut);
+        if (outM >= inM) {
+          totalMin += (outM - inM);
+        } else {
+          totalMin += (1440 - inM + outM);
+        }
+      }
+    }
+    return Math.round((totalMin / 60) * 10) / 10;
+  }
+  return Math.round(calcWorkedHours(rec.punchIn, rec.punchOut) * 10) / 10;
 }
 
 function calcAttendanceStatus(
@@ -70,9 +106,13 @@ function calcAttendanceStatus(
 
   const inMin  = parseTimeToMinutes(rec.punchIn);
   const lateMin = parseTimeToMinutes(lateThreshold);
-  const worked  = calcWorkedHours(rec.punchIn, rec.punchOut);
+  const worked  = calcTotalWorkedHours(rec);
 
-  if (rec.punchOut) {
+  const hasOpenSession = Array.isArray(rec.sessions) && rec.sessions.length > 0 
+    ? !rec.sessions[rec.sessions.length - 1].punchOut 
+    : !rec.punchOut;
+
+  if (!hasOpenSession && worked > 0) {
     if (worked < 1) return 'ABSENT';
     if (worked < HALF_DAY_HOURS) return 'HALF_DAY';
     if (inMin > lateMin) return 'LATE';
@@ -179,13 +219,13 @@ export default function StaffAttendance() {
     return staffList
       .filter(s => s.name.toLowerCase().includes(searchQ.toLowerCase()) || s.username.toLowerCase().includes(searchQ.toLowerCase()))
       .map(staff => {
-        const rec = allAttendance.find(a => a.date === selectedDate && a.id.startsWith(staff.id));
+        const rec = allAttendance.find(a => a.date === selectedDate && (a.id.startsWith(staff.id) || a.id.includes(staff.id)));
         const hasApprovedLeave = allLeaves.some(l =>
           l.date === selectedDate && l.status === 'APPROVED' &&
           (l.employeeId === staff.id || l.employeeName === staff.name)
         );
         const status = calcAttendanceStatus(rec, hasApprovedLeave, staff.shiftStart, staff.lateThreshold);
-        const worked = rec ? calcWorkedHours(rec.punchIn, rec.punchOut) : 0;
+        const worked = rec ? calcTotalWorkedHours(rec) : 0;
         return { staff, rec, status, worked };
       });
   }, [staffList, allAttendance, allLeaves, selectedDate, searchQ]);
@@ -234,7 +274,7 @@ export default function StaffAttendance() {
           const active = activeTab === tab.id;
           return (
             <button key={tab.id} onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={cn("px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0", active ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 font-extrabold" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80")}>
+              className={cn("px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap flex-shrink-0 cursor-pointer", active ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 font-extrabold" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80")}>
               <Icon className="w-4 h-4" /> {tab.label}
             </button>
           );
@@ -260,87 +300,227 @@ export default function StaffAttendance() {
           const todayStr = new Date().toISOString().split('T')[0];
           const myId = user?.id || user?.username || 'user';
           const myRec = allAttendance.find(a => a.date === todayStr && (a.id.startsWith(myId) || a.id.includes(myId)));
-          const isPunchedIn = !!myRec && !myRec.punchOut;
-          const isPunchedOut = !!myRec?.punchOut;
+          
+          const sessions: PunchSession[] = myRec?.sessions && myRec.sessions.length > 0 
+            ? myRec.sessions 
+            : (myRec ? [{
+                id: 'sess-1',
+                punchIn: myRec.punchIn,
+                punchInSelfie: myRec.punchInSelfie,
+                punchInLocation: myRec.punchInLocation,
+                punchOut: myRec.punchOut,
+                punchOutSelfie: myRec.punchOutSelfie,
+                punchOutLocation: myRec.punchOutLocation,
+              }] : []);
+
+          const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
+          const isCurrentlyIn = !!lastSession && !lastSession.punchOut;
+          const workedHours = calcTotalWorkedHours(myRec);
 
           const handleQuickPunch = (mode: 'in' | 'out') => {
             const time = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
             const locStr = 'Dashboard GPS Verified (±10m)';
+            const selfieUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
 
             let updated: RawAttendanceRecord[];
             if (mode === 'in') {
-              const rec: RawAttendanceRecord = {
-                id: `${myId}-${todayStr}`,
-                date: todayStr,
+              const newSession: PunchSession = {
+                id: `sess-${Date.now()}`,
                 punchIn: time,
-                punchInSelfie: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+                punchInSelfie: selfieUrl,
                 punchInLocation: locStr,
                 punchOut: null,
                 punchOutSelfie: null,
                 punchOutLocation: null,
               };
-              updated = [...allAttendance.filter(a => a.id !== rec.id), rec];
+
+              if (myRec) {
+                const currentSessions = myRec.sessions && myRec.sessions.length > 0 
+                  ? myRec.sessions 
+                  : [{
+                      id: 'sess-1',
+                      punchIn: myRec.punchIn,
+                      punchInSelfie: myRec.punchInSelfie,
+                      punchInLocation: myRec.punchInLocation,
+                      punchOut: myRec.punchOut,
+                      punchOutSelfie: myRec.punchOutSelfie,
+                      punchOutLocation: myRec.punchOutLocation,
+                    }];
+
+                const updatedRec: RawAttendanceRecord = {
+                  ...myRec,
+                  punchOut: null, // active shift
+                  sessions: [...currentSessions, newSession],
+                };
+                updated = allAttendance.map(a => a.id === myRec.id ? updatedRec : a);
+              } else {
+                const newRec: RawAttendanceRecord = {
+                  id: `${myId}-${todayStr}`,
+                  date: todayStr,
+                  punchIn: time,
+                  punchInSelfie: selfieUrl,
+                  punchInLocation: locStr,
+                  punchOut: null,
+                  punchOutSelfie: null,
+                  punchOutLocation: null,
+                  sessions: [newSession],
+                };
+                updated = [...allAttendance.filter(a => a.id !== newRec.id), newRec];
+              }
             } else {
-              updated = allAttendance.map(a =>
-                (a.date === todayStr && (a.id.startsWith(myId) || a.id.includes(myId)))
-                  ? { ...a, punchOut: time, punchOutLocation: locStr }
-                  : a
-              );
+              // Punch Out of currently active session
+              if (myRec) {
+                const currentSessions = myRec.sessions && myRec.sessions.length > 0 
+                  ? myRec.sessions 
+                  : [{
+                      id: 'sess-1',
+                      punchIn: myRec.punchIn,
+                      punchInSelfie: myRec.punchInSelfie,
+                      punchInLocation: myRec.punchInLocation,
+                      punchOut: myRec.punchOut,
+                      punchOutSelfie: myRec.punchOutSelfie,
+                      punchOutLocation: myRec.punchOutLocation,
+                    }];
+
+                const updatedSessions = currentSessions.map((s, idx) => {
+                  if (idx === currentSessions.length - 1 && !s.punchOut) {
+                    return { ...s, punchOut: time, punchOutSelfie: selfieUrl, punchOutLocation: locStr };
+                  }
+                  return s;
+                });
+
+                const updatedRec: RawAttendanceRecord = {
+                  ...myRec,
+                  punchOut: time,
+                  punchOutSelfie: selfieUrl,
+                  punchOutLocation: locStr,
+                  sessions: updatedSessions,
+                };
+                updated = allAttendance.map(a => a.id === myRec.id ? updatedRec : a);
+              } else {
+                return;
+              }
             }
+
             setAllAttendance(updated);
             localStorage.setItem('emp_attendance', JSON.stringify(updated));
+            window.dispatchEvent(new Event('storage'));
             setPunchMsg(`Successfully punched ${mode === 'in' ? 'IN' : 'OUT'} at ${time}! ✅`);
             setTimeout(() => setPunchMsg(''), 4000);
           };
 
           return (
-            <div className="space-y-5">
-              <div className="bg-white/90 border border-gray-100 rounded-2xl p-6 shadow-lg shadow-gray-200/40 max-w-xl mx-auto space-y-5">
-                <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB] font-bold">
-                    {user?.username?.charAt(0).toUpperCase() || 'U'}
+            <div className="space-y-5 max-w-xl mx-auto">
+              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-5">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#2563EB] font-bold">
+                      {user?.username?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900">{user?.username || 'User'}</h3>
+                      <p className="text-xs text-gray-500 font-mono">Role: {user?.role || 'Staff'} · Today: {todayStr}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-base font-bold text-gray-900">{user?.username || 'User'}</h3>
-                    <p className="text-xs text-gray-400 font-mono">Role: {user?.role || 'Staff'} · Today: {todayStr}</p>
-                  </div>
+                  <span className={cn(
+                    "px-3 py-1 rounded-full text-xs font-bold font-mono border",
+                    isCurrentlyIn ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-50 text-gray-700 border-gray-200"
+                  )}>
+                    {isCurrentlyIn ? `● Clocked IN (Session ${sessions.length})` : sessions.length > 0 ? `○ Clocked OUT (${sessions.length} sessions recorded)` : '○ Not Clocked IN'}
+                  </span>
                 </div>
 
                 {punchMsg && (
-                  <div className="p-3 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold rounded-xl animate-in fade-in">
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-xl animate-in fade-in">
                     {punchMsg}
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center">
-                    <p className="text-[11px] text-gray-500 font-semibold uppercase">Punch IN</p>
-                    <p className="text-lg font-bold text-emerald-400 font-mono mt-1">
+                {/* Primary Metrics Grid */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="p-3.5 bg-gray-50/80 border border-gray-100 rounded-xl text-center">
+                    <p className="text-[10px] text-gray-500 font-bold uppercase">First Punch IN</p>
+                    <p className="text-sm font-bold text-emerald-600 font-mono mt-1">
                       {myRec?.punchIn || '—'}
                     </p>
                   </div>
-                  <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-center">
-                    <p className="text-[11px] text-gray-500 font-semibold uppercase">Punch OUT</p>
-                    <p className="text-lg font-bold text-red-400 font-mono mt-1">
-                      {myRec?.punchOut || '—'}
+                  <div className="p-3.5 bg-gray-50/80 border border-gray-100 rounded-xl text-center">
+                    <p className="text-[10px] text-gray-500 font-bold uppercase">Latest Punch OUT</p>
+                    <p className="text-sm font-bold text-red-600 font-mono mt-1">
+                      {myRec?.punchOut || (isCurrentlyIn ? 'Active Now' : '—')}
+                    </p>
+                  </div>
+                  <div className="p-3.5 bg-gray-50/80 border border-gray-100 rounded-xl text-center">
+                    <p className="text-[10px] text-gray-500 font-bold uppercase">Total Worked</p>
+                    <p className="text-sm font-bold text-[#2563EB] font-mono mt-1">
+                      {workedHours > 0 ? `${workedHours.toFixed(1)} hrs` : (isCurrentlyIn ? 'In Progress' : '0.0 hrs')}
                     </p>
                   </div>
                 </div>
 
+                {/* Today's Punch Sessions List */}
+                {sessions.length > 0 && (
+                  <div className="space-y-2 border-t border-gray-100 pt-3">
+                    <p className="text-xs font-bold text-gray-800 flex items-center justify-between">
+                      <span>Today's Punch Sessions ({sessions.length})</span>
+                      <span className="text-[10px] text-gray-500 font-normal">Supports permissions, breaks & multiple entries</span>
+                    </p>
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                      {sessions.map((s, idx) => {
+                        const dur = s.punchIn && s.punchOut ? calcWorkedHours(s.punchIn, s.punchOut) : 0;
+                        return (
+                          <div key={s.id || idx} className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-blue-50 text-[#2563EB] font-bold text-[10px] flex items-center justify-center font-mono">
+                                #{idx + 1}
+                              </span>
+                              <span className="font-mono text-gray-800">
+                                <span className="text-emerald-600 font-bold">IN:</span> {s.punchIn}
+                                {' → '}
+                                {s.punchOut ? (
+                                  <>
+                                    <span className="text-red-600 font-bold">OUT:</span> {s.punchOut}
+                                  </>
+                                ) : (
+                                  <span className="text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded text-[10px]">Ongoing</span>
+                                )}
+                              </span>
+                            </div>
+                            <span className="font-mono text-gray-500 font-bold text-[11px]">
+                              {dur > 0 ? `${dur.toFixed(1)} hrs` : (s.punchOut ? '0.0 hrs' : 'Active')}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Punch Action Buttons */}
                 <div className="flex items-center gap-3 pt-2">
                   <button
                     onClick={() => handleQuickPunch('in')}
-                    disabled={isPunchedIn || isPunchedOut}
-                    className="flex-1 py-3 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 font-bold text-xs rounded-xl shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    disabled={isCurrentlyIn}
+                    className={cn(
+                      "flex-1 py-3 font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer",
+                      !isCurrentlyIn
+                        ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
+                        : "bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                    )}
                   >
-                    {isPunchedIn ? 'Already Punched IN' : 'Punch IN Now'}
+                    {sessions.length > 0 && !isCurrentlyIn ? 'Punch IN Again (Return / New Session)' : 'Punch IN Now'}
                   </button>
                   <button
                     onClick={() => handleQuickPunch('out')}
-                    disabled={!isPunchedIn || isPunchedOut}
-                    className="flex-1 py-3 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-red-300 font-bold text-xs rounded-xl shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    disabled={!isCurrentlyIn}
+                    className={cn(
+                      "flex-1 py-3 font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer",
+                      isCurrentlyIn
+                        ? "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20"
+                        : "bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                    )}
                   >
-                    {isPunchedOut ? 'Punched OUT Done' : 'Punch OUT Now'}
+                    Punch OUT (Permission / End Session)
                   </button>
                 </div>
               </div>
@@ -399,104 +579,141 @@ export default function StaffAttendance() {
                     <tr className="border-b border-gray-100 bg-gray-50/80">
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Employee</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Status</th>
-                      <th className="text-left px-4 py-3 text-gray-500 font-semibold">Punch IN</th>
-                      <th className="text-left px-4 py-3 text-gray-500 font-semibold">Punch OUT</th>
-                      <th className="text-left px-4 py-3 text-gray-500 font-semibold">Hours</th>
+                      <th className="text-left px-4 py-3 text-gray-500 font-semibold">First Punch IN</th>
+                      <th className="text-left px-4 py-3 text-gray-500 font-semibold">Latest Punch OUT</th>
+                      <th className="text-left px-4 py-3 text-gray-500 font-semibold">Sessions & Total Hours</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Selfies</th>
                       <th className="text-left px-4 py-3 text-gray-500 font-semibold">Location</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {dailyAttendance.map(({ staff, rec, status, worked }) => (
-                      <React.Fragment key={staff.id}>
-                        <tr
-                          className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
-                          onClick={() => setExpandedRow(expandedRow === staff.id ? null : staff.id)}
-                        >
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-[10px] font-bold text-[#2563EB]">
-                                {staff.name.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="text-gray-900 font-semibold text-xs">{staff.name}</p>
-                                <p className="text-[9px] text-gray-500 font-mono">{staff.role}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3"><StatusBadge status={status} /></td>
-                          <td className="px-4 py-3">
-                            {rec?.punchIn
-                              ? <span className="text-emerald-400 font-semibold font-mono">{rec.punchIn}</span>
-                              : <span className="text-gray-600">—</span>}
-                          </td>
-                          <td className="px-4 py-3">
-                            {rec?.punchOut
-                              ? <span className="text-red-400 font-semibold font-mono">{rec.punchOut}</span>
-                              : rec ? <span className="text-yellow-400 font-mono text-[10px]">Active</span>
-                              : <span className="text-gray-600">—</span>}
-                          </td>
-                          <td className="px-4 py-3">
-                            {worked > 0
-                              ? <span className="text-gray-600 font-mono">{worked.toFixed(1)}h</span>
-                              : <span className="text-gray-600">—</span>}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-1">
-                              {rec?.punchInSelfie && (
-                                <img src={rec.punchInSelfie} alt="" className="w-7 h-7 rounded-lg object-cover border border-emerald-500/30" />
-                              )}
-                              {rec?.punchOutSelfie && (
-                                <img src={rec.punchOutSelfie} alt="" className="w-7 h-7 rounded-lg object-cover border border-red-500/30" />
-                              )}
-                              {!rec?.punchInSelfie && <span className="text-gray-600 text-[10px]">—</span>}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 max-w-[120px]">
-                            {rec?.punchInLocation
-                              ? <span className="text-[9px] text-gray-500 font-mono truncate block">{rec.punchInLocation.split(',').slice(0, 2).join(',')}</span>
-                              : <span className="text-gray-600">—</span>}
-                          </td>
-                        </tr>
-                        {/* Expanded detail row */}
-                        {expandedRow === staff.id && rec && (
-                          <tr className="bg-blue-50/30">
-                            <td colSpan={7} className="px-6 py-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Punch IN Details</p>
-                                  {rec.punchInSelfie && (
-                                    <img src={rec.punchInSelfie} alt="Punch IN selfie"
-                                      className="w-24 h-24 rounded-xl object-cover border border-emerald-500/30" />
-                                  )}
-                                  {rec.punchInLocation && (
-                                    <div className="flex items-start gap-1.5 text-[10px] text-gray-400">
-                                      <MapPin className="w-3 h-3 text-emerald-400 flex-shrink-0 mt-0.5" />
-                                      <span className="font-mono">{rec.punchInLocation}</span>
-                                    </div>
-                                  )}
+                    {dailyAttendance.map(({ staff, rec, status, worked }) => {
+                      const sessionsCount = rec?.sessions?.length || (rec ? 1 : 0);
+                      const hasOpenSession = Array.isArray(rec?.sessions) && rec.sessions.length > 0 
+                        ? !rec.sessions[rec.sessions.length - 1].punchOut 
+                        : (rec ? !rec.punchOut : false);
+
+                      return (
+                        <React.Fragment key={staff.id}>
+                          <tr
+                            className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
+                            onClick={() => setExpandedRow(expandedRow === staff.id ? null : staff.id)}
+                          >
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-[10px] font-bold text-[#2563EB]">
+                                  {staff.name.charAt(0)}
                                 </div>
-                                {rec.punchOut && (
-                                  <div className="space-y-2">
-                                    <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Punch OUT Details</p>
-                                    {rec.punchOutSelfie && (
-                                      <img src={rec.punchOutSelfie} alt="Punch OUT selfie"
-                                        className="w-24 h-24 rounded-xl object-cover border border-red-500/30" />
-                                    )}
-                                    {rec.punchOutLocation && (
-                                      <div className="flex items-start gap-1.5 text-[10px] text-gray-400">
-                                        <MapPin className="w-3 h-3 text-red-400 flex-shrink-0 mt-0.5" />
-                                        <span className="font-mono">{rec.punchOutLocation}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
+                                <div>
+                                  <p className="text-gray-900 font-semibold text-xs">{staff.name}</p>
+                                  <p className="text-[9px] text-gray-500 font-mono">{staff.role}</p>
+                                </div>
                               </div>
                             </td>
+                            <td className="px-4 py-3"><StatusBadge status={status} /></td>
+                            <td className="px-4 py-3">
+                              {rec?.punchIn
+                                ? <span className="text-emerald-600 font-semibold font-mono">{rec.punchIn}</span>
+                                : <span className="text-gray-400">—</span>}
+                            </td>
+                            <td className="px-4 py-3">
+                              {hasOpenSession
+                                ? <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-mono text-[10px] font-bold">Active Now</span>
+                                : rec?.punchOut
+                                ? <span className="text-red-600 font-semibold font-mono">{rec.punchOut}</span>
+                                : <span className="text-gray-400">—</span>}
+                            </td>
+                            <td className="px-4 py-3">
+                              {worked > 0 ? (
+                                <div className="space-y-0.5">
+                                  <span className="text-gray-900 font-bold font-mono text-xs">{worked.toFixed(1)} hrs</span>
+                                  {sessionsCount > 1 && (
+                                    <span className="block text-[10px] text-blue-600 font-mono font-medium">({sessionsCount} sessions)</span>
+                                  )}
+                                </div>
+                              ) : (hasOpenSession ? (
+                                <span className="text-blue-600 font-mono text-[10px] font-bold">In Progress</span>
+                              ) : (
+                                <span className="text-gray-400">—</span>
+                              ))}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1">
+                                {rec?.punchInSelfie && (
+                                  <img src={rec.punchInSelfie} alt="" className="w-7 h-7 rounded-lg object-cover border border-emerald-500/30" />
+                                )}
+                                {rec?.punchOutSelfie && (
+                                  <img src={rec.punchOutSelfie} alt="" className="w-7 h-7 rounded-lg object-cover border border-red-500/30" />
+                                )}
+                                {!rec?.punchInSelfie && <span className="text-gray-400 text-[10px]">—</span>}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 max-w-[120px]">
+                              {rec?.punchInLocation
+                                ? <span className="text-[9px] text-gray-500 font-mono truncate block">{rec.punchInLocation.split(',').slice(0, 2).join(',')}</span>
+                                : <span className="text-gray-400">—</span>}
+                            </td>
                           </tr>
-                        )}
-                      </React.Fragment>
-                    ))}
+                          {/* Expanded detail row showing all punch sessions */}
+                          {expandedRow === staff.id && rec && (
+                            <tr className="bg-blue-50/40">
+                              <td colSpan={7} className="px-6 py-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between border-b border-blue-200/50 pb-2">
+                                    <p className="text-xs font-bold text-gray-900">
+                                      All Punch Sessions for {staff.name} on {selectedDate}
+                                    </p>
+                                    <span className="text-xs font-mono font-bold text-[#2563EB]">
+                                      Total Time: {worked.toFixed(1)} hrs
+                                    </span>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    {(rec.sessions && rec.sessions.length > 0 ? rec.sessions : [{
+                                      id: 'sess-1',
+                                      punchIn: rec.punchIn,
+                                      punchInSelfie: rec.punchInSelfie,
+                                      punchInLocation: rec.punchInLocation,
+                                      punchOut: rec.punchOut,
+                                      punchOutSelfie: rec.punchOutSelfie,
+                                      punchOutLocation: rec.punchOutLocation,
+                                    }]).map((sess, sIdx) => {
+                                      const sDur = sess.punchIn && sess.punchOut ? calcWorkedHours(sess.punchIn, sess.punchOut) : 0;
+                                      return (
+                                        <div key={sess.id || sIdx} className="bg-white p-3 rounded-xl border border-gray-200 space-y-2 text-xs">
+                                          <div className="flex items-center justify-between font-bold">
+                                            <span className="text-[#2563EB]">Session #{sIdx + 1}</span>
+                                            <span className="text-gray-600 font-mono text-[11px]">
+                                              {sDur > 0 ? `${sDur.toFixed(1)} hrs` : (sess.punchOut ? '0.0 hrs' : 'Ongoing')}
+                                            </span>
+                                          </div>
+                                          <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                            <div className="space-y-1">
+                                              <p className="text-emerald-700 font-semibold font-mono">IN: {sess.punchIn}</p>
+                                              {sess.punchInSelfie && (
+                                                <img src={sess.punchInSelfie} alt="In selfie" className="w-16 h-16 rounded-lg object-cover border border-emerald-300" />
+                                              )}
+                                            </div>
+                                            <div className="space-y-1">
+                                              <p className="text-red-700 font-semibold font-mono">
+                                                {sess.punchOut ? `OUT: ${sess.punchOut}` : 'Active Shift'}
+                                              </p>
+                                              {sess.punchOutSelfie && (
+                                                <img src={sess.punchOutSelfie} alt="Out selfie" className="w-16 h-16 rounded-lg object-cover border border-red-300" />
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
