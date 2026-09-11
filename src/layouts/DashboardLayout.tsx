@@ -52,12 +52,12 @@ export default function DashboardLayout() {
 
   // Role-Based Access Helper
   const isRouteAllowedForRole = (role: string, href: string): boolean => {
-    if (!role || role === 'ADMIN') return true;
+    if (!role || role === 'ADMIN' || role === 'SUPER_ADMIN' || user?.username === 'superadmin' || user?.username === 'admin') return true;
 
     // Check custom applicationAccess permissions if set for the employee
     const appAccess = user?.applicationAccess;
     if (appAccess && appAccess.trim().length > 0) {
-      if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules')) {
+      if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules') || appAccess.includes('Super Admin')) {
         return true;
       }
       if (appAccess.includes('No Access')) {
