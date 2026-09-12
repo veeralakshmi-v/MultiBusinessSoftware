@@ -8,7 +8,13 @@ import {
   Image as ImageIcon, Upload, Plus, X, Monitor, ExternalLink, Lock, KeyRound, ShieldCheck, Eye, EyeOff, Palette
 } from 'lucide-react';
 import ThemeCustomizer from '../components/theme/ThemeCustomizer';
-import { PROJECT_MENU_ITEMS, parseAppAccess } from './EmployeeDirectory';
+import {
+  PROJECT_MENU_ITEMS, parseAppAccess, UNIVERSAL_CATEGORIES,
+  getRolesForCategory, getDefaultRoleForCategory
+} from './EmployeeDirectory';
+import {
+  isValidPhone, isValidAadhar, cleanPhone, cleanAadhar, formatAadhar
+} from '../utils/validation';
 
 export interface StaffUser {
   id: string;
@@ -37,7 +43,7 @@ const DEFAULT_STAFF: StaffUser[] = [
     username: 'admin',
     role: 'ADMIN',
     category: 'Management/Admin',
-    applicationAccess: 'Full Access (All Modules & POS)',
+    applicationAccess: 'No Access',
     phone: '9876543210',
     familyPhone: '9876543211',
     email: 'admin@mybusiness.com',
@@ -343,7 +349,17 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         setIsCustomRole(true);
       }
 
-      const STANDARD_CATEGORIES = ['Management/Admin', 'Accounts & Finance', 'Sales & Marketing', 'HouseKeeping', 'General'];
+      const STANDARD_CATEGORIES = [
+        'Management/Admin',
+        'Billing & Cash Desk',
+        'Sales & Marketing',
+        'Accounts & Finance',
+        'Inventory & Warehouse',
+        'Operations & Support',
+        'Customer Support & Service',
+        'HouseKeeping',
+        'General',
+      ];
       const catVal = st.category || 'Management/Admin';
       if (STANDARD_CATEGORIES.includes(catVal)) {
         setStaffCategory(catVal);
@@ -355,21 +371,21 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         setIsCustomCategory(true);
       }
       setSelectedAppAccess(parseAppAccess(st.applicationAccess));
-      setStaffFamilyPhone(st.familyPhone || '');
+      setStaffFamilyPhone(st.familyPhone ? cleanPhone(st.familyPhone).slice(0, 10) : '');
       setStaffEmail(st.email || '');
       setStaffPin(st.pinCode || '1234');
       setStaffStatus(roleVal === 'ADMIN' ? 'ACTIVE' : (st.status || 'ACTIVE'));
       setStaffDob(st.dob || '');
       setStaffDoj(st.doj || '');
       setStaffDor(st.dor || '');
-      setStaffAadhar(st.aadharNumber || '');
+      setStaffAadhar(st.aadharNumber ? formatAadhar(st.aadharNumber) : '');
       setStaffAddress(st.address || '');
       setStaffPhoto(st.photoUrl || '');
     } else {
       setEditingStaff(null);
       setStaffName('');
       setStaffUsername('');
-      setStaffRole('CASHIER');
+      setStaffRole(getDefaultRoleForCategory('Management/Admin'));
       setCustomRoleTitle('');
       setIsCustomRole(false);
       setStaffCategory('Management/Admin');
@@ -393,30 +409,40 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
 
   const isStaffPhoneDuplicate = !!staffPhone.trim() && staffList.some(s => {
     if (editingStaff && s.id === editingStaff.id) return false;
-    const p = staffPhone.trim().toLowerCase();
+    const p = cleanPhone(staffPhone).toLowerCase();
     return (
-      (s.phone && s.phone.trim().toLowerCase() === p) ||
-      (s.username && s.username.trim().toLowerCase() === p)
+      (s.phone && cleanPhone(s.phone).toLowerCase() === p) ||
+      (s.username && cleanPhone(s.username).toLowerCase() === p)
     );
   });
 
   const handleSaveStaff = (e: React.FormEvent) => {
     e.preventDefault();
-    const effectiveUsername = staffPhone.trim() || staffUsername.trim();
+    const phoneDigits = cleanPhone(staffPhone);
+    const effectiveUsername = phoneDigits || staffUsername.trim();
+
     if (!staffName.trim()) {
       alert('Full Name is required!');
       return;
     }
-    if (!effectiveUsername) {
-      alert('Contact Number (Mobile Number) is required as the default username!');
+    if (!phoneDigits || phoneDigits.length !== 10 || !/^\d{10}$/.test(phoneDigits)) {
+      alert('Contact Number (Phone Number) must be exactly 10 digits!');
       return;
     }
     if (isStaffPhoneDuplicate) {
       alert('this number is already exits, give another number');
       return;
     }
-    if (!staffAadhar.trim()) {
-      alert('Aadhar Number is required!');
+    if (staffFamilyPhone.trim()) {
+      const familyDigits = cleanPhone(staffFamilyPhone);
+      if (familyDigits.length !== 10 || !/^\d{10}$/.test(familyDigits)) {
+        alert('Family Contact Number must be exactly 10 digits!');
+        return;
+      }
+    }
+    const aadharDigits = cleanAadhar(staffAadhar);
+    if (!aadharDigits || aadharDigits.length !== 12 || !/^\d{12}$/.test(aadharDigits)) {
+      alert('Aadhar card number must be exactly 12 digits!');
       return;
     }
 
@@ -428,6 +454,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
       : selectedAppAccess.join(', ');
     const computedRole = isCustomRole ? (customRoleTitle.trim() || 'CUSTOM') : staffRole;
     const computedStatus = computedRole === 'ADMIN' ? 'ACTIVE' : staffStatus;
+    const formattedAadharVal = formatAadhar(aadharDigits);
 
     if (editingStaff) {
       setStaffList(prev =>
@@ -440,15 +467,15 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
               role: computedRole,
               category: computedCategory,
               applicationAccess: computedAppAccess,
-              phone: staffPhone.trim(),
-              familyPhone: staffFamilyPhone.trim(),
+              phone: phoneDigits,
+              familyPhone: staffFamilyPhone ? cleanPhone(staffFamilyPhone) : '',
               email: staffEmail.trim(),
               pinCode: staffPin.trim() || '1234',
               status: computedStatus,
               dob: staffDob,
               doj: staffDoj,
               dor: staffDor,
-              aadharNumber: staffAadhar.trim(),
+              aadharNumber: formattedAadharVal,
               address: staffAddress.trim(),
               photoUrl: staffPhoto,
             }
@@ -463,15 +490,15 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         role: computedRole,
         category: computedCategory,
         applicationAccess: computedAppAccess,
-        phone: staffPhone.trim(),
-        familyPhone: staffFamilyPhone.trim(),
+        phone: phoneDigits,
+        familyPhone: staffFamilyPhone ? cleanPhone(staffFamilyPhone) : '',
         email: staffEmail.trim(),
         pinCode: staffPin.trim() || '1234',
         status: computedStatus,
         dob: staffDob,
         doj: staffDoj,
         dor: staffDor,
-        aadharNumber: staffAadhar.trim(),
+        aadharNumber: formattedAadharVal,
         address: staffAddress.trim(),
         photoUrl: staffPhoto,
       };
@@ -482,12 +509,14 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
     try {
       const staffPayload = {
         name: staffName.trim(),
+        fullName: staffName.trim(),
+        staffName: staffName.trim(),
         username: effectiveUsername,
-        phone: staffPhone.trim(),
+        phone: phoneDigits,
         password: staffPin.trim() || '1234',
         pinCode: staffPin.trim() || '1234',
         role: computedRole,
-        aadharNumber: staffAadhar.trim(),
+        aadharNumber: formattedAadharVal,
         address: staffAddress.trim(),
         email: staffEmail.trim(),
       };
@@ -1052,15 +1081,19 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                       } else {
                         setIsCustomCategory(false);
                         setStaffCategory(val);
+                        const defaultRole = getDefaultRoleForCategory(val);
+                        setStaffRole(defaultRole);
+                        setIsCustomRole(false);
+                        if (defaultRole === 'ADMIN') {
+                          setStaffStatus('ACTIVE');
+                        }
                       }
                     }}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
                   >
-                    <option value="Management/Admin">Management/Admin</option>
-                    <option value="Accounts & Finance">Accounts & Finance</option>
-                    <option value="Sales & Marketing">Sales & Marketing</option>
-                    <option value="HouseKeeping">HouseKeeping</option>
-                    <option value="General">General</option>
+                    {UNIVERSAL_CATEGORIES.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                     <option value="CUSTOM">⚡ CUSTOM CATEGORY (Enter custom department)</option>
                   </select>
 
@@ -1096,10 +1129,9 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                     }}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
                   >
-                    <option value="CASHIER">CASHIER</option>
-                    <option value="MANAGER">MANAGER</option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="STAFF">STAFF</option>
+                    {getRolesForCategory(staffCategory).map((r) => (
+                      <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>
+                    ))}
                     <option value="CUSTOM">⚡ CUSTOM ROLE</option>
                   </select>
 
@@ -1224,15 +1256,20 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold mb-1 text-[#2563EB]">Aadhar Number *</label>
+                  <label className="block text-xs font-semibold mb-1 text-[#2563EB]">Aadhar Number (12 Digits) *</label>
                   <input
                     type="text"
                     required
+                    maxLength={14}
                     placeholder="1234 5678 9012"
                     value={staffAadhar}
-                    onChange={(e) => setStaffAadhar(e.target.value)}
+                    onChange={(e) => {
+                      const digits = cleanAadhar(e.target.value).slice(0, 12);
+                      setStaffAadhar(formatAadhar(digits));
+                    }}
                     className="w-full bg-gray-50 border border-gray-200 focus:border-blue-400 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none"
                   />
+                  <p className="text-[10px] text-gray-400 mt-1">12-digit UIDAI Aadhaar card number</p>
                 </div>
 
                 <div>
@@ -1257,17 +1294,18 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
 
                 <div>
                   <label className={cn("block text-xs font-semibold mb-1", isStaffPhoneDuplicate ? "text-red-500 font-bold" : "text-[#2563EB]")}>
-                    Contact Number (Default Username) *
+                    Contact Number (10 Digits - Default Username) *
                   </label>
                   <input
                     type="tel"
                     required
-                    placeholder="+91 98765 00000"
+                    maxLength={10}
+                    placeholder="9876543210"
                     value={staffPhone}
                     onChange={(e) => {
-                      const val = e.target.value;
-                      setStaffPhone(val);
-                      setStaffUsername(val);
+                      const digits = cleanPhone(e.target.value).slice(0, 10);
+                      setStaffPhone(digits);
+                      setStaffUsername(digits);
                     }}
                     className={cn(
                       "w-full bg-gray-50 rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
@@ -1276,20 +1314,26 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                         : "border border-gray-200 focus:border-blue-400 text-gray-900"
                     )}
                   />
-                  {isStaffPhoneDuplicate && (
+                  {isStaffPhoneDuplicate ? (
                     <p className="text-[11px] text-red-500 mt-1 flex items-center gap-1 font-bold animate-in fade-in">
                       ⚠️ this number is already exits, give another number
                     </p>
+                  ) : (
+                    <p className="text-[10px] text-gray-400 mt-1">Must be exactly 10 numeric digits</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Family Contact Number</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Family Contact Number (10 Digits)</label>
                   <input
                     type="tel"
-                    placeholder="+91 98765 11111"
+                    maxLength={10}
+                    placeholder="9876511111"
                     value={staffFamilyPhone}
-                    onChange={(e) => setStaffFamilyPhone(e.target.value)}
+                    onChange={(e) => {
+                      const digits = cleanPhone(e.target.value).slice(0, 10);
+                      setStaffFamilyPhone(digits);
+                    }}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-blue-400"
                   />
                 </div>

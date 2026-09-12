@@ -8,6 +8,9 @@ import {
   ArrowLeft, Upload, X, Save, Clock, ChevronRight, UserCheck
 } from 'lucide-react';
 import { StaffUser } from './Settings';
+import {
+  isValidPhone, isValidAadhar, cleanPhone, cleanAadhar, formatAadhar
+} from '../utils/validation';
 
 export const PROJECT_MENU_ITEMS = [
   'Dashboard',
@@ -22,11 +25,8 @@ export const PROJECT_MENU_ITEMS = [
 ] as const;
 
 export function parseAppAccess(val?: string): string[] {
-  if (!val || val === 'No Access' || val === 'None') {
+  if (!val || val === 'No Access' || val === 'None' || val.includes('Full Access') || val.includes('ALL_MODULES')) {
     return [];
-  }
-  if (val.includes('Full Access') || val.includes('ALL_MODULES')) {
-    return [...PROJECT_MENU_ITEMS];
   }
   if (val === 'POS & Sales Billing Only') {
     return ['Billing POS', 'Customers', 'Staff Attendance'];
@@ -45,23 +45,52 @@ export function parseAppAccess(val?: string): string[] {
   return matched;
 }
 
-export const CATEGORY_ROLE_MAP: Record<string, Role[]> = {
-  MANAGEMENT: ['ADMIN', 'MANAGER'],
-  BILLING_POS: ['CASHIER', 'STAFF'],
-  KITCHEN_OPERATIONS: ['HEAD_CHEF', 'CHEF', 'KITCHEN_STAFF'],
-  CLINIC_MEDICAL: ['DOCTOR', 'NURSE', 'RECEPTIONSIT'],
-  SALON_SPA: ['STYLIST', 'THERAPIST'],
-  INVENTORY_STORE: ['STORE_MANAGER', 'STOCK_KEEPER'],
-  CUSTOM: ['ADMIN', 'MANAGER', 'CASHIER', 'STAFF'],
+export const UNIVERSAL_CATEGORIES = [
+  'Management/Admin',
+  'Billing & Cash Desk',
+  'Sales & Marketing',
+  'Accounts & Finance',
+  'Inventory & Warehouse',
+  'Operations & Support',
+  'Customer Support & Service',
+  'HouseKeeping',
+  'General',
+] as const;
+
+export const CATEGORY_ROLE_MAP: Record<string, string[]> = {
+  'Management/Admin': ['ADMIN', 'MANAGER', 'SUPERVISOR'],
+  'Management & Admin': ['ADMIN', 'MANAGER', 'SUPERVISOR'],
+  'Billing & Cash Desk': ['CASHIER', 'BILLING_OPERATOR', 'STAFF'],
+  'Billing POS': ['CASHIER', 'STAFF'],
+  'Sales & Marketing': ['SALES_EXECUTIVE', 'MARKETING_MANAGER', 'STAFF'],
+  'Accounts & Finance': ['ACCOUNTANT', 'FINANCE_MANAGER', 'STAFF'],
+  'Inventory & Warehouse': ['STORE_KEEPER', 'INVENTORY_MANAGER', 'STAFF'],
+  'Operations & Support': ['OPERATIONS_MANAGER', 'COORDINATOR', 'STAFF'],
+  'Customer Support & Service': ['CUSTOMER_SUPPORT', 'RECEPTIONIST', 'STAFF'],
+  'HouseKeeping': ['STAFF', 'SUPERVISOR'],
+  'General': ['STAFF', 'OPERATOR', 'CASHIER'],
 };
 
-export function getRolesForCategory(cat: string): Role[] {
-  return CATEGORY_ROLE_MAP[cat] || ['ADMIN', 'MANAGER', 'CASHIER', 'STAFF'];
+export const CATEGORY_DEFAULT_ROLE_MAP: Record<string, string> = {
+  'Management/Admin': 'ADMIN',
+  'Management & Admin': 'ADMIN',
+  'Billing & Cash Desk': 'CASHIER',
+  'Billing POS': 'CASHIER',
+  'Sales & Marketing': 'SALES_EXECUTIVE',
+  'Accounts & Finance': 'ACCOUNTANT',
+  'Inventory & Warehouse': 'STORE_KEEPER',
+  'Operations & Support': 'OPERATIONS_MANAGER',
+  'Customer Support & Service': 'CUSTOMER_SUPPORT',
+  'HouseKeeping': 'STAFF',
+  'General': 'STAFF',
+};
+
+export function getRolesForCategory(cat: string): string[] {
+  return CATEGORY_ROLE_MAP[cat] || ['CASHIER', 'MANAGER', 'ADMIN', 'STAFF'];
 }
 
-export function getDefaultRoleForCategory(cat: string): Role {
-  const roles = getRolesForCategory(cat);
-  return roles[0] || 'STAFF';
+export function getDefaultRoleForCategory(cat: string): string {
+  return CATEGORY_DEFAULT_ROLE_MAP[cat] || 'STAFF';
 }
 
 export default function EmployeeDirectory() {
@@ -80,7 +109,7 @@ export default function EmployeeDirectory() {
         username: 'admin',
         role: 'ADMIN',
         category: 'Management/Admin',
-        applicationAccess: 'Full Access (All Modules & POS)',
+        applicationAccess: 'No Access',
         phone: '9876543210',
         familyPhone: '9876543211',
         email: 'admin@mybusiness.com',
@@ -167,7 +196,7 @@ export default function EmployeeDirectory() {
                 email: u.email || existing?.email || '',
                 role: u.role || existing?.role || 'CASHIER',
                 category: existing?.category || 'Management/Admin',
-                applicationAccess: existing?.applicationAccess || 'Full Access (All Modules & POS)',
+                applicationAccess: existing?.applicationAccess || u.applicationAccess || 'No Access',
                 status: u.status || existing?.status || 'ACTIVE',
                 pinCode: u.password || existing?.pinCode || '1234',
                 aadharNumber: u.aadharNumber || existing?.aadharNumber || '',
@@ -206,7 +235,17 @@ export default function EmployeeDirectory() {
         setIsCustomRole(true);
       }
 
-      const STANDARD_CATEGORIES = ['Management/Admin', 'Accounts & Finance', 'Sales & Marketing', 'HouseKeeping', 'General'];
+      const STANDARD_CATEGORIES = [
+        'Management/Admin',
+        'Billing & Cash Desk',
+        'Sales & Marketing',
+        'Accounts & Finance',
+        'Inventory & Warehouse',
+        'Operations & Support',
+        'Customer Support & Service',
+        'HouseKeeping',
+        'General',
+      ];
       const catVal = st.category || 'Management/Admin';
       if (STANDARD_CATEGORIES.includes(catVal)) {
         setStaffCategory(catVal);
@@ -218,13 +257,14 @@ export default function EmployeeDirectory() {
         setIsCustomCategory(true);
       }
       setSelectedAppAccess(parseAppAccess(st.applicationAccess));
+      setStaffFamilyPhone(st.familyPhone ? cleanPhone(st.familyPhone).slice(0, 10) : '');
       setStaffEmail(st.email || '');
       setStaffPin(st.pinCode || '1234');
       setStaffStatus(roleVal === 'ADMIN' ? 'ACTIVE' : (st.status || 'ACTIVE'));
       setStaffDob(st.dob || '');
       setStaffDoj(st.doj || '');
       setStaffDor(st.dor || '');
-      setStaffAadhar(st.aadharNumber || '');
+      setStaffAadhar(st.aadharNumber ? formatAadhar(st.aadharNumber) : '');
       setStaffAddress(st.address || '');
       setStaffPhoto(st.photoUrl || '');
     } else {
@@ -233,7 +273,7 @@ export default function EmployeeDirectory() {
       setStaffName('');
       setStaffPhone('');
       setStaffUsername('');
-      setStaffRole('CASHIER');
+      setStaffRole(getDefaultRoleForCategory('Management/Admin'));
       setCustomRoleTitle('');
       setIsCustomRole(false);
       setStaffCategory('Management/Admin');
@@ -266,30 +306,40 @@ export default function EmployeeDirectory() {
 
   const isPhoneDuplicate = !!staffPhone.trim() && staffList.some(s => {
     if (selectedStaff && isEditing && s.id === selectedStaff.id) return false;
-    const p = staffPhone.trim().toLowerCase();
+    const p = cleanPhone(staffPhone).toLowerCase();
     return (
-      (s.phone && s.phone.trim().toLowerCase() === p) ||
-      (s.username && s.username.trim().toLowerCase() === p)
+      (s.phone && cleanPhone(s.phone).toLowerCase() === p) ||
+      (s.username && cleanPhone(s.username).toLowerCase() === p)
     );
   });
 
   const handleSaveStaff = (e: React.FormEvent) => {
     e.preventDefault();
-    const effectiveUsername = staffPhone.trim() || staffUsername.trim();
+    const phoneDigits = cleanPhone(staffPhone);
+    const effectiveUsername = phoneDigits || staffUsername.trim();
+
     if (!staffName.trim()) {
       alert('Full Name is required!');
       return;
     }
-    if (!effectiveUsername) {
-      alert('Contact Number (Mobile Number) is required as the default username!');
+    if (!phoneDigits || phoneDigits.length !== 10 || !/^\d{10}$/.test(phoneDigits)) {
+      alert('Contact Number (Phone Number) must be exactly 10 digits!');
       return;
     }
     if (isPhoneDuplicate) {
       alert('this number is already exits, give another number');
       return;
     }
-    if (!staffAadhar.trim()) {
-      alert('Aadhar Number is mandatory!');
+    if (staffFamilyPhone.trim()) {
+      const familyDigits = cleanPhone(staffFamilyPhone);
+      if (familyDigits.length !== 10 || !/^\d{10}$/.test(familyDigits)) {
+        alert('Family Contact Number must be exactly 10 digits!');
+        return;
+      }
+    }
+    const aadharDigits = cleanAadhar(staffAadhar);
+    if (!aadharDigits || aadharDigits.length !== 12 || !/^\d{12}$/.test(aadharDigits)) {
+      alert('Aadhar card number must be exactly 12 digits!');
       return;
     }
 
@@ -301,6 +351,7 @@ export default function EmployeeDirectory() {
         : selectedAppAccess.join(', ');
     const computedRole = isCustomRole ? (customRoleTitle.trim() || 'CUSTOM') : staffRole;
     const computedStatus = computedRole === 'ADMIN' ? 'ACTIVE' : staffStatus;
+    const formattedAadharVal = formatAadhar(aadharDigits);
 
     if (selectedStaff && isEditing) {
       setStaffList(prev =>
@@ -313,15 +364,15 @@ export default function EmployeeDirectory() {
               role: computedRole,
               category: computedCategory,
               applicationAccess: computedAppAccess,
-              phone: staffPhone.trim(),
-              familyPhone: staffFamilyPhone.trim(),
+              phone: phoneDigits,
+              familyPhone: staffFamilyPhone ? cleanPhone(staffFamilyPhone) : '',
               email: staffEmail.trim(),
               pinCode: staffPin.trim() || '1234',
               status: computedStatus,
               dob: staffDob,
               doj: staffDoj,
               dor: staffDor,
-              aadharNumber: staffAadhar.trim(),
+              aadharNumber: formattedAadharVal,
               address: staffAddress.trim(),
               photoUrl: staffPhoto,
             }
@@ -336,15 +387,15 @@ export default function EmployeeDirectory() {
         role: computedRole,
         category: computedCategory,
         applicationAccess: computedAppAccess,
-        phone: staffPhone.trim(),
-        familyPhone: staffFamilyPhone.trim(),
+        phone: phoneDigits,
+        familyPhone: staffFamilyPhone ? cleanPhone(staffFamilyPhone) : '',
         email: staffEmail.trim(),
         pinCode: staffPin.trim() || '1234',
         status: computedStatus,
         dob: staffDob,
         doj: staffDoj,
         dor: staffDor,
-        aadharNumber: staffAadhar.trim(),
+        aadharNumber: formattedAadharVal,
         address: staffAddress.trim(),
         photoUrl: staffPhoto,
       };
@@ -360,11 +411,11 @@ export default function EmployeeDirectory() {
         fullName: staffName.trim(),
         staffName: staffName.trim(),
         username: effectiveUsername,
-        phone: staffPhone.trim(),
+        phone: phoneDigits,
         password: staffPin.trim() || '1234',
         pinCode: staffPin.trim() || '1234',
         role: computedRole,
-        aadharNumber: staffAadhar.trim(),
+        aadharNumber: formattedAadharVal,
         address: staffAddress.trim(),
         email: staffEmail.trim(),
       })
@@ -467,11 +518,9 @@ export default function EmployeeDirectory() {
               className="bg-gray-50 border border-gray-100 rounded-xl px-2 py-1 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
             >
               <option value="ALL">All Departments</option>
-              <option value="Management/Admin">Management/Admin</option>
-              <option value="Accounts & Finance">Accounts & Finance</option>
-              <option value="Sales & Marketing">Sales & Marketing</option>
-              <option value="HouseKeeping">HouseKeeping</option>
-              <option value="General">General</option>
+              {UNIVERSAL_CATEGORIES.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -783,15 +832,19 @@ export default function EmployeeDirectory() {
                       } else {
                         setIsCustomCategory(false);
                         setStaffCategory(val);
+                        const defaultRole = getDefaultRoleForCategory(val);
+                        setStaffRole(defaultRole);
+                        setIsCustomRole(false);
+                        if (defaultRole === 'ADMIN') {
+                          setStaffStatus('ACTIVE');
+                        }
                       }
                     }}
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   >
-                    <option value="Management/Admin">Management/Admin</option>
-                    <option value="Accounts & Finance">Accounts & Finance</option>
-                    <option value="Sales & Marketing">Sales & Marketing</option>
-                    <option value="HouseKeeping">HouseKeeping</option>
-                    <option value="General">General</option>
+                    {UNIVERSAL_CATEGORIES.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                     <option value="CUSTOM">⚡ CUSTOM CATEGORY (Enter custom department)</option>
                   </select>
 
@@ -827,10 +880,9 @@ export default function EmployeeDirectory() {
                     }}
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
                   >
-                    <option value="CASHIER">CASHIER</option>
-                    <option value="MANAGER">MANAGER</option>
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="STAFF">STAFF</option>
+                    {getRolesForCategory(staffCategory).map((r) => (
+                      <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>
+                    ))}
                     <option value="CUSTOM">⚡ CUSTOM ROLE</option>
                   </select>
 
@@ -969,15 +1021,20 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1 text-[#2563EB]">Aadhar Number *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1 text-[#2563EB]">Aadhar Number (12 Digits) *</label>
                   <input
                     type="text"
                     required
+                    maxLength={14}
                     placeholder="1234 5678 9012"
                     value={staffAadhar}
-                    onChange={(e) => setStaffAadhar(e.target.value)}
+                    onChange={(e) => {
+                      const digits = cleanAadhar(e.target.value).slice(0, 12);
+                      setStaffAadhar(formatAadhar(digits));
+                    }}
                     className="w-full bg-gray-50 border border-[#2563EB]/40 focus:border-[#2563EB] rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none"
                   />
+                  <p className="text-[10px] text-gray-400 mt-1">12-digit UIDAI Aadhaar card number</p>
                 </div>
 
                 <div>
@@ -1002,17 +1059,18 @@ export default function EmployeeDirectory() {
 
                 <div>
                   <label className={cn("block text-xs font-semibold mb-1", isPhoneDuplicate ? "text-red-400 font-bold" : "text-[#2563EB]")}>
-                    Contact Number (Default Username) *
+                    Contact Number (10 Digits - Default Username) *
                   </label>
                   <input
                     type="tel"
                     required
-                    placeholder="+91 98765 00000"
+                    maxLength={10}
+                    placeholder="9876543210"
                     value={staffPhone}
                     onChange={(e) => {
-                      const val = e.target.value;
-                      setStaffPhone(val);
-                      setStaffUsername(val);
+                      const digits = cleanPhone(e.target.value).slice(0, 10);
+                      setStaffPhone(digits);
+                      setStaffUsername(digits);
                     }}
                     className={cn(
                       "w-full bg-gray-50 rounded-xl px-3 py-2 text-xs font-mono outline-none transition-all",
@@ -1021,20 +1079,26 @@ export default function EmployeeDirectory() {
                         : "border border-[#2563EB]/40 focus:border-[#2563EB] text-gray-900"
                     )}
                   />
-                  {isPhoneDuplicate && (
+                  {isPhoneDuplicate ? (
                     <p className="text-[11px] text-red-400 mt-1 flex items-center gap-1 font-bold animate-in fade-in">
                       ⚠️ this number is already exits, give another number
                     </p>
+                  ) : (
+                    <p className="text-[10px] text-gray-400 mt-1">Must be exactly 10 numeric digits</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Family Contact Number</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Family Contact Number (10 Digits)</label>
                   <input
                     type="tel"
-                    placeholder="+91 98765 11111"
+                    maxLength={10}
+                    placeholder="9876511111"
                     value={staffFamilyPhone}
-                    onChange={(e) => setStaffFamilyPhone(e.target.value)}
+                    onChange={(e) => {
+                      const digits = cleanPhone(e.target.value).slice(0, 10);
+                      setStaffFamilyPhone(digits);
+                    }}
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
                   />
                 </div>

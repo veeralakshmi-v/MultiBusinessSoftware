@@ -21,9 +21,8 @@ function Carousel({ slides }: { slides: LandingSlide[] }) {
       {slides.map((slide, i) => (
         <div
           key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-700 flex items-center justify-center ${
-            i === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
-          }`}
+          className={`absolute inset-0 transition-opacity duration-700 flex items-center justify-center ${i === current ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
         >
           {/* Soft background glow */}
           <img
@@ -70,9 +69,8 @@ function Carousel({ slides }: { slides: LandingSlide[] }) {
               <button
                 key={i}
                 onClick={() => setCurrent(i)}
-                className={`rounded-full transition-all duration-300 ${
-                  i === current ? 'w-5 h-1.5 bg-[#2563EB]' : 'w-1.5 h-1.5 bg-gray-300 hover:bg-gray-400'
-                }`}
+                className={`rounded-full transition-all duration-300 ${i === current ? 'w-5 h-1.5 bg-[#2563EB]' : 'w-1.5 h-1.5 bg-gray-300 hover:bg-gray-400'
+                  }`}
               />
             ))}
           </div>
@@ -144,7 +142,7 @@ export default function LandingPage() {
 
   return (
     <div className="h-screen w-full bg-[#F4F6FB] text-[#0F172A] font-sans flex flex-col justify-between overflow-hidden relative selection:bg-blue-500 selection:text-white">
-      
+
       {/* Soft background ambient gradient glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-blue-100/50 via-purple-50/30 to-transparent blur-3xl pointer-events-none -z-10" />
 
@@ -192,7 +190,7 @@ export default function LandingPage() {
 
       {/* ── MAIN SHOWCASE & CARDS CONTENT ── */}
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 my-auto py-2 flex flex-col lg:flex-row items-stretch justify-between gap-6 lg:gap-8 flex-1 max-h-[calc(100vh-140px)]">
-        
+
         {/* Left Side: Carousel / Showcase Gallery replacing text block */}
         <div className="flex-1 min-w-0 flex flex-col justify-center">
           {slides.length > 0 ? (
@@ -262,7 +260,7 @@ export default function LandingPage() {
           <p className="text-[11px]">© {new Date().getFullYear()} {brandName}. All rights reserved.</p>
           <div className="flex items-center gap-1 text-gray-400 font-mono text-[10px]">
             <Sparkles className="w-3 h-3 text-[#2563EB]" />
-            <span>Apex SaaS</span>
+            <span>Foclen Software Solutions Pvt Ltd</span>
           </div>
         </div>
       </footer>
