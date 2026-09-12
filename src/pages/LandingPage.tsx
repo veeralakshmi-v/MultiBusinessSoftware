@@ -140,6 +140,22 @@ export default function LandingPage() {
   ];
 
 
+  const getStoreSlug = () => {
+    try {
+      const saved = localStorage.getItem('universal_website_config');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.storeSlug) return parsed.storeSlug;
+        if (parsed.brandName) {
+          return parsed.brandName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        }
+      }
+    } catch {}
+    return brandName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'apex-enterprise';
+  };
+
+  const storeSlug = getStoreSlug();
+
   return (
     <div className="h-screen w-full bg-[#F4F6FB] text-[#0F172A] font-sans flex flex-col justify-between overflow-hidden relative selection:bg-blue-500 selection:text-white">
 
@@ -166,11 +182,11 @@ export default function LandingPage() {
         {/* Right Badges & Navigation Buttons */}
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/website')}
+            onClick={() => navigate(`/${storeSlug}`)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-gray-200/80 bg-white hover:bg-gray-50 text-xs font-bold text-gray-700 shadow-sm transition-all cursor-pointer"
           >
             <Globe className="w-3.5 h-3.5 text-[#2563EB]" />
-            <span>Website</span>
+            <span>Store Website</span>
           </button>
 
           <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-semibold font-mono">

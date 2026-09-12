@@ -884,10 +884,10 @@ export default function BillingPOS() {
   };
 
   return (
-    <div className="h-full flex flex-col lg:flex-row gap-4 overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row gap-2.5 sm:gap-3.5 overflow-hidden min-h-0 w-full">
 
       {/* LEFT: Item Catalog & Search Area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-white/80 backdrop-blur-md border border-white/60 rounded-3xl overflow-hidden p-4 shadow-lg shadow-gray-200/50 space-y-3">
+      <div className="flex-1 flex flex-col min-w-0 bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl sm:rounded-3xl overflow-hidden p-2.5 sm:p-3.5 shadow-lg shadow-gray-200/50 space-y-2.5 min-h-0">
         {/* Search Input Bar + Add Product Button */}
         <form onSubmit={handleBarcodeSubmit} className="flex gap-2">
           <div className="relative flex-1">
@@ -898,7 +898,7 @@ export default function BillingPOS() {
               placeholder="Search products by Name, Barcode, or SKU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-gray-50/80 border border-gray-200 rounded-2xl text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#2563EB] focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
+              className="w-full pl-10 pr-10 py-2 sm:py-2.5 bg-gray-50/80 border border-gray-200 rounded-xl sm:rounded-2xl text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#2563EB] focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
             />
             {searchQuery && (
               <button
@@ -914,11 +914,11 @@ export default function BillingPOS() {
 
         {/* Category Filter Chips */}
         {categories.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5 px-0.5 no-scrollbar flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 pt-0.5 px-0.5 no-scrollbar flex-shrink-0">
             <button
               onClick={() => setSelectedCategory('ALL')}
               className={cn(
-                "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer shadow-xs",
+                "px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer shadow-xs",
                 selectedCategory === 'ALL'
                   ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
                   : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
@@ -935,14 +935,14 @@ export default function BillingPOS() {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={cn(
-                    "px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 cursor-pointer shadow-xs",
+                    "px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 cursor-pointer shadow-xs",
                     isSelected
                       ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20"
                       : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
                   )}
                 >
                   <span>{cat.name}</span>
-                  <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-mono font-semibold", isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600")}>
+                  <span className={cn("text-[10px] px-1.5 py-0.2 rounded-full font-mono font-semibold", isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600")}>
                     {count}
                   </span>
                 </button>
@@ -952,9 +952,9 @@ export default function BillingPOS() {
         )}
 
         {/* Products Grid */}
-        <div className="flex-1 overflow-y-auto no-scrollbar p-1">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-0.5 sm:p-1 min-h-0">
           {filteredItems.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2 sm:gap-2.5">
               {filteredItems.map(item => {
                 const inCart = cart.find(c => c.menuItem.id === item.id);
                 const stock = (item.currentStock !== undefined && item.currentStock !== null) ? item.currentStock : 50;
@@ -1085,13 +1085,13 @@ export default function BillingPOS() {
 
       {/* RIGHT: Billing Register & Cart Panel (Mobile Slide-up Drawer / Desktop Right Column) */}
       <div className={cn(
-        "w-full lg:w-[420px] xl:w-[450px] flex flex-col bg-white/80 backdrop-blur-md border border-white/60 overflow-hidden shadow-lg shadow-gray-200/50 flex-shrink-0 transition-all duration-300",
-        "fixed inset-x-0 bottom-0 z-50 h-[90vh] rounded-t-3xl border-t border-gray-200 lg:static lg:h-auto lg:rounded-3xl lg:z-auto",
+        "w-full lg:w-[350px] xl:w-[390px] 2xl:w-[430px] flex flex-col bg-white/80 backdrop-blur-md border border-white/60 overflow-hidden shadow-lg shadow-gray-200/50 flex-shrink-0 transition-all duration-300",
+        "fixed inset-x-0 bottom-0 z-50 h-[90vh] rounded-t-3xl border-t border-gray-200 lg:static lg:h-full lg:rounded-2xl sm:lg:rounded-3xl lg:z-auto min-h-0",
         isMobileCartOpen ? "translate-y-0" : "translate-y-full lg:translate-y-0 hidden lg:flex"
       )}>
 
         {/* Cart Top Bar: Customer Selector & Held Bills */}
-        <div className="p-3.5 border-b border-gray-200 space-y-2.5 bg-gray-50/80">
+        <div className="p-2.5 sm:p-3 border-b border-gray-200 space-y-2 bg-gray-50/80 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <button
@@ -1109,7 +1109,7 @@ export default function BillingPOS() {
               {heldBills.length > 0 && (
                 <button
                   onClick={() => setIsHeldModalOpen(true)}
-                  className="px-2.5 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/30 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
+                  className="px-2 py-0.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/30 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
                 >
                   <PlayCircle className="w-3 h-3" />
                   <span>Recall ({heldBills.length})</span>
@@ -1118,7 +1118,7 @@ export default function BillingPOS() {
               {cart.length > 0 && (
                 <button
                   onClick={handleHoldBill}
-                  className="p-1.5 hover:bg-gray-200 text-gray-500 hover:text-amber-600 rounded-lg transition-colors"
+                  className="p-1 hover:bg-gray-200 text-gray-500 hover:text-amber-600 rounded-lg transition-colors"
                   title="Hold / Park Bill"
                 >
                   <PauseCircle className="w-4 h-4" />
@@ -1127,7 +1127,7 @@ export default function BillingPOS() {
               {cart.length > 0 && (
                 <button
                   onClick={handleClearCart}
-                  className="p-1.5 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-lg transition-colors"
+                  className="p-1 hover:bg-red-50 text-gray-500 hover:text-red-600 rounded-lg transition-colors"
                   title="Clear Cart"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -1150,7 +1150,7 @@ export default function BillingPOS() {
                     setCustomerSearch(e.target.value);
                     setIsCustomerDropdownOpen(true);
                   }}
-                  className="w-full pl-8 pr-7 py-2 bg-white border border-gray-300 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#2563EB]"
+                  className="w-full pl-8 pr-7 py-1.5 sm:py-2 bg-white border border-gray-300 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#2563EB]"
                 />
                 {selectedCustomer && (
                   <button
@@ -1163,7 +1163,7 @@ export default function BillingPOS() {
               </div>
               <button
                 onClick={() => setIsAddCustomerModalOpen(true)}
-                className="p-2 bg-white hover:bg-gray-100 text-[#2563EB] border border-gray-300 rounded-xl"
+                className="p-1.5 sm:p-2 bg-white hover:bg-gray-100 text-[#2563EB] border border-gray-300 rounded-xl"
                 title="Add New Customer"
               >
                 <UserPlus className="w-4 h-4" />
@@ -1209,13 +1209,13 @@ export default function BillingPOS() {
         </div>
 
         {/* Cart Items List */}
-        <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-2 bg-white">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-2 sm:p-2.5 space-y-1.5 bg-white min-h-0">
           {cart.map(item => {
             const lineTotal = item.price * item.quantity;
             return (
               <div
                 key={item.id}
-                className="bg-gray-50 border border-gray-200 p-2.5 rounded-xl flex items-center justify-between gap-2 group hover:border-gray-300 transition-colors"
+                className="bg-gray-50 border border-gray-200 p-2 sm:p-2.5 rounded-xl flex items-center justify-between gap-2 group hover:border-gray-300 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <h5 className="font-bold text-gray-900 text-xs truncate">{item.menuItem.name}</h5>
@@ -1229,7 +1229,7 @@ export default function BillingPOS() {
                   <div className="flex items-center bg-white border border-gray-300 rounded-lg p-0.5 shadow-2xs">
                     <button
                       onClick={() => updateQuantity(item.id, -1)}
-                      className="p-1 hover:bg-gray-100 text-gray-600 hover:text-gray-900 rounded"
+                      className="p-0.5 sm:p-1 hover:bg-gray-100 text-gray-600 hover:text-gray-900 rounded"
                       title="Reduce quantity"
                     >
                       <Minus className="w-3 h-3" />
@@ -1246,14 +1246,14 @@ export default function BillingPOS() {
                           setSubUnitVal(curVal || '250');
                         }
                       }}
-                      className="font-mono font-bold text-xs text-gray-900 px-2 min-w-[20px] text-center hover:text-[#2563EB] transition-colors cursor-pointer"
+                      className="font-mono font-bold text-xs text-gray-900 px-1.5 min-w-[18px] text-center hover:text-[#2563EB] transition-colors cursor-pointer"
                       title="Click to edit custom weight/volume (grams / ml)"
                     >
                       {item.quantity}
                     </button>
                     <button
                       onClick={() => updateQuantity(item.id, 1)}
-                      className="p-1 hover:bg-gray-100 text-gray-600 hover:text-gray-900 rounded"
+                      className="p-0.5 sm:p-1 hover:bg-gray-100 text-gray-600 hover:text-gray-900 rounded"
                       title="Increase quantity"
                     >
                       <Plus className="w-3 h-3" />
@@ -1261,7 +1261,7 @@ export default function BillingPOS() {
                   </div>
 
                   {/* Line Total */}
-                  <div className="font-mono font-bold text-gray-900 text-xs min-w-[65px] text-right">
+                  <div className="font-mono font-bold text-gray-900 text-xs min-w-[55px] sm:min-w-[65px] text-right">
                     {currency}{lineTotal.toFixed(2)}
                   </div>
 
@@ -1278,8 +1278,8 @@ export default function BillingPOS() {
           })}
 
           {cart.length === 0 && (
-            <div className="h-44 flex flex-col items-center justify-center text-gray-400 space-y-2">
-              <ShoppingCart className="w-8 h-8 text-gray-300" />
+            <div className="h-32 sm:h-40 flex flex-col items-center justify-center text-gray-400 space-y-1.5">
+              <ShoppingCart className="w-7 h-7 text-gray-300" />
               <p className="text-xs font-semibold text-gray-600">Cart is empty</p>
               <p className="text-[10px] text-gray-400">Click products from catalog to start billing</p>
             </div>
@@ -1287,16 +1287,16 @@ export default function BillingPOS() {
         </div>
 
         {/* Cart Bottom: Calculations & Checkout */}
-        <div className="p-3.5 border-t border-gray-200 bg-gray-50/90 space-y-3">
+        <div className="p-2.5 sm:p-3.5 border-t border-gray-200 bg-gray-50/90 space-y-2 sm:space-y-2.5 flex-shrink-0 overflow-y-auto max-h-[55vh] lg:max-h-none">
           {/* Bill Type Selector (GST vs Non-GST) - Theme Adaptive */}
-          <div className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-xl mb-2 shadow-2xs">
+          <div className="flex items-center justify-between p-1.5 sm:p-2 bg-white border border-gray-200 rounded-xl mb-1 shadow-2xs">
             <span className="text-xs font-bold text-gray-900">Bill Type:</span>
-            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-1 bg-gray-100 p-0.5 sm:p-1 rounded-lg border border-gray-200">
               <button
                 type="button"
                 onClick={() => setBillType('GST')}
                 className={cn(
-                  "px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5",
+                  "px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1",
                   billType === 'GST'
                     ? "bg-[#2563EB] text-white shadow font-extrabold"
                     : "text-gray-700 hover:text-gray-900 hover:bg-gray-200"
@@ -1308,7 +1308,7 @@ export default function BillingPOS() {
                 type="button"
                 onClick={() => setBillType('NON_GST')}
                 className={cn(
-                  "px-2.5 py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1.5",
+                  "px-2 sm:px-2.5 py-0.5 sm:py-1 text-xs font-bold rounded-md transition-all flex items-center gap-1",
                   billType === 'NON_GST'
                     ? "bg-amber-500 text-white shadow font-extrabold"
                     : "text-gray-700 hover:text-gray-900 hover:bg-gray-200"
@@ -1320,7 +1320,7 @@ export default function BillingPOS() {
           </div>
 
           {/* Bill Summary Calculations */}
-          <div className="space-y-1.5 text-xs text-gray-600 border-b border-gray-200 pb-2.5">
+          <div className="space-y-1 text-xs text-gray-600 border-b border-gray-200 pb-2">
             <div className="flex justify-between">
               <span>Items Subtotal</span>
               <span className="font-mono font-bold text-gray-900">{currency}{subtotal.toFixed(2)}</span>
@@ -1370,14 +1370,13 @@ export default function BillingPOS() {
             </div>
 
             {/* Grand Total Highlight */}
-            <div className="flex justify-between items-baseline pt-1.5 border-t border-gray-200 text-gray-900">
-              <span className="font-bold text-sm tracking-tight">Grand Total</span>
-              <span className="font-mono font-extrabold text-xl text-[#2563EB]">
+            <div className="flex justify-between items-baseline pt-1 border-t border-gray-200 text-gray-900">
+              <span className="font-bold text-xs sm:text-sm tracking-tight">Grand Total</span>
+              <span className="font-mono font-extrabold text-lg sm:text-xl text-[#2563EB]">
                 {currency}{grandTotal.toFixed(2)}
               </span>
             </div>
           </div>
-
 
           {/* Payment Method Selector */}
           <div className="space-y-1.5">
@@ -1399,7 +1398,7 @@ export default function BillingPOS() {
                       setPaymentMethod(m.id as any);
                     }}
                     className={cn(
-                      "py-2 px-1 rounded-xl text-[10px] font-bold border transition-all flex flex-col items-center gap-1",
+                      "py-1.5 px-0.5 sm:py-2 sm:px-1 rounded-xl text-[9px] sm:text-[10px] font-bold border transition-all flex flex-col items-center gap-0.5 sm:gap-1",
                       isSelected
                         ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent font-extrabold"
                         : "bg-white text-gray-900 border-gray-100 hover:bg-blue-50"
@@ -1414,13 +1413,13 @@ export default function BillingPOS() {
 
             {/* Split / Partial Payment Box */}
             {paymentMethod === 'SPLIT' && grandTotal > 0 && (
-              <div className="bg-white p-3 rounded-2xl border border-gray-100 space-y-2.5 shadow-md">
+              <div className="bg-white p-2.5 rounded-2xl border border-gray-100 space-y-2 shadow-md">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                    <ArrowRightLeft className="w-3.5 h-3.5 text-amber-400" /> Split / Partial Payment
+                  <span className="text-xs font-bold text-gray-900 flex items-center gap-1">
+                    <ArrowRightLeft className="w-3.5 h-3.5 text-amber-400" /> Split Payment
                   </span>
                   <span className="text-[10px] text-gray-900 opacity-60">
-                    Bill Total: <strong className="font-mono text-[#2563EB]">₹{grandTotal.toFixed(2)}</strong>
+                    Total: <strong className="font-mono text-[#2563EB]">₹{grandTotal.toFixed(2)}</strong>
                   </span>
                 </div>
 
@@ -1433,7 +1432,7 @@ export default function BillingPOS() {
                       placeholder={(grandTotal / 2).toFixed(0)}
                       value={splitPaidAmount}
                       onChange={e => setSplitPaidAmount(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2 text-xs font-mono font-bold text-gray-900 outline-none focus:border-gray-100 mt-0.5"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-xl p-1.5 text-xs font-mono font-bold text-gray-900 outline-none focus:border-gray-100 mt-0.5"
                     />
                   </div>
 
@@ -1442,7 +1441,7 @@ export default function BillingPOS() {
                     <select
                       value={splitPaidMethod}
                       onChange={e => setSplitPaidMethod(e.target.value as any)}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2 text-xs font-bold text-gray-900 outline-none focus:border-gray-100 mt-0.5"
+                      className="w-full bg-gray-50 border border-gray-100 rounded-xl p-1.5 text-xs font-bold text-gray-900 outline-none focus:border-gray-100 mt-0.5"
                     >
                       <option value="CASH">💵 Cash</option>
                       <option value="UPI">📲 UPI / QR</option>
@@ -1451,20 +1450,20 @@ export default function BillingPOS() {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex items-center justify-between text-xs font-mono">
+                <div className="bg-gray-50 p-2 rounded-xl border border-gray-100 flex items-center justify-between text-xs font-mono">
                   <div>
-                    <span className="text-gray-900 opacity-70 text-[10px]">Paid ({splitPaidMethod}): </span>
-                    <span className="font-bold text-emerald-400">₹{computedPaidAmount.toFixed(2)}</span>
+                    <span className="text-gray-900 opacity-70 text-[10px]">Paid: </span>
+                    <span className="font-bold text-emerald-600">₹{computedPaidAmount.toFixed(2)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-900 opacity-70 text-[10px]">Balance Due: </span>
-                    <span className="font-bold text-red-400">₹{computedBalanceDue.toFixed(2)}</span>
+                    <span className="text-gray-900 opacity-70 text-[10px]">Due: </span>
+                    <span className="font-bold text-red-500">₹{computedBalanceDue.toFixed(2)}</span>
                   </div>
                 </div>
 
                 {computedBalanceDue > 0 && !selectedCustomer && (
-                  <div className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg flex items-center gap-1 font-medium">
-                    <span>⚠️ Unpaid balance of ₹{computedBalanceDue.toFixed(2)} will be saved to Customer Credit. Please select a customer above.</span>
+                  <div className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 p-1.5 rounded-lg flex items-center gap-1 font-medium">
+                    <span>⚠️ Unpaid balance will be saved to Customer Credit. Please select a customer above.</span>
                   </div>
                 )}
               </div>
@@ -1472,7 +1471,7 @@ export default function BillingPOS() {
 
             {/* Cash Tendered Calculator */}
             {paymentMethod === 'CASH' && grandTotal > 0 && (
-              <div className="bg-white p-2 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
+              <div className="bg-white p-1.5 sm:p-2 rounded-xl border border-gray-100 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
                   <span className="opacity-80">Cash Received:</span>
                   <input
@@ -1480,7 +1479,7 @@ export default function BillingPOS() {
                     placeholder={grandTotal.toFixed(2)}
                     value={cashTendered}
                     onChange={(e) => setCashTendered(e.target.value)}
-                    className="w-24 bg-theme-primary border border-gray-100 rounded px-2 py-1 text-gray-900 font-mono text-xs outline-none focus:border-gray-100"
+                    className="w-20 sm:w-24 bg-theme-primary border border-gray-100 rounded px-2 py-0.5 text-gray-900 font-mono text-xs outline-none focus:border-gray-100"
                   />
                 </div>
                 {changeDue > 0 && (
@@ -1500,14 +1499,14 @@ export default function BillingPOS() {
             onClick={handleCheckout}
             disabled={cart.length === 0}
             className={cn(
-              "w-full py-3.5 rounded-xl font-bold text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg transition-all border",
+              "w-full py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-2 shadow-lg transition-all border",
               cart.length > 0
-                ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent cursor-pointer"
+                ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8] shadow-md border-transparent cursor-pointer active:scale-98"
                 : "bg-white text-gray-900 opacity-50 cursor-not-allowed border-gray-100"
             )}
           >
             <Printer className="w-4 h-4" />
-            <span>Complete Sale & Print Bill ({currency}{grandTotal.toFixed(2)})</span>
+            <span>Complete Sale ({currency}{grandTotal.toFixed(2)})</span>
           </button>
 
         </div>

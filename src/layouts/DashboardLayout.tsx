@@ -12,7 +12,7 @@ import NotificationCenter from '../components/notifications/NotificationCenter';
 import { ThemeEngine } from '../lib/theme/themeEngine';
 
 export default function DashboardLayout() {
-  const { user, logout, businessProfile, isSuperAdmin, activeTenant } = useAuth();
+  const { user, logout, businessProfile, isSuperAdmin, activeTenant, impersonatingTenant } = useAuth();
   const location = useLocation();
 
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -439,16 +439,27 @@ export default function DashboardLayout() {
             </Link>
 
             {/* Quick Open Website Button */}
-            <Link
-              to="/website"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border border-gray-200 text-xs font-bold rounded-xl transition-all"
-              title="Open Live Public Website / Storefront"
-            >
-              <Globe className="w-4 h-4 text-[#2563EB]" />
-              <span className="hidden sm:inline">Open Website</span>
-            </Link>
+            {(() => {
+              const currentStoreSlug = (
+                impersonatingTenant?.businessName ||
+                activeTenant?.businessName ||
+                businessProfile.businessName ||
+                'apex-enterprise'
+              ).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'apex-enterprise';
+
+              return (
+                <Link
+                  to={`/${currentStoreSlug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border border-gray-200 text-xs font-bold rounded-xl transition-all"
+                  title="Open Live Public Website / Storefront"
+                >
+                  <Globe className="w-4 h-4 text-[#2563EB]" />
+                  <span className="hidden sm:inline">Open Website</span>
+                </Link>
+              );
+            })()}
 
             {/* Quick POS Shortcut */}
             {isRouteAllowedForRole(user.role, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (

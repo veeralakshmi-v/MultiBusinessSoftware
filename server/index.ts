@@ -1978,11 +1978,82 @@ app.put('/api/attendance/settings', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// END OF FEATURE 20 ATTENDANCE APIs
+// FEATURE: WEBSITE DIRECT INQUIRIES & LEADS APIs
+// GET    /api/inquiries
+// POST   /api/inquiries
+// PATCH  /api/inquiries/:id
+// DELETE /api/inquiries/:id
 // ─────────────────────────────────────────────────────────────
+interface ServerInquiry {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  offeringName?: string;
+  category?: string;
+  timeline?: string;
+  notes?: string;
+  status: 'NEW' | 'CONTACTED' | 'CONVERTED' | 'DISMISSED';
+  createdAt: string;
+}
+
+let memInquiries: ServerInquiry[] = [
+  {
+    id: 'inq-seed-1',
+    name: 'Rajesh Kumar',
+    phone: '9876543210',
+    email: 'rajesh.kumar@example.com',
+    offeringName: 'Premium Business Package',
+    notes: 'Looking for a bulk order and customized billing setup for 3 branches.',
+    status: 'NEW',
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+  }
+];
+
+app.get('/api/inquiries', (_req, res) => {
+  return res.json({ success: true, data: memInquiries });
+});
+
+app.post('/api/inquiries', (req, res) => {
+  const { name, phone, email, offeringName, category, timeline, notes, status } = req.body;
+  if (!name || !phone) {
+    return res.status(400).json({ error: 'Name and phone are required.' });
+  }
+  const newInq: ServerInquiry = {
+    id: req.body.id || `inq-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    name: String(name).trim(),
+    phone: String(phone).trim(),
+    email: email ? String(email).trim() : undefined,
+    offeringName: offeringName ? String(offeringName).trim() : undefined,
+    category: category ? String(category).trim() : undefined,
+    timeline: timeline ? String(timeline).trim() : undefined,
+    notes: notes ? String(notes).trim() : undefined,
+    status: status || 'NEW',
+    createdAt: req.body.createdAt || new Date().toISOString(),
+  };
+  memInquiries.unshift(newInq);
+  return res.status(201).json({ success: true, data: newInq });
+});
+
+app.patch('/api/inquiries/:id', (req, res) => {
+  const { id } = req.params;
+  const index = memInquiries.findIndex(i => i.id === id);
+  if (index === -1) {
+    return res.status(404).json({ error: 'Inquiry not found.' });
+  }
+  memInquiries[index] = { ...memInquiries[index], ...req.body, id };
+  return res.json({ success: true, data: memInquiries[index] });
+});
+
+app.delete('/api/inquiries/:id', (req, res) => {
+  const { id } = req.params;
+  memInquiries = memInquiries.filter(i => i.id !== id);
+  return res.json({ success: true, message: 'Inquiry deleted successfully.' });
+});
 
 if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
+
     console.log(`⚡ Multi-Business Billing Backend API running on http://localhost:${PORT}`);
   });
 }

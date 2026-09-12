@@ -65,7 +65,9 @@ export default function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/store" element={<PublicStorefront />} />
+              <Route path="/store/:storeSlug" element={<PublicStorefront />} />
               <Route path="/website" element={<PublicStorefront />} />
+              <Route path="/website/:storeSlug" element={<PublicStorefront />} />
 
               {/* ── SUPER ADMIN SAAS CONTROL CENTER ─────────────── */}
               <Route
@@ -103,6 +105,9 @@ export default function App() {
                 <Route path="settings"   element={<Settings />} />
                 <Route path="website"    element={<WebsiteBuilder />} />
               </Route>
+
+              {/* ── DYNAMIC STOREFRONT BY STORE NAME (https://domain/:storeSlug) ── */}
+              <Route path="/:storeSlug" element={<PublicStorefront />} />
 
               {/* Catch-all → landing page */}
               <Route path="*" element={<Navigate to="/" replace />} />

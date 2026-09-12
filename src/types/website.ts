@@ -59,6 +59,7 @@ export interface SocialLinks {
 export interface WebsiteConfig {
   logoUrl?: string;
   published: boolean;
+  storeSlug?: string;
   brandName: string;
   brandTagline: string;
   brandSubtext: string;
@@ -120,6 +121,7 @@ export interface WebsiteConfig {
 // =========================================================================
 export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   published: true,
+  storeSlug: 'apex-enterprise',
   brandName: 'APEX ENTERPRISE',
   brandTagline: 'Excellence, Innovation & Premium Quality',
   brandSubtext: 'MULTI-BUSINESS SOLUTIONS',
@@ -554,3 +556,16 @@ export const INDUSTRY_PRESETS: Record<string, { name: string; icon: string; conf
     }
   }
 };
+
+export interface WebsiteInquiry {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  offeringName?: string;
+  category?: string;
+  timeline?: string;
+  notes?: string;
+  status: 'NEW' | 'CONTACTED' | 'CONVERTED' | 'DISMISSED';
+  createdAt: string;
+}

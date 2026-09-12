@@ -490,8 +490,8 @@ export default function EmployeeDirectory() {
       </div>
 
       {/* ── CATEGORY & ROLE FILTERS ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs w-full min-w-0">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar touch-pan-x pb-1 w-full max-w-full min-w-0 flex-shrink">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs w-full min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar touch-pan-x pb-1 w-full max-w-full min-w-0 flex-shrink">
           <span className="text-gray-500 font-semibold text-[11px] flex items-center gap-1 whitespace-nowrap flex-shrink-0">
             <Filter className="w-3 h-3 text-[#2563EB]" /> Role:
           </span>
@@ -500,7 +500,7 @@ export default function EmployeeDirectory() {
               key={r}
               onClick={() => setRoleFilter(r as any)}
               className={cn(
-                "px-3 py-1 rounded-xl text-xs font-bold transition-all border whitespace-nowrap flex-shrink-0",
+                "px-2.5 sm:px-3 py-1 rounded-xl text-xs font-bold transition-all border whitespace-nowrap flex-shrink-0 cursor-pointer",
                 roleFilter === r
                   ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 border-transparent font-extrabold"
                   : "bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-50 border border-gray-100"
@@ -510,12 +510,12 @@ export default function EmployeeDirectory() {
             </button>
           ))}
 
-          <div className="flex items-center gap-1.5 border-l border-white/10 pl-2 flex-shrink-0">
+          <div className="flex items-center gap-1.5 border-l border-gray-200 pl-2 flex-shrink-0">
             <span className="text-gray-500 font-semibold text-[11px] whitespace-nowrap">Dept:</span>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-gray-50 border border-gray-100 rounded-xl px-2 py-1 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+              className="bg-gray-50 border border-gray-200 rounded-xl px-2 py-1 text-xs text-gray-900 outline-none focus:border-[#2563EB] max-w-[140px] sm:max-w-[200px]"
             >
               <option value="ALL">All Departments</option>
               {UNIVERSAL_CATEGORIES.map(c => (
@@ -529,7 +529,7 @@ export default function EmployeeDirectory() {
           <button
             onClick={() => setViewMode('grid')}
             className={cn(
-              "px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all",
+              "px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer",
               viewMode === 'grid' ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 border-transparent" : "bg-white text-gray-600 border border-gray-100"
             )}
           >
@@ -538,7 +538,7 @@ export default function EmployeeDirectory() {
           <button
             onClick={() => setViewMode('table')}
             className={cn(
-              "px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all",
+              "px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer",
               viewMode === 'table' ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/20 border-transparent" : "bg-white text-gray-600 border border-gray-100"
             )}
           >
@@ -547,93 +547,93 @@ export default function EmployeeDirectory() {
         </div>
       </div>
 
-
       {/* ── GRID CARDS VIEW ── */}
       {viewMode === 'grid' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5 sm:gap-4.5">
           {filteredStaff.map(st => (
             <div
               key={st.id}
               onClick={() => handleOpenModal(st)}
-              className="group relative bg-white hover:bg-blue-50/60 border border-gray-100 hover:border-[#2563EB]/30 rounded-2xl p-5 shadow-md hover:shadow-xl hover:shadow-blue-100/50 transition-all duration-300 transform hover:-translate-y-1 cursor-pointer flex flex-col justify-between overflow-hidden"
+              className="group relative bg-white hover:bg-blue-50/40 border border-gray-200 hover:border-[#2563EB]/40 rounded-2xl p-4 sm:p-4.5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden cursor-pointer"
             >
               {/* Card Header: Photo & Role Badge */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="relative">
+              <div className="flex items-start justify-between gap-2.5">
+                <div className="relative flex-shrink-0">
                   {st.photoUrl ? (
-                    <img src={st.photoUrl} alt={st.name} className="w-14 h-14 rounded-2xl object-cover border-2 border-[#2563EB]/30 shadow-md group-hover:scale-105 transition-transform" />
+                    <img src={st.photoUrl} alt={st.name} className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl object-cover border-2 border-[#2563EB]/20 shadow-sm" />
                   ) : (
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#E2B755] to-[#8C6D2B] flex items-center justify-center text-[#0A0A0B] font-bold text-xl shadow-md border border-[#2563EB]/30 group-hover:scale-105 transition-transform">
+                    <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl bg-gradient-to-br from-[#E2B755] to-[#8C6D2B] flex items-center justify-center text-[#0A0A0B] font-bold text-lg shadow-sm border border-[#2563EB]/20">
                       {st.name.charAt(0).toUpperCase()}
                     </div>
                   )}
                   <span className={cn(
-                    "absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white",
+                    "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white",
                     st.status === 'ACTIVE' ? "bg-emerald-400" : "bg-red-400"
                   )} />
                 </div>
 
-                <div className="flex flex-col items-end gap-1">
+                <div className="flex flex-col items-end gap-1 min-w-0 max-w-[65%]">
                   <span className={cn(
-                    "px-2.5 py-0.5 rounded-full text-[10px] font-bold border",
-                    st.role === 'ADMIN' ? "bg-purple-500/10 text-purple-400 border-purple-500/30" :
-                      st.role === 'MANAGER' ? "bg-blue-500/10 text-blue-400 border-blue-500/30" :
-                        "bg-green-500/10 text-green-400 border-green-500/30"
+                    "px-2 py-0.5 rounded-full text-[10px] font-bold border truncate max-w-full",
+                    st.role === 'ADMIN' ? "bg-purple-50 text-purple-700 border-purple-200" :
+                      st.role === 'MANAGER' ? "bg-blue-50 text-blue-700 border-blue-200" :
+                        "bg-emerald-50 text-emerald-700 border-emerald-200"
                   )}>
                     {st.role}
                   </span>
-                  <span className="text-[10px] font-semibold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">
+                  <span className="text-[10px] font-semibold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-200 truncate max-w-full" title={st.category}>
                     {st.category || 'General'}
                   </span>
                 </div>
               </div>
 
               {/* Staff Main Info */}
-              <div className="my-4 space-y-1.5">
-                <h3 className="font-bold text-gray-900 text-base group-hover:text-[#2563EB] transition-colors">{st.name}</h3>
-                <p className="font-mono text-xs text-gray-400">@{st.username}</p>
+              <div className="my-3 space-y-0.5 min-w-0">
+                <h3 className="font-bold text-gray-900 text-sm sm:text-base group-hover:text-[#2563EB] transition-colors truncate" title={st.name}>{st.name}</h3>
+                <p className="font-mono text-xs text-gray-400 truncate">@{st.username}</p>
               </div>
 
               {/* Detail Chips */}
-              <div className="space-y-1.5 pt-3 border-t border-gray-100 text-xs font-mono">
-                <div className="flex items-center justify-between text-gray-600">
-                  <span className="text-gray-500 text-[11px] flex items-center gap-1">
-                    <CreditCard className="w-3 h-3 text-[#2563EB]" /> Aadhar:
+              <div className="space-y-1.5 pt-2.5 border-t border-gray-100 text-xs font-mono">
+                <div className="flex items-center justify-between text-gray-600 gap-2">
+                  <span className="text-gray-500 text-[11px] flex items-center gap-1 flex-shrink-0">
+                    <CreditCard className="w-3.5 h-3.5 text-[#2563EB]" /> Aadhar:
                   </span>
-                  <span className="font-bold text-[#2563EB]">{st.aadharNumber || 'Required *'}</span>
+                  <span className="font-bold text-[#2563EB] truncate text-right font-mono text-[11px] sm:text-xs">
+                    {st.aadharNumber || 'Required *'}
+                  </span>
                 </div>
 
-                <div className="flex items-center justify-between text-gray-600">
-                  <span className="text-gray-500 text-[11px] flex items-center gap-1">
-                    <Phone className="w-3 h-3 text-cyan-400" /> Phone:
+                <div className="flex items-center justify-between text-gray-600 gap-2">
+                  <span className="text-gray-500 text-[11px] flex items-center gap-1 flex-shrink-0">
+                    <Phone className="w-3.5 h-3.5 text-cyan-600" /> Phone:
                   </span>
-                  <span>{st.phone || '—'}</span>
+                  <span className="truncate text-right font-mono text-[11px] sm:text-xs">{st.phone || '—'}</span>
                 </div>
 
                 {st.doj && (
-                  <div className="flex items-center justify-between text-gray-400">
-                    <span className="text-gray-500 text-[11px] flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-emerald-400" /> Joining:
+                  <div className="flex items-center justify-between text-gray-500 gap-2">
+                    <span className="text-gray-500 text-[11px] flex items-center gap-1 flex-shrink-0">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-600" /> Joining:
                     </span>
-                    <span>{st.doj}</span>
+                    <span className="truncate text-right text-[11px]">{st.doj}</span>
                   </div>
                 )}
               </div>
 
               {/* Card Footer: Edit Button */}
-              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+              <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleOpenModal(st);
                   }}
-                  className="px-3.5 py-1.5 bg-[#2563EB] text-white hover:bg-[#1D4ED8] rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-md"
+                  className="px-3.5 py-1.5 bg-[#2563EB] text-white hover:bg-[#1D4ED8] rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm cursor-pointer"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                   <span>Edit</span>
                 </button>
-
               </div>
             </div>
           ))}

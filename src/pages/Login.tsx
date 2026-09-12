@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth, Role } from '../context/AuthContext';
-import { Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Receipt, Loader2, Zap, ShieldCheck, Lock, User, UserCircle, Shield, Building2 } from 'lucide-react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { Receipt, Loader2, ShieldCheck, Lock, User } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { TenantEngine } from '../lib/tenant/tenantEngine';
 
 export default function Login() {
-  const { user, login, isSuperAdmin } = useAuth();
-  const navigate = useNavigate();
+  const { user, login } = useAuth();
   const location = useLocation();
 
   // After login go to requested redirect route
@@ -16,12 +15,11 @@ export default function Login() {
   const forcePrompt = params.get('prompt') === 'true';
   const isTargetingSuperAdmin = redirectTo.startsWith('/super-admin');
 
-  const [authMode, setAuthMode] = useState<'CLIENT' | 'SUPER_ADMIN'>(() => isTargetingSuperAdmin ? 'SUPER_ADMIN' : 'CLIENT');
-  const [username, setUsername] = useState(() => isTargetingSuperAdmin ? 'superadmin' : 'admin');
-  const [password, setPassword] = useState(() => isTargetingSuperAdmin ? 'Super@Admin2026#' : 'admin123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
 
   // If user is already logged in:
   if (user && !forcePrompt) {
@@ -35,18 +33,6 @@ export default function Login() {
       }
     }
   }
-
-  const handleModeSwitch = (mode: 'CLIENT' | 'SUPER_ADMIN') => {
-    setAuthMode(mode);
-    setError('');
-    if (mode === 'SUPER_ADMIN') {
-      setUsername('superadmin');
-      setPassword('Super@Admin2026#');
-    } else {
-      setUsername('admin');
-      setPassword('admin123');
-    }
-  };
 
   const performLogin = (userLoginName: string, userRole: Role = 'ADMIN', extraData?: any) => {
     const token = 'demo-live-token-' + Date.now();
@@ -73,28 +59,6 @@ export default function Login() {
     }
   };
 
-  const handleQuickSuperAdminLogin = () => {
-    setAuthMode('SUPER_ADMIN');
-    setUsername('superadmin');
-    setPassword('Super@Admin2026#');
-    setLoading(true);
-    performLogin('superadmin', 'SUPER_ADMIN', {
-      id: 'user-super-admin',
-      applicationAccess: 'Master Super Admin (Global Platform Access)'
-    });
-  };
-
-  const handleQuickClientLogin = () => {
-    setAuthMode('CLIENT');
-    setUsername('admin');
-    setPassword('admin123');
-    setLoading(true);
-    performLogin('admin', 'ADMIN', {
-      businessId: 'biz-apex-supermarket',
-      businessType: 'SUPERMARKET'
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -104,9 +68,8 @@ export default function Login() {
       const cleanUser = username.trim();
       const cleanPass = password.trim();
 
-      // 1. Explicit Super Admin Login
+      // 1. Super Admin Login verification (if platform owner enters superadmin credentials)
       if (
-        authMode === 'SUPER_ADMIN' ||
         cleanUser.toLowerCase() === 'superadmin' ||
         cleanUser.toLowerCase() === 'admin@saas.com'
       ) {
@@ -117,7 +80,7 @@ export default function Login() {
           });
           return;
         } else {
-          setError('Invalid Super Admin password. Use: Super@Admin2026#');
+          setError('Invalid master password. Please use your credentials or login via /super-admin');
           setLoading(false);
           return;
         }
@@ -140,7 +103,7 @@ export default function Login() {
       const matchedTenant = TenantEngine.findTenantByLogin(cleanUser);
       if (matchedTenant) {
         if (matchedTenant.subscription?.status === 'SUSPENDED') {
-          throw new Error('This client business account is currently suspended. Please contact Super Admin support.');
+          throw new Error('This client business account is currently suspended. Please contact platform support.');
         }
 
         // Update last login
@@ -194,7 +157,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[#F4F6FB] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
-      
+
       {/* Ambient background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-100/50 via-purple-50/30 to-transparent blur-3xl pointer-events-none -z-10" />
 
@@ -205,7 +168,7 @@ export default function Login() {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-serif font-black tracking-tight text-[#0F172A]">
-          Sign in to your account
+          Store Sign In
         </h2>
         <p className="mt-2 text-center text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
           Multi-Business SaaS & Billing Platform
@@ -214,53 +177,11 @@ export default function Login() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-3xl border border-gray-200/90 space-y-6">
-          
-          {/* Segmented Auth Mode Switcher */}
-          <div className="grid grid-cols-2 p-1 bg-gray-100 rounded-2xl gap-1">
-            <button
-              type="button"
-              onClick={() => handleModeSwitch('CLIENT')}
-              className={cn(
-                "py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer",
-                authMode === 'CLIENT'
-                  ? "bg-white text-blue-700 shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
-              )}
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>Client Store</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleModeSwitch('SUPER_ADMIN')}
-              className={cn(
-                "py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer",
-                authMode === 'SUPER_ADMIN'
-                  ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm"
-                  : "text-gray-500 hover:text-gray-900"
-              )}
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span>Super Admin</span>
-            </button>
-          </div>
-
-          {authMode === 'SUPER_ADMIN' && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
-              <p className="font-bold flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-amber-600" />
-                Super Admin Master Mode
-              </p>
-              <p className="text-[11px] text-amber-800/80 mt-0.5">
-                Full platform control center: manage multiple clients, provision tenants & view SaaS analytics.
-              </p>
-            </div>
-          )}
 
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="username" className="block text-xs font-bold text-gray-700 mb-1.5">
-                {authMode === 'SUPER_ADMIN' ? 'Super Admin Master Username / Email' : 'Username, Client Login or Staff Phone'}
+                Username, Client Login or Staff Phone
               </label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2563EB]" />
@@ -272,14 +193,14 @@ export default function Login() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="block w-full rounded-xl border border-gray-300 bg-gray-50/60 pl-10 pr-4 py-2.5 text-xs text-gray-900 placeholder-gray-400 outline-none focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 transition-all font-medium"
-                  placeholder={authMode === 'SUPER_ADMIN' ? 'superadmin or admin@saas.com' : 'e.g. admin or 9876543210'}
+                  placeholder="e.g. admin or 9876543210"
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="password" className="block text-xs font-bold text-gray-700 mb-1.5">
-                Password {authMode === 'CLIENT' && 'or PIN'}
+                Password or PIN
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#2563EB]" />
@@ -324,10 +245,7 @@ export default function Login() {
                 type="submit"
                 disabled={loading}
                 className={cn(
-                  "flex w-full justify-center items-center gap-2 rounded-xl text-white py-3 px-4 text-xs font-bold tracking-widest uppercase shadow-lg transition-all cursor-pointer",
-                  authMode === 'SUPER_ADMIN'
-                    ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-amber-500/25"
-                    : "bg-[#2563EB] hover:bg-[#1D4ED8] shadow-blue-500/25",
+                  "flex w-full justify-center items-center gap-2 rounded-xl text-white py-3 px-4 text-xs font-bold tracking-widest uppercase shadow-lg bg-[#2563EB] hover:bg-[#1D4ED8] shadow-blue-500/25 transition-all cursor-pointer",
                   loading && "opacity-70 cursor-not-allowed"
                 )}
               >
@@ -336,35 +254,12 @@ export default function Login() {
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4 text-white" />
-                    <span>{authMode === 'SUPER_ADMIN' ? 'Sign In as Super Admin' : 'Sign In to Dashboard'}</span>
+                    <span>Sign In to Dashboard</span>
                   </>
                 )}
               </button>
             </div>
           </form>
-
-          {/* Direct 1-Click Quick Login Buttons */}
-          <div className="pt-3 border-t border-gray-100 space-y-2">
-            <p className="text-[10px] uppercase font-bold text-gray-400 text-center tracking-wider">Quick Testing Access</p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={handleQuickClientLogin}
-                className="w-full py-2.5 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#2563EB] font-bold text-xs flex items-center justify-center gap-1.5 border border-blue-200 transition-all cursor-pointer"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Store Admin</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleQuickSuperAdminLogin}
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
-              >
-                <Shield className="w-3.5 h-3.5 text-amber-400" />
-                <span>Super Admin</span>
-              </button>
-            </div>
-          </div>
 
         </div>
       </div>

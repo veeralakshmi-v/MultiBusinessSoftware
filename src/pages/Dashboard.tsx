@@ -4,9 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import {
   ShoppingBag, Boxes, BarChart3, TrendingUp,
   IndianRupee, Receipt, RefreshCw, ArrowUpRight, ArrowDownRight,
-  Printer, Sparkles
+  Printer, Sparkles, MessageSquare, Phone, Mail, Globe, CheckCircle2, ExternalLink
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { cleanPhone } from '../utils/validation';
+import { WebsiteInquiry } from '../types/website';
 import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceModal';
 
 interface TrendDay {
@@ -101,15 +103,48 @@ export default function Dashboard() {
     }
   }, []);
 
+  const [inquiries, setInquiries] = useState<WebsiteInquiry[]>([]);
+
+  const loadInquiries = useCallback(() => {
+    try {
+      const saved = localStorage.getItem('universal_website_inquiries');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setInquiries(parsed);
+      }
+    } catch {}
+
+    fetch('/api/inquiries')
+      .then(r => r.json())
+      .then(json => {
+        if (json?.data && Array.isArray(json.data)) {
+          setInquiries(json.data);
+          localStorage.setItem('universal_website_inquiries', JSON.stringify(json.data));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetchDashboard(selectedDate);
     fetchItems();
+    loadInquiries();
+
+    const handleSync = () => loadInquiries();
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('website_inquiry_added', handleSync);
+
     const interval = setInterval(() => {
       fetchDashboard(selectedDate);
       fetchItems();
+      loadInquiries();
     }, 60000);
-    return () => clearInterval(interval);
-  }, [selectedDate, fetchDashboard, fetchItems]);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('website_inquiry_added', handleSync);
+    };
+  }, [selectedDate, fetchDashboard, fetchItems, loadInquiries]);
 
   const displayTrend = useMemo(() => {
     if (data?.trend && data.trend.length > 0) {
@@ -373,6 +408,96 @@ export default function Dashboard() {
           })}
         </div>
       </div>
+
+      {/* ── WEBSITE DIRECT INQUIRIES & LEADS CARD ── */}
+      {inquiries.length > 0 && (
+        <div className="bg-white/80 backdrop-blur-md border border-white/60 rounded-3xl p-5 sm:p-6 shadow-lg shadow-gray-200/50 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-[#0F172A] text-base">
+                    Website Inquiries & Customer Leads
+                  </h3>
+                  {inquiries.filter(i => i.status === 'NEW').length > 0 && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
+                      {inquiries.filter(i => i.status === 'NEW').length} NEW
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">Direct contact submissions from your public website</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard/website')}
+              className="text-xs text-[#2563EB] hover:underline font-bold inline-flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+            >
+              <span>Manage in Website CMS</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {inquiries.slice(0, 6).map(inq => (
+              <div
+                key={inq.id}
+                className="bg-white border border-gray-100 rounded-2xl p-4 shadow-2xs hover:border-blue-200 transition-all flex flex-col justify-between gap-2.5"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-xs text-gray-900 truncate">{inq.name}</span>
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-full text-[9px] font-bold border",
+                      inq.status === 'NEW' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                      inq.status === 'CONTACTED' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                      inq.status === 'CONVERTED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                      'bg-gray-100 text-gray-700 border-gray-200'
+                    )}>
+                      {inq.status}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1 text-[11px] text-gray-600 mt-1">
+                    <Phone className="w-3 h-3 text-blue-600" />
+                    <span className="font-mono font-medium">{inq.phone}</span>
+                  </div>
+
+                  {inq.offeringName && (
+                    <span className="inline-block mt-1.5 px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] text-[10px] font-bold truncate max-w-full">
+                      {inq.offeringName}
+                    </span>
+                  )}
+
+                  {inq.notes && (
+                    <p className="text-[11px] text-gray-500 mt-1.5 line-clamp-2 italic">
+                      "{inq.notes}"
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                  <span className="text-[10px] text-gray-400 font-mono">
+                    {new Date(inq.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                  </span>
+
+                  <a
+                    href={`https://wa.me/91${cleanPhone(inq.phone)}?text=${encodeURIComponent(`Hello ${inq.name}, thank you for contacting ${businessProfile.businessName || 'our team'}!`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold inline-flex items-center gap-1 transition-colors"
+                  >
+                    <MessageSquare className="w-3 h-3" />
+                    <span>WhatsApp</span>
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── RECENT TRANSACTIONS LEDGER GLASS CARD ── */}
       <div className="bg-white/80 backdrop-blur-md border border-white/60 rounded-3xl p-5 sm:p-6 shadow-lg shadow-gray-200/50 space-y-4">

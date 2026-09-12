@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Globe, MessageSquare, Phone, MapPin, Clock, Search, ShoppingBag, 
   Sparkles, CheckCircle2, ChevronRight, ChevronLeft, Share2, ExternalLink,
@@ -11,9 +12,10 @@ import { cn, getCategoryName } from '../lib/utils';
 import { isValidPhone, cleanPhone } from '../utils/validation';
 import { 
   WebsiteConfig, HeroSlide, ShowcaseItem, DestinationItem, CuratedPillar, 
-  JournalArticle, DEFAULT_WEBSITE_CONFIG 
+  JournalArticle, DEFAULT_WEBSITE_CONFIG, WebsiteInquiry, INDUSTRY_PRESETS
 } from '../types/website';
 import { ThemeEngine } from '../lib/theme/themeEngine';
+import { TenantEngine } from '../lib/tenant/tenantEngine';
 
 // Helper to render icon for curated value pillars
 const renderPillarIcon = (iconType: string) => {
@@ -33,25 +35,111 @@ const renderPillarIcon = (iconType: string) => {
   }
 };
 
+const toSlug = (text: string) =>
+  (text || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'store';
+
 export default function PublicStorefront() {
-  // Dynamic CMS Configuration State
-  const [config, setConfig] = useState<WebsiteConfig>(() => {
+  const { storeSlug } = useParams<{ storeSlug?: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Helper to build tenant website config
+  const getStoreConfig = (slug?: string): WebsiteConfig => {
+    const clean = slug ? slug.toLowerCase().trim() : '';
+    const tenants = TenantEngine.getTenants();
+    const impId = localStorage.getItem('saas_impersonating_tenant_id');
+    const bizId = localStorage.getItem('businessId');
+
+    const matchedTenant = clean
+      ? tenants.find(t =>
+          t.id.toLowerCase() === clean ||
+          (t.subdomain && t.subdomain.toLowerCase() === clean) ||
+          toSlug(t.businessName) === clean ||
+          t.businessName.toLowerCase() === clean
+        )
+      : (tenants.find(t => t.id === impId || t.id === bizId) || tenants[0]);
+
+    if (matchedTenant) {
+      const tKey = `tenant_${matchedTenant.id}_website_config`;
+      const savedTenantConfig = 
+        localStorage.getItem(tKey) ||
+        localStorage.getItem(`universal_website_config_${toSlug(matchedTenant.businessName)}`) ||
+        localStorage.getItem(`universal_website_config_${matchedTenant.id}`);
+
+      if (savedTenantConfig) {
+        try {
+          const parsed = JSON.parse(savedTenantConfig);
+          return {
+            ...DEFAULT_WEBSITE_CONFIG,
+            ...parsed,
+            brandName: parsed.brandName || matchedTenant.businessName,
+            storeSlug: toSlug(matchedTenant.businessName),
+          };
+        } catch {}
+      }
+
+      // Generate initial preset config for this tenant
+      const bType = (matchedTenant.businessType || 'RETAIL') as keyof typeof INDUSTRY_PRESETS;
+      const preset = INDUSTRY_PRESETS[bType]?.config || {};
+      return {
+        ...DEFAULT_WEBSITE_CONFIG,
+        ...preset,
+        brandName: matchedTenant.businessName,
+        storeSlug: toSlug(matchedTenant.businessName),
+        phone: matchedTenant.ownerPhone || DEFAULT_WEBSITE_CONFIG.phone,
+        whatsapp: matchedTenant.ownerPhone || DEFAULT_WEBSITE_CONFIG.whatsapp,
+        email: matchedTenant.ownerEmail || DEFAULT_WEBSITE_CONFIG.email,
+        address: matchedTenant.city ? `${matchedTenant.city}, ${matchedTenant.state || 'Tamil Nadu'}` : DEFAULT_WEBSITE_CONFIG.address,
+        heroSlides: [
+          {
+            id: `slide-${matchedTenant.id}-1`,
+            title: 'Welcome to',
+            titleHighlight: matchedTenant.businessName,
+            kicker: `${matchedTenant.businessType} • PREMIUM QUALITY`,
+            subtitle: `Explore our collection, dedicated service, and exclusive offerings.`,
+            ctaText: 'EXPLORE OFFERINGS',
+            bgUrl: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=2000&q=85',
+            featureBadge: 'QUALITY ASSURED',
+            featureDesc: 'Certified standards and customer satisfaction guaranteed.'
+          }
+        ]
+      };
+    }
+
+    // Fallback to saved generic or default
     try {
       const saved = localStorage.getItem('universal_website_config');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return {
-          ...DEFAULT_WEBSITE_CONFIG,
-          ...parsed,
-          heroSlides: parsed.heroSlides?.length ? parsed.heroSlides : DEFAULT_WEBSITE_CONFIG.heroSlides,
-          destinations: parsed.destinations?.length ? parsed.destinations : DEFAULT_WEBSITE_CONFIG.destinations,
-          curatedPillars: parsed.curatedPillars?.length ? parsed.curatedPillars : DEFAULT_WEBSITE_CONFIG.curatedPillars,
-          journalArticles: parsed.journalArticles?.length ? parsed.journalArticles : DEFAULT_WEBSITE_CONFIG.journalArticles,
-        };
-      }
-    } catch (e) {}
+      if (saved) return { ...DEFAULT_WEBSITE_CONFIG, ...JSON.parse(saved) };
+    } catch {}
     return DEFAULT_WEBSITE_CONFIG;
-  });
+  };
+
+  // Dynamic CMS Configuration State
+  const [config, setConfig] = useState<WebsiteConfig>(() => getStoreConfig(storeSlug));
+
+  // Reload config when storeSlug changes
+  useEffect(() => {
+    setConfig(getStoreConfig(storeSlug));
+  }, [storeSlug]);
+
+  // If user opened generic /website or /store, auto-redirect URL bar to active store slug
+  useEffect(() => {
+    const path = location.pathname.toLowerCase();
+    if (path === '/website' || path === '/store' || path === '/website/' || path === '/store/') {
+      const activeSlug = config.storeSlug || toSlug(config.brandName || 'apex-enterprise');
+      navigate(`/${activeSlug}`, { replace: true });
+    }
+  }, [config.storeSlug, config.brandName, location.pathname, navigate]);
+
+  useEffect(() => {
+    if (config.brandName) {
+      document.title = `${config.brandName} | Official Storefront`;
+    }
+  }, [config.brandName]);
 
   // UI State
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -87,25 +175,33 @@ export default function PublicStorefront() {
   // Load Saved Config & Sync dynamically across tabs
   useEffect(() => {
     const loadDynamicData = () => {
-      try {
-        const savedConfig = localStorage.getItem('universal_website_config');
-        if (savedConfig) {
-          const parsed = JSON.parse(savedConfig);
-          setConfig(prev => ({
-            ...prev,
-            ...parsed,
-            heroSlides: parsed.heroSlides?.length ? parsed.heroSlides : prev.heroSlides,
-            destinations: parsed.destinations?.length ? parsed.destinations : prev.destinations,
-            curatedPillars: parsed.curatedPillars?.length ? parsed.curatedPillars : prev.curatedPillars,
-            journalArticles: parsed.journalArticles?.length ? parsed.journalArticles : prev.journalArticles,
-          }));
-        }
-      } catch (e) {}
+      const updatedConfig = getStoreConfig(storeSlug);
+      setConfig(updatedConfig);
 
       try {
-        const savedItems = localStorage.getItem('universal_items');
-        if (savedItems) {
-          setStoreItems(JSON.parse(savedItems));
+        const clean = storeSlug ? storeSlug.toLowerCase().trim() : '';
+        const tenants = TenantEngine.getTenants();
+        const matchedTenant = clean
+          ? tenants.find(t =>
+              t.id.toLowerCase() === clean ||
+              (t.subdomain && t.subdomain.toLowerCase() === clean) ||
+              toSlug(t.businessName) === clean
+            )
+          : null;
+
+        const tenantItemsRaw = matchedTenant
+          ? (localStorage.getItem(`tenant_${matchedTenant.id}_items`) || localStorage.getItem(`universal_items_${matchedTenant.id}`))
+          : null;
+
+        if (tenantItemsRaw) {
+          setStoreItems(JSON.parse(tenantItemsRaw));
+        } else {
+          const savedItems = localStorage.getItem('universal_items');
+          if (savedItems) {
+            const all = JSON.parse(savedItems);
+            const filtered = matchedTenant ? all.filter((i: any) => !i.businessId || i.businessId === matchedTenant.id) : all;
+            setStoreItems(filtered.length > 0 ? filtered : all);
+          }
         }
       } catch (e) {}
 
@@ -142,10 +238,76 @@ export default function PublicStorefront() {
   // Handle Inquiry Form Submission
   const handleInquirySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inquiryForm.name || !inquiryForm.phone) {
-      alert('Please provide your name and phone number.');
+    const cleanPhoneDigits = cleanPhone(inquiryForm.phone).slice(0, 10);
+    if (!inquiryForm.name.trim() || cleanPhoneDigits.length < 10) {
+      alert('Please provide your name and a valid 10-digit phone number.');
       return;
     }
+
+    const newInquiry: WebsiteInquiry = {
+      id: `inq-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      name: inquiryForm.name.trim(),
+      phone: cleanPhoneDigits,
+      email: inquiryForm.email.trim() || undefined,
+      offeringName: inquiryForm.offeringName || undefined,
+      category: inquiryForm.category || undefined,
+      timeline: inquiryForm.timeline || undefined,
+      notes: inquiryForm.notes.trim() || undefined,
+      status: 'NEW',
+      createdAt: new Date().toISOString(),
+    };
+
+    // 1. Save to universal_website_inquiries LocalStorage
+    try {
+      const existingInquiriesRaw = localStorage.getItem('universal_website_inquiries');
+      const inquiriesList: WebsiteInquiry[] = existingInquiriesRaw ? JSON.parse(existingInquiriesRaw) : [];
+      inquiriesList.unshift(newInquiry);
+      localStorage.setItem('universal_website_inquiries', JSON.stringify(inquiriesList));
+    } catch (err) {
+      console.error('Failed to save inquiry to localStorage', err);
+    }
+
+    // 2. Automatically register / update as Lead in universal_customers CRM
+    try {
+      const existingCustomersRaw = localStorage.getItem('universal_customers');
+      let custList = existingCustomersRaw ? JSON.parse(existingCustomersRaw) : [];
+      if (!Array.isArray(custList)) custList = [];
+      const matchIndex = custList.findIndex((c: any) => cleanPhone(c.mobile) === cleanPhoneDigits);
+      const leadNote = `Website Inquiry: ${inquiryForm.offeringName ? `[Interested in: ${inquiryForm.offeringName}] ` : ''}${inquiryForm.notes || 'Inquired through public website.'}`;
+      
+      if (matchIndex >= 0) {
+        custList[matchIndex] = {
+          ...custList[matchIndex],
+          notes: custList[matchIndex].notes ? `${custList[matchIndex].notes} | ${leadNote}` : leadNote,
+          email: custList[matchIndex].email || inquiryForm.email.trim() || undefined,
+        };
+      } else {
+        custList.unshift({
+          id: `cust-inq-${Date.now()}`,
+          name: inquiryForm.name.trim(),
+          mobile: cleanPhoneDigits,
+          email: inquiryForm.email.trim() || undefined,
+          type: 'INDIVIDUAL',
+          notes: leadNote,
+          createdAt: new Date().toISOString(),
+        });
+      }
+      localStorage.setItem('universal_customers', JSON.stringify(custList));
+    } catch (err) {
+      console.error('Failed to sync inquiry to customer list', err);
+    }
+
+    // 3. Send POST to server API
+    fetch('/api/inquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newInquiry),
+    }).catch(() => {});
+
+    // 4. Trigger window storage events for real-time reactivity in admin tabs
+    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new CustomEvent('website_inquiry_added', { detail: newInquiry }));
+
     setInquirySuccessToast(true);
     setIsInquiryModalOpen(false);
     setInquiryForm({

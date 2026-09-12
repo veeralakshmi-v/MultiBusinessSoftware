@@ -7,75 +7,216 @@ import {
   Tag, Upload, Link as LinkIcon, Instagram, Facebook, Youtube, Twitter,
   Megaphone, Wrench, Grid, Compass, ArrowRight, X, ZoomIn, Star, Layers,
   Shield, Heart, Award, FileText, ChevronRight, BookOpen, Sliders, Zap,
-  Check as CheckIcon, Box, Users, HelpCircle, RotateCcw
+  Check as CheckIcon, Box, Users, HelpCircle, RotateCcw, Mail, User, Send, Search
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { cleanPhone } from '../utils/validation';
 import { 
   WebsiteConfig, HeroSlide, ShowcaseItem, CuratedPillar, 
-  JournalArticle, DEFAULT_WEBSITE_CONFIG, INDUSTRY_PRESETS 
+  JournalArticle, DEFAULT_WEBSITE_CONFIG, INDUSTRY_PRESETS, WebsiteInquiry 
 } from '../types/website';
 
 export default function WebsiteBuilder() {
-  const { businessProfile } = useAuth();
+  const { businessProfile, activeTenant, impersonatingTenant, user } = useAuth();
+  const currentTenantId = impersonatingTenant?.id || activeTenant?.id || user?.businessId || 'biz-apex-supermarket';
+  const currentTenantName = impersonatingTenant?.businessName || activeTenant?.businessName || businessProfile.businessName || 'APEX ENTERPRISE';
+
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    'HERO_SLIDES' | 'SHOWCASE' | 'PILLARS' | 'JOURNAL' | 'CATALOG' | 'CONTACT_FOOTER' | 'TOGGLES' | 'PREVIEW'
-  >('HERO_SLIDES');
+    'INQUIRIES' | 'HERO_SLIDES' | 'SHOWCASE' | 'PILLARS' | 'JOURNAL' | 'CATALOG' | 'CONTACT_FOOTER' | 'TOGGLES' | 'PREVIEW'
+  >('INQUIRIES');
   const [previewDevice, setPreviewDevice] = useState<'DESKTOP' | 'MOBILE'>('DESKTOP');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [templateToast, setTemplateToast] = useState<string | null>(null);
+
+  // Inquiries & Leads state
+  const [inquiries, setInquiries] = useState<WebsiteInquiry[]>([]);
+  const [inquirySearch, setInquirySearch] = useState('');
+  const [inquiryStatusFilter, setInquiryStatusFilter] = useState<'ALL' | 'NEW' | 'CONTACTED' | 'CONVERTED' | 'DISMISSED'>('ALL');
+  const [selectedInquiry, setSelectedInquiry] = useState<WebsiteInquiry | null>(null);
 
   // Active sub-item editors
   const [selectedSlideIndex, setSelectedSlideIndex] = useState(0);
   const [selectedShowcaseId, setSelectedShowcaseId] = useState<string | null>(null);
   const [selectedJournalId, setSelectedJournalId] = useState<string | null>(null);
 
-  // Load Website Config from LocalStorage
-  const [config, setConfig] = useState<WebsiteConfig>(() => {
-    try {
-      const saved = localStorage.getItem('universal_website_config');
-      if (saved) {
+  const getInitialConfig = (): WebsiteConfig => {
+    const tKey = `tenant_${currentTenantId}_website_config`;
+    const tSlug = (currentTenantName || 'store').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const saved = localStorage.getItem(tKey) || localStorage.getItem(`universal_website_config_${tSlug}`) || localStorage.getItem(`universal_website_config_${currentTenantId}`);
+    if (saved) {
+      try {
         const parsed = JSON.parse(saved);
         return {
           ...DEFAULT_WEBSITE_CONFIG,
           ...parsed,
-          brandName: parsed.brandName || businessProfile.businessName || DEFAULT_WEBSITE_CONFIG.brandName,
-          phone: parsed.phone || businessProfile.phone || DEFAULT_WEBSITE_CONFIG.phone,
-          whatsapp: parsed.whatsapp || businessProfile.phone || DEFAULT_WEBSITE_CONFIG.whatsapp,
-          email: parsed.email || businessProfile.email || DEFAULT_WEBSITE_CONFIG.email,
-          heroSlides: parsed.heroSlides?.length ? parsed.heroSlides : DEFAULT_WEBSITE_CONFIG.heroSlides,
-          destinations: parsed.destinations?.length ? parsed.destinations : DEFAULT_WEBSITE_CONFIG.destinations,
-          curatedPillars: parsed.curatedPillars?.length ? parsed.curatedPillars : DEFAULT_WEBSITE_CONFIG.curatedPillars,
-          journalArticles: parsed.journalArticles?.length ? parsed.journalArticles : DEFAULT_WEBSITE_CONFIG.journalArticles,
+          brandName: parsed.brandName || currentTenantName,
+          storeSlug: parsed.storeSlug || tSlug,
         };
-      }
-    } catch (e) {}
+      } catch {}
+    }
 
+    const bType = (impersonatingTenant?.businessType || activeTenant?.businessType || 'RETAIL') as keyof typeof INDUSTRY_PRESETS;
+    const preset = INDUSTRY_PRESETS[bType]?.config || {};
     return {
       ...DEFAULT_WEBSITE_CONFIG,
-      brandName: businessProfile.businessName || DEFAULT_WEBSITE_CONFIG.brandName,
-      phone: businessProfile.phone || DEFAULT_WEBSITE_CONFIG.phone,
-      whatsapp: businessProfile.phone || DEFAULT_WEBSITE_CONFIG.whatsapp,
-      email: businessProfile.email || DEFAULT_WEBSITE_CONFIG.email,
+      ...preset,
+      brandName: currentTenantName,
+      storeSlug: tSlug,
+      phone: impersonatingTenant?.ownerPhone || activeTenant?.ownerPhone || businessProfile.phone || DEFAULT_WEBSITE_CONFIG.phone,
+      whatsapp: impersonatingTenant?.ownerPhone || activeTenant?.ownerPhone || businessProfile.phone || DEFAULT_WEBSITE_CONFIG.whatsapp,
+      email: impersonatingTenant?.ownerEmail || activeTenant?.ownerEmail || businessProfile.email || DEFAULT_WEBSITE_CONFIG.email,
     };
-  });
+  };
+
+  // Load Website Config from LocalStorage
+  const [config, setConfig] = useState<WebsiteConfig>(getInitialConfig);
+
+  useEffect(() => {
+    setConfig(getInitialConfig());
+  }, [currentTenantId, currentTenantName]);
 
   const [items, setItems] = useState<any[]>([]);
 
   // Load Catalog Items
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('universal_items');
-      if (saved) {
-        setItems(JSON.parse(saved));
+      const tenantItemsRaw = localStorage.getItem(`tenant_${currentTenantId}_items`) || localStorage.getItem(`universal_items_${currentTenantId}`);
+      if (tenantItemsRaw) {
+        setItems(JSON.parse(tenantItemsRaw));
+      } else {
+        const saved = localStorage.getItem('universal_items');
+        if (saved) {
+          const all = JSON.parse(saved);
+          const filtered = all.filter((i: any) => !i.businessId || i.businessId === currentTenantId);
+          setItems(filtered.length > 0 ? filtered : all);
+        }
       }
     } catch (e) {}
+  }, [currentTenantId]);
+
+  // Load Inquiries & Leads
+  const loadInquiries = () => {
+    let localList: WebsiteInquiry[] = [];
+    try {
+      const saved = localStorage.getItem('universal_website_inquiries');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) localList = parsed;
+      }
+    } catch {}
+
+    fetch('/api/inquiries')
+      .then(res => res.json())
+      .then(json => {
+        if (json?.data && Array.isArray(json.data)) {
+          const combined = [...localList];
+          const ids = new Set(localList.map(i => i.id));
+          json.data.forEach((srv: WebsiteInquiry) => {
+            if (!ids.has(srv.id)) combined.push(srv);
+          });
+          setInquiries(combined);
+          localStorage.setItem('universal_website_inquiries', JSON.stringify(combined));
+        } else {
+          setInquiries(localList);
+        }
+      })
+      .catch(() => {
+        setInquiries(localList);
+      });
+  };
+
+  useEffect(() => {
+    loadInquiries();
+    const handleInquiryChange = () => loadInquiries();
+    window.addEventListener('storage', handleInquiryChange);
+    window.addEventListener('website_inquiry_added', handleInquiryChange);
+    return () => {
+      window.removeEventListener('storage', handleInquiryChange);
+      window.removeEventListener('website_inquiry_added', handleInquiryChange);
+    };
   }, []);
 
-  const publicUrl = `${window.location.origin}/website`;
+  const handleUpdateInquiryStatus = (id: string, status: WebsiteInquiry['status']) => {
+    const updated = inquiries.map(inq => inq.id === id ? { ...inq, status } : inq);
+    setInquiries(updated);
+    localStorage.setItem('universal_website_inquiries', JSON.stringify(updated));
+    fetch(`/api/inquiries/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    }).catch(() => {});
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  const handleDeleteInquiry = (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this inquiry?')) return;
+    const updated = inquiries.filter(inq => inq.id !== id);
+    setInquiries(updated);
+    localStorage.setItem('universal_website_inquiries', JSON.stringify(updated));
+    fetch(`/api/inquiries/${id}`, {
+      method: 'DELETE',
+    }).catch(() => {});
+    if (selectedInquiry?.id === id) setSelectedInquiry(null);
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  const handleConvertToCustomer = (inq: WebsiteInquiry) => {
+    try {
+      const existingCustomersRaw = localStorage.getItem('universal_customers');
+      let custList = existingCustomersRaw ? JSON.parse(existingCustomersRaw) : [];
+      if (!Array.isArray(custList)) custList = [];
+      const cleanDigits = cleanPhone(inq.phone).slice(0, 10);
+      const matchIndex = custList.findIndex((c: any) => cleanPhone(c.mobile) === cleanDigits);
+      const leadNote = `Website Inquiry: ${inq.offeringName ? `[${inq.offeringName}] ` : ''}${inq.notes || ''}`;
+      
+      if (matchIndex >= 0) {
+        custList[matchIndex] = {
+          ...custList[matchIndex],
+          name: custList[matchIndex].name || inq.name,
+          notes: custList[matchIndex].notes ? `${custList[matchIndex].notes} | ${leadNote}` : leadNote,
+          email: custList[matchIndex].email || inq.email,
+        };
+      } else {
+        custList.unshift({
+          id: `cust-inq-${Date.now()}`,
+          name: inq.name,
+          mobile: cleanDigits,
+          email: inq.email,
+          type: 'INDIVIDUAL',
+          notes: leadNote,
+          createdAt: new Date().toISOString(),
+        });
+      }
+      localStorage.setItem('universal_customers', JSON.stringify(custList));
+      handleUpdateInquiryStatus(inq.id, 'CONVERTED');
+      window.dispatchEvent(new Event('storage'));
+      alert(`Customer profile for ${inq.name} is ready in Customers directory!`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const toSlug = (text: string) =>
+    (text || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+  const currentStoreSlug = config.storeSlug ? toSlug(config.storeSlug) : toSlug(config.brandName || businessProfile.businessName || 'store');
+  const publicUrl = `${window.location.origin}/${currentStoreSlug}`;
 
   const handleSave = () => {
-    localStorage.setItem('universal_website_config', JSON.stringify(config));
+    const configToSave = {
+      ...config,
+      storeSlug: currentStoreSlug
+    };
+    const tKey = `tenant_${currentTenantId}_website_config`;
+    localStorage.setItem(tKey, JSON.stringify(configToSave));
+    localStorage.setItem(`universal_website_config_${currentStoreSlug}`, JSON.stringify(configToSave));
+    localStorage.setItem(`universal_website_config_${currentTenantId}`, JSON.stringify(configToSave));
+    localStorage.setItem('universal_website_config', JSON.stringify(configToSave));
     window.dispatchEvent(new Event('storage'));
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
@@ -296,6 +437,13 @@ export default function WebsiteBuilder() {
             <p className="text-sm text-gray-500 mt-0.5">
               Universal multi-business dynamic website manager. Real-time updates publish instantly.
             </p>
+            <div className="flex items-center gap-1.5 mt-2 text-xs text-blue-700 bg-blue-50/90 px-2.5 py-1 rounded-lg border border-blue-200/70 max-w-fit font-mono">
+              <Globe className="w-3.5 h-3.5 text-[#2563EB] flex-shrink-0" />
+              <span className="text-gray-600 font-sans font-medium">Public Storefront:</span>
+              <a href={publicUrl} target="_blank" rel="noreferrer" className="font-bold text-[#2563EB] hover:underline hover:text-blue-800 truncate max-w-[280px] sm:max-w-md">
+                {publicUrl}
+              </a>
+            </div>
           </div>
         </div>
 
@@ -344,6 +492,12 @@ export default function WebsiteBuilder() {
       <div className="bg-white border border-gray-200 rounded-xl px-4 shadow-sm overflow-x-auto scrollbar-none">
         <div className="flex items-center gap-2 min-w-max border-b border-gray-200">
           {[
+            { 
+              id: 'INQUIRIES', 
+              label: 'Inquiries & Leads', 
+              icon: MessageSquare,
+              badge: inquiries.filter(i => i.status === 'NEW').length 
+            },
             { id: 'HERO_SLIDES', label: 'Hero & Branding', icon: Layout },
             { id: 'SHOWCASE', label: 'Featured Showcase', icon: Star },
             { id: 'PILLARS', label: 'Why Choose Us', icon: Shield },
@@ -368,11 +522,261 @@ export default function WebsiteBuilder() {
               >
                 <Icon className={cn("w-4 h-4", isActive ? "text-blue-600" : "text-gray-400")} />
                 <span>{tab.label}</span>
+                {tab.badge !== undefined && tab.badge > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white animate-pulse">
+                    {tab.badge}
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 0. INQUIRIES & LEADS TAB */}
+      {/* ========================================================================= */}
+      {activeTab === 'INQUIRIES' && (
+        <div className="space-y-6">
+          {/* KPI Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Total Inquiries</p>
+                <p className="text-2xl font-black text-gray-900">{inquiries.length}</p>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">New Leads</p>
+                <p className="text-2xl font-black text-amber-600">
+                  {inquiries.filter(i => i.status === 'NEW').length}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                <Phone className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Contacted</p>
+                <p className="text-2xl font-black text-purple-600">
+                  {inquiries.filter(i => i.status === 'CONTACTED').length}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Converted</p>
+                <p className="text-2xl font-black text-emerald-600">
+                  {inquiries.filter(i => i.status === 'CONVERTED').length}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter and Search Bar */}
+          <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search by customer name, phone, or requirement..."
+                value={inquirySearch}
+                onChange={e => setInquirySearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              {(['ALL', 'NEW', 'CONTACTED', 'CONVERTED', 'DISMISSED'] as const).map(st => (
+                <button
+                  key={st}
+                  onClick={() => setInquiryStatusFilter(st)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer",
+                    inquiryStatusFilter === st
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  )}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Inquiries Cards List */}
+          <div className="space-y-4">
+            {inquiries
+              .filter(inq => {
+                const matchesFilter = inquiryStatusFilter === 'ALL' || inq.status === inquiryStatusFilter;
+                const matchesSearch = !inquirySearch.trim() || 
+                  inq.name.toLowerCase().includes(inquirySearch.toLowerCase()) ||
+                  inq.phone.includes(inquirySearch) ||
+                  (inq.email && inq.email.toLowerCase().includes(inquirySearch.toLowerCase())) ||
+                  (inq.offeringName && inq.offeringName.toLowerCase().includes(inquirySearch.toLowerCase())) ||
+                  (inq.notes && inq.notes.toLowerCase().includes(inquirySearch.toLowerCase()));
+                return matchesFilter && matchesSearch;
+              })
+              .map(inq => {
+                const statusColor = 
+                  inq.status === 'NEW' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                  inq.status === 'CONTACTED' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                  inq.status === 'CONVERTED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                  'bg-gray-100 text-gray-700 border-gray-200';
+
+                return (
+                  <div
+                    key={inq.id}
+                    className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs hover:border-blue-200 transition-all space-y-4"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+                          {inq.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-sm text-gray-900">{inq.name}</h3>
+                            <span className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-bold border", statusColor)}>
+                              {inq.status}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-400 font-mono mt-0.5">
+                            Received {new Date(inq.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Status Selector */}
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-gray-500 font-medium">Status:</label>
+                        <select
+                          value={inq.status}
+                          onChange={e => handleUpdateInquiryStatus(inq.id, e.target.value as any)}
+                          className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-800 font-bold outline-none focus:border-blue-500"
+                        >
+                          <option value="NEW">⚡ NEW</option>
+                          <option value="CONTACTED">📞 CONTACTED</option>
+                          <option value="CONVERTED">✅ CONVERTED</option>
+                          <option value="DISMISSED">❌ DISMISSED</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Contact details & message */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-gray-700">
+                          <Phone className="w-3.5 h-3.5 text-blue-600" />
+                          <span className="font-mono font-bold">{inq.phone}</span>
+                        </div>
+                        {inq.email && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Mail className="w-3.5 h-3.5 text-gray-400" />
+                            <span>{inq.email}</span>
+                          </div>
+                        )}
+                        {inq.offeringName && (
+                          <div className="inline-block mt-1 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-[#2563EB] font-bold text-[11px]">
+                            Interested in: {inq.offeringName}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="md:col-span-2 bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                        <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider mb-1">
+                          Inquiry / Message:
+                        </p>
+                        <p className="text-xs text-gray-800 whitespace-pre-wrap leading-relaxed">
+                          {inq.notes || 'No custom notes provided.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Bar */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`https://wa.me/91${cleanPhone(inq.phone)}?text=${encodeURIComponent(`Hello ${inq.name}, thank you for contacting ${config.brandName}! Regarding your inquiry: "${inq.offeringName || inq.notes || ''}"`)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>WhatsApp</span>
+                        </a>
+
+                        <a
+                          href={`tel:${inq.phone}`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition-all"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Call</span>
+                        </a>
+
+                        {inq.email && (
+                          <a
+                            href={`mailto:${inq.email}?subject=${encodeURIComponent(`Inquiry Response from ${config.brandName}`)}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-all"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>Email</span>
+                          </a>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {inq.status !== 'CONVERTED' && (
+                          <button
+                            onClick={() => handleConvertToCustomer(inq)}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold transition-all cursor-pointer"
+                          >
+                            <Users className="w-3.5 h-3.5" />
+                            <span>Add to Customers CRM</span>
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => handleDeleteInquiry(inq.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          title="Delete Inquiry"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+            {inquiries.length === 0 && (
+              <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center space-y-3 shadow-xs">
+                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 mx-auto flex items-center justify-center">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+                <h3 className="font-bold text-gray-900 text-base">No Direct Inquiries Yet</h3>
+                <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                  When visitors submit inquiries on your public website ({publicUrl}), they will appear here instantly with full contact details and 1-click WhatsApp messaging.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 1. HERO & BRANDING TAB */}
@@ -398,7 +802,14 @@ export default function WebsiteBuilder() {
                 <input
                   type="text"
                   value={config.brandName}
-                  onChange={e => setConfig(c => ({ ...c, brandName: e.target.value }))}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setConfig(c => ({ 
+                      ...c, 
+                      brandName: val,
+                      storeSlug: c.storeSlug || toSlug(val)
+                    }));
+                  }}
                   placeholder="e.g. APEX ENTERPRISE"
                   className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
@@ -425,6 +836,39 @@ export default function WebsiteBuilder() {
                   className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
+            </div>
+
+            {/* Custom Store URL Slug */}
+            <div className="pt-3 border-t border-gray-100">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Storefront Custom URL Slug (https://[your-domain]/<span className="text-[#2563EB] font-bold">{currentStoreSlug}</span>)
+              </label>
+              <div className="flex items-center gap-2 max-w-xl">
+                <div className="flex items-center w-full rounded-lg border border-gray-300 bg-gray-50 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+                  <span className="px-3 text-xs text-gray-500 font-mono select-none bg-gray-100 py-2 border-r border-gray-300">
+                    {window.location.origin}/
+                  </span>
+                  <input
+                    type="text"
+                    value={config.storeSlug || ''}
+                    onChange={e => setConfig(c => ({ ...c, storeSlug: toSlug(e.target.value) }))}
+                    placeholder={currentStoreSlug}
+                    className="w-full px-3 py-2 text-sm bg-white text-gray-900 font-mono outline-none"
+                  />
+                </div>
+                <a
+                  href={publicUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-[#2563EB] bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg whitespace-nowrap transition-colors"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Preview URL</span>
+                </a>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                Customers can open your store directly at <span className="font-mono text-gray-600 font-bold">{publicUrl}</span>
+              </p>
             </div>
           </div>
 
