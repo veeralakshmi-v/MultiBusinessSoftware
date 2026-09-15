@@ -73,7 +73,6 @@ export default function SuperAdmin() {
   const [activeTab, setActiveTab] = useState<SuperAdminTab>('DASHBOARD');
 
   // Sub-tab selectors for consolidated views
-  const [businessSubTab, setBusinessSubTab] = useState<'DIRECTORY' | 'TEMPLATES'>('DIRECTORY');
   const [subscriptionSubTab, setSubscriptionSubTab] = useState<'SUBSCRIPTIONS' | 'PLANS' | 'MODULES'>('SUBSCRIPTIONS');
   const [settingsSubTab, setSettingsSubTab] = useState<'CREDENTIALS' | 'BACKUPS' | 'USERS' | 'AUDIT_LOGS' | 'FEATURES'>('CREDENTIALS');
 
@@ -1272,45 +1271,21 @@ export default function SuperAdmin() {
              ══════════════════════════════════════════════════════ */}
           {activeTab === 'BUSINESSES' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              {/* Sub-Tabs: Directory vs Industry Templates */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setBusinessSubTab('DIRECTORY')}
-                    className={cn(
-                      'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
-                      businessSubTab === 'DIRECTORY'
-                        ? 'bg-[#2563EB] text-white shadow-xs'
-                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                    )}
-                  >
-                    Client Businesses ({tenants.length})
-                  </button>
-
-                  <button
-                    onClick={() => setBusinessSubTab('TEMPLATES')}
-                    className={cn(
-                      'px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer',
-                      businessSubTab === 'TEMPLATES'
-                        ? 'bg-[#2563EB] text-white shadow-xs'
-                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                    )}
-                  >
-                    Industry Templates ({industryTemplates.length})
-                  </button>
+              {/* Directory Header & Action */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Client Businesses Directory ({tenants.length})</h2>
+                  <p className="text-xs text-gray-500">Manage all registered client tenants, provision new businesses, and control access.</p>
                 </div>
 
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="px-4 py-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 cursor-pointer"
+                  className="px-4 py-2 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 cursor-pointer self-start sm:self-auto"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Provision New Business</span>
                 </button>
               </div>
-
-              {businessSubTab === 'DIRECTORY' && (
-                <>
                   {/* Search & Filter Bar */}
                   <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs flex flex-col lg:flex-row items-center justify-between gap-3">
                     <div className="relative flex-1 w-full">
@@ -1537,58 +1512,8 @@ export default function SuperAdmin() {
                           )}
                         </tbody>
                       </table>
-                    </div>
                   </div>
-                </>
-              )}
-
-              {businessSubTab === 'TEMPLATES' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {industryTemplates.map((tpl) => (
-                    <div key={tpl.id} className="bg-white border border-gray-200 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div
-                            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold"
-                            style={{ backgroundColor: tpl.themeColor }}
-                          >
-                            <Building2 className="w-5 h-5" />
-                          </div>
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {tpl.status}
-                          </span>
-                        </div>
-
-                        <div>
-                          <h3 className="font-serif font-bold text-sm text-gray-900">{tpl.name}</h3>
-                          <p className="text-[11px] text-gray-500 line-clamp-2 mt-1">{tpl.description}</p>
-                        </div>
-
-                        <div className="space-y-1.5 pt-2 border-t border-gray-100 text-[11px]">
-                          <div className="font-bold text-gray-700">Default Modules:</div>
-                          <div className="flex flex-wrap gap-1">
-                            {tpl.defaultModules.slice(0, 4).map(m => (
-                              <span key={m} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-semibold">
-                                {m}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-indigo-600 uppercase">Rec: {tpl.recommendedPlan}</span>
-                        <button
-                          onClick={() => showToast(`Configured template for ${tpl.name}`)}
-                          className="px-3 py-1 bg-gray-100 hover:bg-blue-50 hover:text-[#2563EB] text-gray-700 font-bold rounded-lg text-xs transition-colors cursor-pointer"
-                        >
-                          Edit Template
-                        </button>
-                      </div>
-                    </div>
-                  ))}
                 </div>
-              )}
             </div>
           )}
 
