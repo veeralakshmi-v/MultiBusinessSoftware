@@ -52,6 +52,9 @@ export default function DashboardLayout() {
 
   // Role-Based Access Helper
   const isRouteAllowedForRole = (role: string, href: string): boolean => {
+    // Attendance is always accessible to ALL roles
+    if (href === '/dashboard/attendance') return true;
+
     if (!role || role === 'ADMIN' || role === 'SUPER_ADMIN' || user?.username === 'superadmin' || user?.username === 'admin') return true;
 
     // Check custom applicationAccess permissions if set for the employee
@@ -61,7 +64,7 @@ export default function DashboardLayout() {
         return true;
       }
       if (appAccess.includes('No Access')) {
-        return href === '/dashboard';
+        return href === '/dashboard' || href === '/dashboard/attendance';
       }
 
       const routeMenuMap: Record<string, string[]> = {
@@ -83,7 +86,6 @@ export default function DashboardLayout() {
       const isAllowed = mappedNames.some(name => allowedItems.includes(name.toLowerCase()));
 
       // STRICT: When custom applicationAccess permissions are configured, ONLY allow explicitly selected modules.
-      // Do NOT fall through to generic role defaults (like MANAGER allowing all routes).
       return isAllowed;
     }
 
@@ -95,11 +97,11 @@ export default function DashboardLayout() {
       return href === '/dashboard/billing' || href === '/dashboard/customers' || href === '/dashboard/attendance' || href === '/dashboard';
     }
 
-    if (role === 'STAFF') {
+    if (role === 'STAFF' || role === 'EMPLOYEE') {
       return href === '/dashboard/attendance' || href === '/dashboard';
     }
 
-    return true;
+    return href === '/dashboard' || href === '/dashboard/attendance';
   };
 
 

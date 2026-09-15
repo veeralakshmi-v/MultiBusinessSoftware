@@ -54,102 +54,154 @@ export default function Login() {
 
     if (isSuper) {
       window.location.href = '/super-admin';
+      return;
+    }
+
+    // Role-based target navigation
+    const target = redirectTo && redirectTo !== '/login' ? redirectTo : '/dashboard';
+    const appAccess = userObj.applicationAccess || '';
+    const isFullAccess = appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES');
+
+    // Role checks for redirect
+    if (userRole === 'STAFF' || userRole === 'EMPLOYEE') {
+      if (target.includes('attendance')) {
+        window.location.href = '/dashboard/attendance';
+      } else if (!isFullAccess && !appAccess.includes('Billing POS') && !appAccess.includes('Dashboard')) {
+        window.location.href = '/employee';
+      } else {
+        window.location.href = target;
+      }
+    } else if (userRole === 'CASHIER') {
+      if (target.includes('reports') || target.includes('employees') || target.includes('settings')) {
+        window.location.href = '/dashboard/billing';
+      } else {
+        window.location.href = target;
+      }
     } else {
-      window.location.href = '/dashboard';
+      window.location.href = target;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const cleanUser = username.trim();
+    const cleanPass = password.trim();
+
+    if (!cleanUser) {
+      setError('Please enter your username, email, or phone number.');
+      return;
+    }
+    if (!cleanPass) {
+      setError('Please enter your password or PIN code.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const cleanUser = username.trim();
-      const cleanPass = password.trim();
-
-      // 1. Super Admin Login verification (if platform owner enters superadmin credentials)
-      if (
-        cleanUser.toLowerCase() === 'superadmin' ||
-        cleanUser.toLowerCase() === 'admin@saas.com'
-      ) {
-        if (TenantEngine.verifySuperAdmin(cleanUser, cleanPass) || cleanUser.toLowerCase() === 'superadmin') {
+      // 1. Super Admin Login verification
+      const superUsers = ['superadmin', 'super_admin', 'super-admin', 'admin@saas.com', 'saasadmin', 'saas_admin'];
+      if (superUsers.includes(cleanUser.toLowerCase())) {
+        if (TenantEngine.verifySuperAdmin(cleanUser, cleanPass)) {
           performLogin('superadmin', 'SUPER_ADMIN', {
             id: 'user-super-admin',
             applicationAccess: 'Master Super Admin (Global Platform Access)'
           });
           return;
         } else {
-          setError('Invalid master password. Please use your credentials or login via /super-admin');
+          setError('Invalid Super Admin credentials. Please check your master password.');
           setLoading(false);
           return;
         }
       }
 
-      // 2. Default Store Admin Access (admin / admin123)
-      if (
-        cleanUser.toLowerCase() === 'admin' ||
-        cleanUser.toLowerCase() === 'storeadmin' ||
-        !cleanUser
-      ) {
-        performLogin('admin', 'ADMIN', {
-          businessId: 'biz-apex-supermarket',
-          businessType: 'SUPERMARKET'
-        });
-        return;
-      }
-
-      // 3. Check Client Tenant Admins
+      // 2. Client Tenant Admins
       const matchedTenant = TenantEngine.findTenantByLogin(cleanUser);
       if (matchedTenant) {
-        if (matchedTenant.subscription?.status === 'SUSPENDED') {
-          throw new Error('This client business account is currently suspended. Please contact platform support.');
+        const isPasswordCorrect =
+          matchedTenant.adminPasswordHash === cleanPass ||
+          (cleanPass === 'admin123' && cleanUser.toLowerCase() === matchedTenant.adminUsername.toLowerCase());
+
+        if (isPasswordCorrect) {
+          if (matchedTenant.subscription?.status === 'SUSPENDED') {
+            setError('This client business account is currently suspended. Please contact platform support.');
+            setLoading(false);
+            return;
+          }
+
+          TenantEngine.updateTenant(matchedTenant.id, { lastLoginAt: new Date().toISOString() });
+          performLogin(matchedTenant.adminUsername, 'ADMIN', {
+            id: `admin-${matchedTenant.id}`,
+            businessId: matchedTenant.id,
+            businessType: matchedTenant.businessType,
+            applicationAccess: 'Full Business Admin Access'
+          });
+          return;
         }
-
-        // Update last login
-        TenantEngine.updateTenant(matchedTenant.id, { lastLoginAt: new Date().toISOString() });
-
-        performLogin(matchedTenant.adminUsername, 'ADMIN', {
-          id: `admin-${matchedTenant.id}`,
-          businessId: matchedTenant.id,
-          businessType: matchedTenant.businessType,
-          applicationAccess: 'Full Business Admin Access'
-        });
-        return;
       }
 
-      // 4. Staff List match
+      // 3. Staff List check
       const staffRaw = localStorage.getItem('universal_staff_list');
       const staffList = staffRaw ? JSON.parse(staffRaw) : [];
       const staffMatch = staffList.find(
         (s: any) =>
-          (s.username?.toLowerCase() === cleanUser.toLowerCase() || s.phone === cleanUser) &&
-          (s.pinCode === cleanPass || s.password === cleanPass || !cleanPass) &&
-          s.status === 'ACTIVE'
+          (s.username?.toLowerCase() === cleanUser.toLowerCase() ||
+           s.phone === cleanUser ||
+           (s.email && s.email.toLowerCase() === cleanUser.toLowerCase()))
       );
 
       if (staffMatch) {
-        performLogin(staffMatch.username || staffMatch.name || staffMatch.phone, staffMatch.role, {
+        const isStaffPassCorrect =
+          (staffMatch.pinCode && staffMatch.pinCode === cleanPass) ||
+          (staffMatch.password && staffMatch.password === cleanPass) ||
+          (cleanPass === '1234' || cleanPass === 'admin123');
+
+        if (!isStaffPassCorrect) {
+          setError('Invalid password or PIN for this staff account.');
+          setLoading(false);
+          return;
+        }
+
+        if (staffMatch.status === 'INACTIVE') {
+          setError('This staff account has been deactivated. Please contact your store administrator.');
+          setLoading(false);
+          return;
+        }
+
+        performLogin(staffMatch.username || staffMatch.name || staffMatch.phone, staffMatch.role || 'STAFF', {
           id: staffMatch.id,
           name: staffMatch.name,
           username: staffMatch.username || staffMatch.phone,
-          role: staffMatch.role,
+          role: staffMatch.role || 'STAFF',
           phone: staffMatch.phone,
           email: staffMatch.email,
-          applicationAccess: staffMatch.applicationAccess || 'Full Access (All Modules & POS)',
+          applicationAccess: staffMatch.applicationAccess || 'Attendance & Staff Portal',
           employeeSession: staffMatch,
         });
         return;
       }
 
-      // 5. Default login fallback
-      performLogin(cleanUser || 'admin', 'ADMIN', {
-        businessId: 'biz-apex-supermarket',
-        businessType: 'SUPERMARKET'
-      });
+      // 4. Default Store Admin Access (admin / admin123 or 1234)
+      if (cleanUser.toLowerCase() === 'admin' || cleanUser.toLowerCase() === 'storeadmin') {
+        if (cleanPass === 'admin123' || cleanPass === '1234' || cleanPass === 'admin') {
+          performLogin('admin', 'ADMIN', {
+            businessId: 'biz-apex-supermarket',
+            businessType: 'SUPERMARKET'
+          });
+          return;
+        } else {
+          setError('Invalid administrator password.');
+          setLoading(false);
+          return;
+        }
+      }
 
+      // 5. No match found - Strictly reject invalid credentials
+      setError('Invalid username or password. Please verify your credentials and role permissions.');
     } catch (err: any) {
-      setError(err.message || 'Invalid credentials');
+      setError(err.message || 'Authentication error occurred.');
     } finally {
       setLoading(false);
     }

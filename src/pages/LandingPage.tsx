@@ -113,7 +113,7 @@ export default function LandingPage() {
       icon: Users,
       bg: 'bg-emerald-50/80 hover:bg-emerald-100/80 border-emerald-100',
       iconColor: 'text-emerald-600',
-      badge: 'EMPLOYEE',
+      badge: 'ADMIN',
       badgeBg: 'bg-emerald-200/60 text-emerald-700',
       route: '/login?redirect=%2Fdashboard%2Femployees'
     },
@@ -133,7 +133,7 @@ export default function LandingPage() {
       icon: Clock,
       bg: 'bg-cyan-50/80 hover:bg-cyan-100/80 border-cyan-100',
       iconColor: 'text-cyan-600',
-      badge: 'STAFF',
+      badge: 'ALL ROLES',
       badgeBg: 'bg-cyan-200/60 text-cyan-800',
       route: '/employee-login'
     }
