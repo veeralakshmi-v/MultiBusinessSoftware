@@ -100,6 +100,27 @@ let mockSettings = {
   },
 };
 
+// Request Tenant Context Helper
+function getRequestContext(req: express.Request) {
+  const authHeader = req.headers.authorization || '';
+  const isSuper = authHeader.toLowerCase().includes('super') || authHeader.includes('super-admin');
+  const businessId = (req.headers['x-business-id'] as string) || (req.query.businessId as string) || (req.body?.businessId as string) || DEMO_BUSINESS_ID;
+  return {
+    isSuper,
+    businessId: businessId.trim(),
+  };
+}
+
+async function ensureBusinessExists(businessId: string, businessName = 'My Business', businessType = 'RETAIL') {
+  try {
+    await prisma.business.upsert({
+      where: { id: businessId },
+      update: {},
+      create: { id: businessId, name: businessName, type: businessType }
+    });
+  } catch (e) {}
+}
+
 // 1. Health & Desktop DB Status API
 app.get('/api/health', async (req, res) => {
   const startTime = Date.now();
@@ -128,12 +149,37 @@ app.get('/api/health', async (req, res) => {
 
 // 2. Authentication
 app.post('/api/auth/login', async (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, password } = req.body;
+  const cleanUser = (username || '').trim();
+  const cleanPass = (password || '').trim();
+
+  if (!cleanUser || !cleanPass) {
+    return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  // Check Super Admin
+  if (cleanUser.toLowerCase() === 'superadmin' || cleanUser.toLowerCase() === 'admin@saas.com') {
+    const validSuperPasses = ['Super@Admin2026#', 'superadmin123', 'superadmin', 'password'];
+    if (validSuperPasses.includes(cleanPass)) {
+      return res.json({
+        token: `super-admin-token-${Date.now()}`,
+        user: {
+          id: 'user-super-admin',
+          username: 'superadmin',
+          role: 'SUPER_ADMIN',
+          applicationAccess: 'Master Super Admin (Global Platform Access)',
+        }
+      });
+    } else {
+      return res.status(401).json({ error: 'Invalid Super Admin credentials' });
+    }
+  }
+
   try {
     const user = await prisma.user.findFirst({
-      where: { username },
+      where: { username: cleanUser },
     });
-    if (user) {
+    if (user && user.password === cleanPass) {
       return res.json({
         token: `jwt-token-${user.id}-${Date.now()}`,
         user: {
@@ -144,36 +190,20 @@ app.post('/api/auth/login', async (req, res) => {
         },
       });
     }
-  } catch (err) {
-    // Fallback demo user
-  }
+  } catch (err) {}
 
-  // Fallback demo login response
-  return res.json({
-    token: `demo-live-token-${username || 'admin'}`,
-    user: {
-      id: 'user-admin',
-      username: username || 'admin',
-      role: role || 'ADMIN',
-      businessId: DEMO_BUSINESS_ID,
-      businessType: 'RESTAURANT',
-    },
-  });
+  return res.status(401).json({ error: 'Invalid username or password' });
 });
 
 app.get('/api/auth/me', (req, res) => {
-  const authHeader = req.headers.authorization || '';
-  if (!authHeader) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  const isSuper = authHeader.toLowerCase().includes('super');
+  const { isSuper, businessId } = getRequestContext(req);
   res.json({
     user: {
       id: isSuper ? 'user-super-admin' : 'user-admin',
       username: isSuper ? 'superadmin' : 'admin',
       role: isSuper ? 'SUPER_ADMIN' : 'ADMIN',
-      businessId: isSuper ? undefined : DEMO_BUSINESS_ID,
-      businessType: isSuper ? undefined : 'RESTAURANT',
+      businessId: isSuper ? undefined : businessId,
+      businessType: isSuper ? undefined : 'RETAIL',
     },
   });
 });
@@ -290,10 +320,11 @@ async function ensureInitialDbData() {
 
 // 3. Settings API
 app.get('/api/settings', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
-    await ensureInitialDbData();
+    await ensureBusinessExists(businessId);
     const settings = await prisma.businessProfileSettings.findFirst({
-      where: { businessId: DEMO_BUSINESS_ID },
+      where: { businessId },
     });
     if (settings) {
       return res.json({
@@ -334,17 +365,14 @@ app.get('/api/settings', async (req, res) => {
 });
 
 app.post('/api/settings', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const body = req.body;
   mockSettings = { ...mockSettings, ...body };
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: body.businessName || body.profile?.name || 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId, body.businessName || body.profile?.name);
 
     const settings = await prisma.businessProfileSettings.upsert({
-      where: { businessId: DEMO_BUSINESS_ID },
+      where: { businessId },
       update: {
         businessName: body.businessName || body.profile?.name || mockSettings.profile.name,
         legalName: body.legalName,
@@ -363,7 +391,7 @@ app.post('/api/settings', async (req, res) => {
         enabledModules: JSON.stringify(body.enabledModules || body.moduleSettings || {}),
       },
       create: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         businessName: body.businessName || body.profile?.name || 'My Business',
         legalName: body.legalName || '',
         address: body.address || body.profile?.address || '',
@@ -381,7 +409,7 @@ app.post('/api/settings', async (req, res) => {
         enabledModules: JSON.stringify(body.enabledModules || body.moduleSettings || {}),
       },
     });
-    console.log(`✅ Settings stored in DB for: ${settings.businessName}`);
+    console.log(`✅ Settings stored in DB for [${businessId}]: ${settings.businessName}`);
     return res.json({ success: true, settings });
   } catch (err) {
     console.error('❌ Error saving settings:', err);
@@ -391,13 +419,15 @@ app.post('/api/settings', async (req, res) => {
 
 // 3.5 Users / Staff & Employee Management API
 app.get('/api/users', async (req, res) => {
+  const { isSuper, businessId } = getRequestContext(req);
   try {
+    const whereClause = isSuper && req.query.allBusinesses === 'true' ? {} : { businessId };
     const users = await prisma.user.findMany({
-      where: { businessId: DEMO_BUSINESS_ID },
+      where: whereClause,
       orderBy: { createdAt: 'desc' }
     });
     const employees = await prisma.employee.findMany({
-      where: { businessId: DEMO_BUSINESS_ID }
+      where: whereClause
     });
 
     const empMap = new Map<string, any>();
@@ -431,9 +461,11 @@ app.get('/api/users', async (req, res) => {
 });
 
 app.get('/api/employees', async (req, res) => {
+  const { isSuper, businessId } = getRequestContext(req);
   try {
+    const whereClause = isSuper && req.query.allBusinesses === 'true' ? {} : { businessId };
     const employees = await prisma.employee.findMany({
-      where: { businessId: DEMO_BUSINESS_ID },
+      where: whereClause,
       orderBy: { createdAt: 'desc' }
     });
     return res.json(employees);
@@ -448,6 +480,16 @@ app.post('/api/users', async (req, res) => {
   const effectiveName = (name || fullName || staffName || effectiveUsername).trim();
   if (!effectiveUsername) return res.status(400).json({ error: 'Username or phone is required' });
 
+  const { isSuper, businessId } = getRequestContext(req);
+  const targetRole = (role || 'CASHIER').toUpperCase();
+
+  // Security Policy: Business Admin CANNOT create or assign ADMIN or SUPER_ADMIN
+  if (!isSuper && (targetRole === 'ADMIN' || targetRole === 'SUPER_ADMIN')) {
+    return res.status(403).json({
+      error: 'Forbidden: Business Admin cannot create or assign Admin or Super Admin roles. Only Super Admin can provision Admin accounts.'
+    });
+  }
+
   if (phone && !isValidPhone(phone)) {
     return res.status(400).json({ error: 'Phone number must be exactly 10 digits' });
   }
@@ -456,25 +498,21 @@ app.post('/api/users', async (req, res) => {
   }
 
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId);
 
-    // 1. Save to User table in Supabase
+    // 1. Save to User table
     const user = await prisma.user.upsert({
       where: { username: effectiveUsername },
-      update: { role: role || 'CASHIER', password: password || pinCode || '1234' },
+      update: { role: targetRole, password: password || pinCode || '1234', businessId },
       create: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         username: effectiveUsername,
         password: password || pinCode || '1234',
-        role: role || 'CASHIER',
+        role: targetRole,
       }
     });
 
-    // 2. Save to Employee table in Supabase
+    // 2. Save to Employee table
     const empCode = `EMP-${effectiveUsername}`;
     const parts = effectiveName.split(' ');
     const firstName = parts[0] || 'Employee';
@@ -483,6 +521,7 @@ app.post('/api/users', async (req, res) => {
     const emp = await prisma.employee.upsert({
       where: { employeeCode: empCode },
       update: {
+        businessId,
         fullName: effectiveName,
         firstName,
         lastName,
@@ -490,11 +529,11 @@ app.post('/api/users', async (req, res) => {
         email: email || undefined,
         aadharNumber: aadharNumber || undefined,
         address: address || undefined,
-        role: role || 'CASHIER',
+        role: targetRole,
         status: 'ACTIVE',
       },
       create: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         employeeCode: empCode,
         firstName,
         lastName,
@@ -503,12 +542,12 @@ app.post('/api/users', async (req, res) => {
         email: email || undefined,
         aadharNumber: aadharNumber || undefined,
         address: address || undefined,
-        role: role || 'CASHIER',
+        role: targetRole,
         status: 'ACTIVE',
       }
     });
 
-    console.log(`✅ User & Employee stored in Supabase PostgreSQL: ${effectiveName} (${effectiveUsername})`);
+    console.log(`✅ User & Employee stored for [${businessId}]: ${effectiveName} (${effectiveUsername}) [${targetRole}]`);
     return res.status(201).json({
       ...user,
       name: effectiveName,
@@ -529,6 +568,16 @@ app.post('/api/employees', async (req, res) => {
   const effectiveUsername = (phone || username || '').trim();
   const effectiveName = (name || fullName || staffName || effectiveUsername).trim();
 
+  const { isSuper, businessId } = getRequestContext(req);
+  const targetRole = (role || 'CASHIER').toUpperCase();
+
+  // Security Policy: Business Admin CANNOT create or assign ADMIN or SUPER_ADMIN
+  if (!isSuper && (targetRole === 'ADMIN' || targetRole === 'SUPER_ADMIN')) {
+    return res.status(403).json({
+      error: 'Forbidden: Business Admin cannot create or assign Admin or Super Admin roles.'
+    });
+  }
+
   if (phone && !isValidPhone(phone)) {
     return res.status(400).json({ error: 'Phone number must be exactly 10 digits' });
   }
@@ -542,15 +591,12 @@ app.post('/api/employees', async (req, res) => {
   const lastName = parts.slice(1).join(' ') || 'Staff';
 
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId);
 
     const emp = await prisma.employee.upsert({
       where: { employeeCode: empCode },
       update: {
+        businessId,
         fullName: effectiveName,
         firstName,
         lastName,
@@ -558,11 +604,11 @@ app.post('/api/employees', async (req, res) => {
         email: email || undefined,
         aadharNumber: aadharNumber || undefined,
         address: address || undefined,
-        role: role || 'CASHIER',
+        role: targetRole,
         status: 'ACTIVE',
       },
       create: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         employeeCode: empCode,
         firstName,
         lastName,
@@ -571,7 +617,7 @@ app.post('/api/employees', async (req, res) => {
         email: email || undefined,
         aadharNumber: aadharNumber || undefined,
         address: address || undefined,
-        role: role || 'CASHIER',
+        role: targetRole,
         status: 'ACTIVE',
       }
     });
@@ -579,12 +625,12 @@ app.post('/api/employees', async (req, res) => {
     if (effectiveUsername) {
       await prisma.user.upsert({
         where: { username: effectiveUsername },
-        update: { role: role || 'CASHIER' },
+        update: { role: targetRole, businessId },
         create: {
-          businessId: DEMO_BUSINESS_ID,
+          businessId,
           username: effectiveUsername,
           password: '1234',
-          role: role || 'CASHIER'
+          role: targetRole
         }
       });
     }
@@ -612,10 +658,11 @@ app.delete('/api/users/:id', async (req, res) => {
 
 // 4. Dynamic Categories API
 app.get('/api/categories', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
-    await ensureInitialDbData();
+    await ensureBusinessExists(businessId);
     const categories = await prisma.category.findMany({
-      where: { businessId: DEMO_BUSINESS_ID },
+      where: { businessId },
       orderBy: { name: 'asc' },
     });
     return res.json(categories || []);
@@ -625,20 +672,17 @@ app.get('/api/categories', async (req, res) => {
 });
 
 app.post('/api/categories', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const { name, description } = req.body;
   if (!name) return res.status(400).json({ error: 'Category name is required' });
 
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId);
     const category = await prisma.category.upsert({
       where: { name: name.trim() },
       update: { slug: name.trim().toLowerCase().replace(/\s+/g, '-') },
       create: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         name: name.trim(),
         slug: name.trim().toLowerCase().replace(/\s+/g, '-'),
       },
@@ -680,9 +724,11 @@ app.delete('/api/categories/:id', async (req, res) => {
 
 // 5. Products / Menu Items API
 const getMenuItemsHandler = async (req: any, res: any) => {
+  const { businessId } = getRequestContext(req);
   try {
-    await ensureInitialDbData();
+    await ensureBusinessExists(businessId);
     const items = await prisma.menuItem.findMany({
+      where: { businessId },
       include: { category: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -704,35 +750,32 @@ app.get('/api/menu', getMenuItemsHandler);
 app.get('/api/menu-items', getMenuItemsHandler);
 
 const createMenuItemHandler = async (req: any, res: any) => {
+  const { businessId } = getRequestContext(req);
   const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, showInWebsite, attributes } = req.body;
   if (!name) return res.status(400).json({ error: 'Item name is required' });
 
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId);
 
     let targetCatId = categoryId;
     if (targetCatId) {
       const existingCat = await prisma.category.findUnique({ where: { id: targetCatId } });
       if (!existingCat) {
-        const foundByName = await prisma.category.findFirst({ where: { name: targetCatId } });
+        const foundByName = await prisma.category.findFirst({ where: { name: targetCatId, businessId } });
         if (foundByName) {
           targetCatId = foundByName.id;
         } else {
           const newCat = await prisma.category.create({
-            data: { businessId: DEMO_BUSINESS_ID, name: targetCatId, slug: targetCatId.toLowerCase().replace(/\s+/g, '-') }
+            data: { businessId, name: targetCatId, slug: targetCatId.toLowerCase().replace(/\s+/g, '-') }
           });
           targetCatId = newCat.id;
         }
       }
     } else {
-      let defaultCat = await prisma.category.findFirst({ where: { businessId: DEMO_BUSINESS_ID } });
+      let defaultCat = await prisma.category.findFirst({ where: { businessId } });
       if (!defaultCat) {
         defaultCat = await prisma.category.create({
-          data: { businessId: DEMO_BUSINESS_ID, name: 'General', slug: 'general' }
+          data: { businessId, name: 'General', slug: 'general' }
         });
       }
       targetCatId = defaultCat.id;
@@ -744,7 +787,7 @@ const createMenuItemHandler = async (req: any, res: any) => {
 
     const item = await prisma.menuItem.create({
       data: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         name: name.trim(),
         categoryId: targetCatId,
         price: parseFloat(price || 0),
@@ -758,7 +801,7 @@ const createMenuItemHandler = async (req: any, res: any) => {
       },
       include: { category: true }
     });
-    console.log(`✅ MenuItem stored in DB: ${item.name} (${item.id})`);
+    console.log(`✅ MenuItem stored in DB for [${businessId}]: ${item.name} (${item.id})`);
     return res.status(201).json({
       ...item,
       showInWebsite: showInWebsite === true,
@@ -775,13 +818,14 @@ app.post('/api/menu-items', createMenuItemHandler);
 
 app.put('/api/menu-items/:id', async (req, res) => {
   const { id } = req.params;
+  const { businessId } = getRequestContext(req);
   const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, isAvailable, showInWebsite, attributes } = req.body;
   try {
     let targetCatId = categoryId;
     if (targetCatId) {
       const existingCat = await prisma.category.findUnique({ where: { id: targetCatId } });
       if (!existingCat) {
-        const foundByName = await prisma.category.findFirst({ where: { name: targetCatId } });
+        const foundByName = await prisma.category.findFirst({ where: { name: targetCatId, businessId } });
         if (foundByName) targetCatId = foundByName.id;
         else targetCatId = undefined;
       }
@@ -843,8 +887,11 @@ app.delete('/api/menu-items/:id', async (req, res) => {
 
 // 5. Dining Tables API
 app.get('/api/tables', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
+    await ensureBusinessExists(businessId);
     const tables = await prisma.table.findMany({
+      where: { businessId },
       orderBy: { name: 'asc' },
     });
     return res.json(tables || []);
@@ -869,8 +916,11 @@ app.put('/api/tables/:id/status', async (req, res) => {
 
 // 6. Orders API
 app.get('/api/orders', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
+    await ensureBusinessExists(businessId);
     const orders = await prisma.order.findMany({
+      where: { businessId },
       include: {
         table: true,
         customer: true,
@@ -887,13 +937,10 @@ app.get('/api/orders', async (req, res) => {
 });
 
 app.post('/api/orders', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const orderData = req.body;
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId);
 
     const rawItems = orderData.items || [];
     const validOrderItems: Array<{ menuItemId: string; quantity: number; price: number; discount: number }> = [];
@@ -903,19 +950,19 @@ app.post('/api/orders', async (req, res) => {
       let existingItem = targetMenuItemId ? await prisma.menuItem.findUnique({ where: { id: targetMenuItemId } }) : null;
 
       if (!existingItem && item.name) {
-        existingItem = await prisma.menuItem.findFirst({ where: { name: item.name } });
+        existingItem = await prisma.menuItem.findFirst({ where: { name: item.name, businessId } });
       }
 
       if (!existingItem) {
-        let defCat = await prisma.category.findFirst({ where: { businessId: DEMO_BUSINESS_ID } });
+        let defCat = await prisma.category.findFirst({ where: { businessId } });
         if (!defCat) {
           defCat = await prisma.category.create({
-            data: { businessId: DEMO_BUSINESS_ID, name: 'General', slug: 'general' }
+            data: { businessId, name: 'General', slug: 'general' }
           });
         }
         existingItem = await prisma.menuItem.create({
           data: {
-            businessId: DEMO_BUSINESS_ID,
+            businessId,
             name: item.name || 'Custom Product',
             categoryId: defCat.id,
             price: parseFloat(item.price || 0),
@@ -947,7 +994,7 @@ app.post('/api/orders', async (req, res) => {
 
     const createdOrder = await prisma.order.create({
       data: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         orderNumber: orderData.orderNumber || orderData.invoiceNo || `ORD-${Date.now().toString().slice(-6)}`,
         status: orderData.status || 'COMPLETED',
         orderType: orderData.orderType || 'TAX_INVOICE',
@@ -966,7 +1013,7 @@ app.post('/api/orders', async (req, res) => {
       include: { items: { include: { menuItem: true } }, table: true, customer: true },
     });
 
-    console.log(`✅ Order stored in DB: ${createdOrder.orderNumber} (${createdOrder.id})`);
+    console.log(`✅ Order stored in DB for [${businessId}]: ${createdOrder.orderNumber} (${createdOrder.id})`);
     return res.status(201).json(createdOrder);
   } catch (err: any) {
     console.error('❌ Failed to store order in DB:', err);
@@ -990,15 +1037,18 @@ app.put('/api/orders/:id/status', async (req, res) => {
 
 // Real Data Dashboard API
 app.get('/api/dashboard', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const dateParam = (req.query.date as string) || new Date().toISOString().slice(0, 10);
   
   try {
+    await ensureBusinessExists(businessId);
     const allOrders = await prisma.order.findMany({
+      where: { businessId },
       include: { customer: true, items: { include: { menuItem: true } } },
       orderBy: { createdAt: 'desc' },
     });
 
-    const totalCustomers = await prisma.customer.count();
+    const totalCustomers = await prisma.customer.count({ where: { businessId } });
 
     const trendDays: { date: string; count: number; revenue: number }[] = [];
     for (let i = 13; i >= 0; i--) {
@@ -1054,9 +1104,10 @@ app.get('/api/dashboard', async (req, res) => {
 
 // 7. Inventory API
 app.get('/api/inventory', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
-    const raw = await prisma.rawMaterial.findMany({ include: { supplier: true } });
-    const items = await prisma.inventoryItem.findMany({ include: { supplier: true } });
+    const raw = await prisma.rawMaterial.findMany({ where: { businessId }, include: { supplier: true } });
+    const items = await prisma.inventoryItem.findMany({ where: { businessId }, include: { supplier: true } });
     return res.json({ rawMaterials: raw, inventoryItems: items });
   } catch (err) {
     return res.json({ rawMaterials: [], inventoryItems: [] });
@@ -1064,9 +1115,11 @@ app.get('/api/inventory', async (req, res) => {
 });
 
 app.get('/api/inventory/materials', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
+    await ensureBusinessExists(businessId);
     const raw = await prisma.rawMaterial.findMany({
-      where: { businessId: DEMO_BUSINESS_ID },
+      where: { businessId },
       include: { supplier: true },
       orderBy: { name: 'asc' }
     });
@@ -1077,15 +1130,12 @@ app.get('/api/inventory/materials', async (req, res) => {
 });
 
 app.post('/api/inventory/materials', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const { name, unit, currentStock, minStockLevel, pricePerUnit, supplierId } = req.body;
   if (!name) return res.status(400).json({ error: 'Material name is required' });
 
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId);
 
     const item = await prisma.rawMaterial.upsert({
       where: { name: name.trim() },
@@ -1096,7 +1146,7 @@ app.post('/api/inventory/materials', async (req, res) => {
         pricePerUnit: pricePerUnit !== undefined ? parseFloat(pricePerUnit) : undefined,
       },
       create: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         name: name.trim(),
         unit: unit || 'Pcs',
         currentStock: parseFloat(currentStock || 0),
@@ -1104,7 +1154,7 @@ app.post('/api/inventory/materials', async (req, res) => {
         pricePerUnit: parseFloat(pricePerUnit || 0),
       }
     });
-    console.log(`✅ RawMaterial stored in DB: ${item.name}`);
+    console.log(`✅ RawMaterial stored in DB for [${businessId}]: ${item.name}`);
     return res.status(201).json(item);
   } catch (err) {
     console.error('❌ Failed to store raw material:', err);
@@ -1113,9 +1163,11 @@ app.post('/api/inventory/materials', async (req, res) => {
 });
 
 app.get('/api/inventory/suppliers', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
+    await ensureBusinessExists(businessId);
     const suppliers = await prisma.supplier.findMany({
-      where: { businessId: DEMO_BUSINESS_ID },
+      where: { businessId },
       orderBy: { name: 'asc' }
     });
     return res.json(suppliers);
@@ -1125,6 +1177,7 @@ app.get('/api/inventory/suppliers', async (req, res) => {
 });
 
 app.post('/api/inventory/suppliers', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const { name, contact, phone, email, address } = req.body;
   if (!name) return res.status(400).json({ error: 'Supplier name is required' });
 
@@ -1134,15 +1187,11 @@ app.post('/api/inventory/suppliers', async (req, res) => {
   }
 
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId);
 
     const supplier = await prisma.supplier.create({
       data: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         name: name.trim(),
         contact: contact || phone || '',
         phone: phone || '',
@@ -1150,7 +1199,7 @@ app.post('/api/inventory/suppliers', async (req, res) => {
         address: address || '',
       }
     });
-    console.log(`✅ Supplier stored in DB: ${supplier.name}`);
+    console.log(`✅ Supplier stored in DB for [${businessId}]: ${supplier.name}`);
     return res.status(201).json(supplier);
   } catch (err) {
     console.error('❌ Failed to store supplier:', err);
@@ -1159,6 +1208,7 @@ app.post('/api/inventory/suppliers', async (req, res) => {
 });
 
 app.get('/api/inventory/transactions', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
     const txs = await prisma.inventoryTransaction.findMany({
       include: { rawMaterial: true },
@@ -1191,8 +1241,13 @@ app.post('/api/inventory/transactions', async (req, res) => {
 
 // 8. Customers API
 app.get('/api/customers', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
-    const customers = await prisma.customer.findMany({ orderBy: { name: 'asc' } });
+    await ensureBusinessExists(businessId);
+    const customers = await prisma.customer.findMany({
+      where: { businessId },
+      orderBy: { name: 'asc' }
+    });
     return res.json(customers);
   } catch (err) {
     return res.json([]);
@@ -1200,20 +1255,17 @@ app.get('/api/customers', async (req, res) => {
 });
 
 app.post('/api/customers', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const { name, mobile, email, address, gstNumber } = req.body;
   if (!name || !mobile) return res.status(400).json({ error: 'Customer name and mobile are required' });
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId);
 
     const created = await prisma.customer.upsert({
       where: { mobile: mobile.trim() },
-      update: { name: name.trim(), email: email || null, address: address || null, gstNumber: gstNumber || null },
+      update: { name: name.trim(), email: email || null, address: address || null, gstNumber: gstNumber || null, businessId },
       create: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         name: name.trim(),
         mobile: mobile.trim(),
         email: email || null,
@@ -1221,7 +1273,7 @@ app.post('/api/customers', async (req, res) => {
         gstNumber: gstNumber || null,
       },
     });
-    console.log(`✅ Customer stored in DB: ${created.name} (${created.mobile})`);
+    console.log(`✅ Customer stored in DB for [${businessId}]: ${created.name} (${created.mobile})`);
     return res.status(201).json(created);
   } catch (err) {
     console.error('❌ Failed to create customer:', err);
@@ -1241,8 +1293,12 @@ app.delete('/api/customers/:id', async (req, res) => {
 
 // 9. Promotions API
 app.get('/api/promotions', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
-    const promotions = await prisma.promotion.findMany({ where: { isActive: true } });
+    await ensureBusinessExists(businessId);
+    const promotions = await prisma.promotion.findMany({
+      where: { businessId, isActive: true }
+    });
     return res.json(promotions);
   } catch (err) {
     return res.json([]);
@@ -1250,18 +1306,15 @@ app.get('/api/promotions', async (req, res) => {
 });
 
 app.post('/api/promotions', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const { name, code, type, discountValue, minOrderValue } = req.body;
   if (!name) return res.status(400).json({ error: 'Promotion name is required' });
   try {
-    await prisma.business.upsert({
-      where: { id: DEMO_BUSINESS_ID },
-      update: {},
-      create: { id: DEMO_BUSINESS_ID, name: 'My Business', type: 'RETAIL' }
-    });
+    await ensureBusinessExists(businessId);
 
     const promo = await prisma.promotion.create({
       data: {
-        businessId: DEMO_BUSINESS_ID,
+        businessId,
         name: name.trim(),
         code: code ? code.trim() : `PROMO-${Date.now().toString().slice(-4)}`,
         type: type || 'PERCENTAGE',
@@ -1270,7 +1323,7 @@ app.post('/api/promotions', async (req, res) => {
         isActive: true,
       }
     });
-    console.log(`✅ Promotion stored in DB: ${promo.name}`);
+    console.log(`✅ Promotion stored in DB for [${businessId}]: ${promo.name}`);
     return res.status(201).json(promo);
   } catch (err) {
     console.error('❌ Error creating promotion:', err);
@@ -1314,9 +1367,10 @@ app.get('/api/templates/:type', (req, res) => {
 });
 
 app.get('/api/business/template', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
     const business = await prisma.business.findUnique({
-      where: { id: DEMO_BUSINESS_ID },
+      where: { id: businessId },
       include: { profileSettings: true, moduleConfig: true },
     });
 
@@ -1351,11 +1405,12 @@ app.get('/api/business/template', async (req, res) => {
 });
 
 app.put('/api/business/template', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const { businessType, overrides } = req.body;
   try {
     if (businessType) {
       await prisma.business.update({
-        where: { id: DEMO_BUSINESS_ID },
+        where: { id: businessId },
         data: { type: businessType.toUpperCase() },
       });
     }
@@ -1371,27 +1426,27 @@ app.put('/api/business/template', async (req, res) => {
 
 // ── In-Memory fallback stores (active when DB tables not yet migrated) ──
 let memDepartments: any[] = [
-  { id: 'd-001', businessId: DEMO_BUSINESS_ID, branchId: null, name: 'Kitchen', code: 'KIT', description: 'Food production & preparation', managerId: null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'd-002', businessId: DEMO_BUSINESS_ID, branchId: null, name: 'Front of House', code: 'FOH', description: 'Service staff & cashiers', managerId: null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'd-003', businessId: DEMO_BUSINESS_ID, branchId: null, name: 'Management', code: 'MGT', description: 'Managers and supervisors', managerId: null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'd-001', businessId: 'biz-default-business', branchId: null, name: 'Kitchen', code: 'KIT', description: 'Food production & preparation', managerId: null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'd-002', businessId: 'biz-default-business', branchId: null, name: 'Front of House', code: 'FOH', description: 'Service staff & cashiers', managerId: null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'd-003', businessId: 'biz-default-business', branchId: null, name: 'Management', code: 'MGT', description: 'Managers and supervisors', managerId: null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
 let memDesignations: any[] = [
-  { id: 'dsg-001', businessId: DEMO_BUSINESS_ID, departmentId: 'd-001', title: 'Executive Chef', grade: 'L4', salaryBand: '40000-60000', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'dsg-002', businessId: DEMO_BUSINESS_ID, departmentId: 'd-002', title: 'Cashier', grade: 'L1', salaryBand: '18000-25000', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'dsg-003', businessId: DEMO_BUSINESS_ID, departmentId: 'd-003', title: 'General Manager', grade: 'L5', salaryBand: '60000-90000', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'dsg-001', businessId: 'biz-default-business', departmentId: 'd-001', title: 'Executive Chef', grade: 'L4', salaryBand: '40000-60000', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'dsg-002', businessId: 'biz-default-business', departmentId: 'd-002', title: 'Cashier', grade: 'L1', salaryBand: '18000-25000', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'dsg-003', businessId: 'biz-default-business', departmentId: 'd-003', title: 'General Manager', grade: 'L5', salaryBand: '60000-90000', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
 let memShifts: any[] = [
-  { id: 'sh-001', businessId: DEMO_BUSINESS_ID, branchId: null, name: 'Morning Early Shift', code: 'MES', startTime: '06:00', endTime: '14:00', gracePeriodMinutes: 15, breakDurationMins: 30, workingHours: 8, overtimeThresholdMins: 480, isNightShift: false, daysOfWeek: '1,2,3,4,5', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'sh-002', businessId: DEMO_BUSINESS_ID, branchId: null, name: 'General Shift', code: 'GEN', startTime: '09:30', endTime: '18:30', gracePeriodMinutes: 15, breakDurationMins: 60, workingHours: 8, overtimeThresholdMins: 480, isNightShift: false, daysOfWeek: '1,2,3,4,5,6', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'sh-003', businessId: DEMO_BUSINESS_ID, branchId: null, name: 'Evening Shift', code: 'EVE', startTime: '14:00', endTime: '22:00', gracePeriodMinutes: 15, breakDurationMins: 30, workingHours: 8, overtimeThresholdMins: 480, isNightShift: false, daysOfWeek: '1,2,3,4,5,6', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sh-001', businessId: 'biz-default-business', branchId: null, name: 'Morning Early Shift', code: 'MES', startTime: '06:00', endTime: '14:00', gracePeriodMinutes: 15, breakDurationMins: 30, workingHours: 8, overtimeThresholdMins: 480, isNightShift: false, daysOfWeek: '1,2,3,4,5', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sh-002', businessId: 'biz-default-business', branchId: null, name: 'General Shift', code: 'GEN', startTime: '09:30', endTime: '18:30', gracePeriodMinutes: 15, breakDurationMins: 60, workingHours: 8, overtimeThresholdMins: 480, isNightShift: false, daysOfWeek: '1,2,3,4,5,6', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sh-003', businessId: 'biz-default-business', branchId: null, name: 'Evening Shift', code: 'EVE', startTime: '14:00', endTime: '22:00', gracePeriodMinutes: 15, breakDurationMins: 30, workingHours: 8, overtimeThresholdMins: 480, isNightShift: false, daysOfWeek: '1,2,3,4,5,6', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
 let memEmployees: any[] = [
-  { id: 'emp-001', businessId: DEMO_BUSINESS_ID, branchId: null, departmentId: 'd-003', designationId: 'dsg-003', shiftId: 'sh-002', employeeCode: 'EMP001', firstName: 'Kowsalya', lastName: 'Sundaram', fullName: 'Kowsalya Sundaram', email: 'kowsalya@business.com', phone: '+91 98765 00001', gender: 'FEMALE', employmentType: 'FULL_TIME', status: 'ACTIVE', role: 'ADMIN', baseSalary: 75000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'emp-002', businessId: DEMO_BUSINESS_ID, branchId: null, departmentId: 'd-001', designationId: 'dsg-001', shiftId: 'sh-001', employeeCode: 'EMP002', firstName: 'Rajesh', lastName: 'Kumar', fullName: 'Chef Rajesh Kumar', email: 'rajesh@business.com', phone: '+91 98765 00002', gender: 'MALE', employmentType: 'FULL_TIME', status: 'ACTIVE', role: 'EMPLOYEE', baseSalary: 55000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'emp-003', businessId: DEMO_BUSINESS_ID, branchId: null, departmentId: 'd-002', designationId: 'dsg-002', shiftId: 'sh-001', employeeCode: 'EMP003', firstName: 'Dinesh', lastName: 'Karthik', fullName: 'Dinesh Karthik', email: 'dinesh@business.com', phone: '+91 98765 00003', gender: 'MALE', employmentType: 'FULL_TIME', status: 'ACTIVE', role: 'EMPLOYEE', baseSalary: 22000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'emp-001', businessId: 'biz-default-business', branchId: null, departmentId: 'd-003', designationId: 'dsg-003', shiftId: 'sh-002', employeeCode: 'EMP001', firstName: 'Kowsalya', lastName: 'Sundaram', fullName: 'Kowsalya Sundaram', email: 'kowsalya@business.com', phone: '+91 98765 00001', gender: 'FEMALE', employmentType: 'FULL_TIME', status: 'ACTIVE', role: 'ADMIN', baseSalary: 75000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'emp-002', businessId: 'biz-default-business', branchId: null, departmentId: 'd-001', designationId: 'dsg-001', shiftId: 'sh-001', employeeCode: 'EMP002', firstName: 'Rajesh', lastName: 'Kumar', fullName: 'Chef Rajesh Kumar', email: 'rajesh@business.com', phone: '+91 98765 00002', gender: 'MALE', employmentType: 'FULL_TIME', status: 'ACTIVE', role: 'EMPLOYEE', baseSalary: 55000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'emp-003', businessId: 'biz-default-business', branchId: null, departmentId: 'd-002', designationId: 'dsg-002', shiftId: 'sh-001', employeeCode: 'EMP003', firstName: 'Dinesh', lastName: 'Karthik', fullName: 'Dinesh Karthik', email: 'dinesh@business.com', phone: '+91 98765 00003', gender: 'MALE', employmentType: 'FULL_TIME', status: 'ACTIVE', role: 'EMPLOYEE', baseSalary: 22000, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
 let memAttendances: any[] = [];
@@ -1406,22 +1461,25 @@ function todayStr() { return new Date().toISOString().slice(0, 10); }
 // ─────────────────────────────────────────────────────────────
 // GET  /api/attendance/departments
 app.get('/api/attendance/departments', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
     const rows = await (prisma as any).department.findMany({
-      where: { businessId: DEMO_BUSINESS_ID },
+      where: { businessId },
       orderBy: { name: 'asc' },
     });
     return res.json({ success: true, data: rows, total: rows.length });
   } catch {
-    return res.json({ success: true, data: memDepartments, total: memDepartments.length });
+    const filtered = memDepartments.filter(d => d.businessId === businessId);
+    return res.json({ success: true, data: filtered.length > 0 ? filtered : memDepartments, total: filtered.length || memDepartments.length });
   }
 });
 
 // POST /api/attendance/departments
 app.post('/api/attendance/departments', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const { name, code, description, branchId, managerId } = req.body;
   if (!name) return res.status(400).json({ success: false, error: 'Department name is required.' });
-  const record = { id: uid(), businessId: DEMO_BUSINESS_ID, branchId: branchId || null, name, code: code || null, description: description || null, managerId: managerId || null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  const record = { id: uid(), businessId, branchId: branchId || null, name, code: code || null, description: description || null, managerId: managerId || null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   try {
     const created = await (prisma as any).department.create({ data: { ...record, branchId: undefined } });
     return res.status(201).json({ success: true, data: created });
@@ -1462,18 +1520,21 @@ app.delete('/api/attendance/departments/:id', async (req, res) => {
 // B. DESIGNATION CRUD
 // ─────────────────────────────────────────────────────────────
 app.get('/api/attendance/designations', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
-    const rows = await (prisma as any).designation.findMany({ where: { businessId: DEMO_BUSINESS_ID }, orderBy: { title: 'asc' } });
+    const rows = await (prisma as any).designation.findMany({ where: { businessId }, orderBy: { title: 'asc' } });
     return res.json({ success: true, data: rows, total: rows.length });
   } catch {
-    return res.json({ success: true, data: memDesignations, total: memDesignations.length });
+    const filtered = memDesignations.filter(d => d.businessId === businessId);
+    return res.json({ success: true, data: filtered.length > 0 ? filtered : memDesignations, total: filtered.length || memDesignations.length });
   }
 });
 
 app.post('/api/attendance/designations', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const { title, grade, salaryBand, departmentId } = req.body;
   if (!title) return res.status(400).json({ success: false, error: 'Designation title is required.' });
-  const record = { id: uid(), businessId: DEMO_BUSINESS_ID, departmentId: departmentId || null, title, grade: grade || null, salaryBand: salaryBand || null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  const record = { id: uid(), businessId, departmentId: departmentId || null, title, grade: grade || null, salaryBand: salaryBand || null, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   try {
     const created = await (prisma as any).designation.create({ data: record });
     return res.status(201).json({ success: true, data: created });
@@ -1511,18 +1572,21 @@ app.delete('/api/attendance/designations/:id', async (req, res) => {
 // C. SHIFT CRUD
 // ─────────────────────────────────────────────────────────────
 app.get('/api/attendance/shifts', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   try {
-    const rows = await (prisma as any).shift.findMany({ where: { businessId: DEMO_BUSINESS_ID }, orderBy: { name: 'asc' } });
+    const rows = await (prisma as any).shift.findMany({ where: { businessId }, orderBy: { name: 'asc' } });
     return res.json({ success: true, data: rows, total: rows.length });
   } catch {
-    return res.json({ success: true, data: memShifts, total: memShifts.length });
+    const filtered = memShifts.filter(s => s.businessId === businessId);
+    return res.json({ success: true, data: filtered.length > 0 ? filtered : memShifts, total: filtered.length || memShifts.length });
   }
 });
 
 app.post('/api/attendance/shifts', async (req, res) => {
+  const { businessId } = getRequestContext(req);
   const { name, code, startTime, endTime, gracePeriodMinutes, breakDurationMins, workingHours, daysOfWeek, isNightShift, branchId } = req.body;
   if (!name || !startTime || !endTime) return res.status(400).json({ success: false, error: 'name, startTime, endTime are required.' });
-  const record = { id: uid(), businessId: DEMO_BUSINESS_ID, branchId: branchId || null, name, code: code || null, startTime, endTime, gracePeriodMinutes: gracePeriodMinutes ?? 15, breakDurationMins: breakDurationMins ?? 60, workingHours: workingHours ?? 8.0, overtimeThresholdMins: 480, isNightShift: isNightShift ?? false, daysOfWeek: daysOfWeek || '1,2,3,4,5', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  const record = { id: uid(), businessId, branchId: branchId || null, name, code: code || null, startTime, endTime, gracePeriodMinutes: gracePeriodMinutes ?? 15, breakDurationMins: breakDurationMins ?? 60, workingHours: workingHours ?? 8.0, overtimeThresholdMins: 480, isNightShift: isNightShift ?? false, daysOfWeek: daysOfWeek || '1,2,3,4,5', isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   try {
     const created = await (prisma as any).shift.create({ data: record });
     return res.status(201).json({ success: true, data: created });

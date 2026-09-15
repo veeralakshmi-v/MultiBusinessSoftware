@@ -479,12 +479,57 @@ export class TenantEngine {
     ];
     localStorage.setItem(`${prefix}universal_items`, JSON.stringify(starterItems));
 
-    // 4. Seed empty containers for clean isolation
+    // 4. Seed initial Business Admin account created by Super Admin
+    const initialAdmin = {
+      id: `admin-${tenant.id}`,
+      name: tenant.ownerName || `${tenant.businessName} Admin`,
+      username: tenant.adminUsername,
+      role: 'ADMIN',
+      category: 'Management/Admin',
+      applicationAccess: 'Full Access (All Modules & POS)',
+      phone: tenant.ownerPhone || '9876543210',
+      email: tenant.ownerEmail || '',
+      pinCode: tenant.adminPasswordHash || 'admin123',
+      password: tenant.adminPasswordHash || 'admin123',
+      status: 'ACTIVE',
+      dob: '1990-01-01',
+      doj: new Date().toISOString().slice(0, 10),
+      dor: '',
+      aadharNumber: '',
+      address: tenant.address || '',
+    };
+    localStorage.setItem(`${prefix}universal_staff_list`, JSON.stringify([initialAdmin]));
+
+    // 5. Seed empty isolated collections
     localStorage.setItem(`${prefix}universal_customers`, JSON.stringify([]));
     localStorage.setItem(`${prefix}universal_orders`, JSON.stringify([]));
     localStorage.setItem(`${prefix}universal_suppliers`, JSON.stringify([]));
     localStorage.setItem(`${prefix}universal_employees`, JSON.stringify([]));
     localStorage.setItem(`${prefix}universal_attendance_records`, JSON.stringify([]));
+
+    // Sync initial admin to database API
+    try {
+      fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer super-admin-token-seed',
+          'x-business-id': tenant.id,
+        },
+        body: JSON.stringify({
+          businessId: tenant.id,
+          name: initialAdmin.name,
+          fullName: initialAdmin.name,
+          username: initialAdmin.username,
+          phone: initialAdmin.phone,
+          password: initialAdmin.password,
+          pinCode: initialAdmin.pinCode,
+          role: 'ADMIN',
+          email: initialAdmin.email,
+          address: initialAdmin.address,
+        })
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   /**

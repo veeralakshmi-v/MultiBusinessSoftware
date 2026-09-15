@@ -58,8 +58,8 @@ export const UNIVERSAL_CATEGORIES = [
 ] as const;
 
 export const CATEGORY_ROLE_MAP: Record<string, string[]> = {
-  'Management/Admin': ['ADMIN', 'MANAGER', 'SUPERVISOR'],
-  'Management & Admin': ['ADMIN', 'MANAGER', 'SUPERVISOR'],
+  'Management/Admin': ['MANAGER', 'SUPERVISOR', 'COORDINATOR'],
+  'Management & Admin': ['MANAGER', 'SUPERVISOR', 'COORDINATOR'],
   'Billing & Cash Desk': ['CASHIER', 'BILLING_OPERATOR', 'STAFF'],
   'Billing POS': ['CASHIER', 'STAFF'],
   'Sales & Marketing': ['SALES_EXECUTIVE', 'MARKETING_MANAGER', 'STAFF'],
@@ -68,12 +68,12 @@ export const CATEGORY_ROLE_MAP: Record<string, string[]> = {
   'Operations & Support': ['OPERATIONS_MANAGER', 'COORDINATOR', 'STAFF'],
   'Customer Support & Service': ['CUSTOMER_SUPPORT', 'RECEPTIONIST', 'STAFF'],
   'HouseKeeping': ['STAFF', 'SUPERVISOR'],
-  'General': ['STAFF', 'OPERATOR', 'CASHIER'],
+  'General': ['STAFF', 'OPERATOR', 'CASHIER', 'EMPLOYEE'],
 };
 
 export const CATEGORY_DEFAULT_ROLE_MAP: Record<string, string> = {
-  'Management/Admin': 'ADMIN',
-  'Management & Admin': 'ADMIN',
+  'Management/Admin': 'MANAGER',
+  'Management & Admin': 'MANAGER',
   'Billing & Cash Desk': 'CASHIER',
   'Billing POS': 'CASHIER',
   'Sales & Marketing': 'SALES_EXECUTIVE',
@@ -86,7 +86,7 @@ export const CATEGORY_DEFAULT_ROLE_MAP: Record<string, string> = {
 };
 
 export function getRolesForCategory(cat: string): string[] {
-  return CATEGORY_ROLE_MAP[cat] || ['CASHIER', 'MANAGER', 'ADMIN', 'STAFF'];
+  return CATEGORY_ROLE_MAP[cat] || ['CASHIER', 'MANAGER', 'STAFF', 'EMPLOYEE'];
 }
 
 export function getDefaultRoleForCategory(cat: string): string {
@@ -95,31 +95,33 @@ export function getDefaultRoleForCategory(cat: string): string {
 
 export default function EmployeeDirectory() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, activeTenant, businessId } = useAuth();
+  const currentBusinessId = activeTenant?.id || businessId || user?.businessId || 'biz-apex-retail';
+  const tenantPrefix = `tenant_${currentBusinessId}_`;
 
   const [staffList, setStaffList] = useState<StaffUser[]>(() => {
-    const saved = localStorage.getItem('universal_staff_list');
+    const saved = localStorage.getItem(`${tenantPrefix}universal_staff_list`) || localStorage.getItem('universal_staff_list');
     if (saved) {
       try { return JSON.parse(saved); } catch { }
     }
     return [
       {
-        id: 'emp-1',
-        name: 'Administrator',
-        username: 'admin',
+        id: `admin-${currentBusinessId}`,
+        name: activeTenant?.ownerName || 'Business Administrator',
+        username: activeTenant?.adminUsername || 'admin',
         role: 'ADMIN',
         category: 'Management/Admin',
-        applicationAccess: 'No Access',
-        phone: '9876543210',
-        familyPhone: '9876543211',
-        email: 'admin@mybusiness.com',
-        pinCode: '1234',
+        applicationAccess: 'Full Access (All Modules & POS)',
+        phone: activeTenant?.ownerPhone || '9876543210',
+        familyPhone: '',
+        email: activeTenant?.ownerEmail || 'admin@mybusiness.com',
+        pinCode: activeTenant?.adminPasswordHash || '1234',
         status: 'ACTIVE',
         dob: '1990-01-01',
         doj: '2022-01-01',
         dor: '',
         aadharNumber: '1234 5678 9012',
-        address: '123 Main St, Central City',
+        address: activeTenant?.address || '123 Main St, Central City',
       },
     ];
   });
@@ -157,14 +159,17 @@ export default function EmployeeDirectory() {
   const [staffPhoto, setStaffPhoto] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync to localStorage
+  // Sync to tenant isolated storage
   useEffect(() => {
+    localStorage.setItem(`${tenantPrefix}universal_staff_list`, JSON.stringify(staffList));
     localStorage.setItem('universal_staff_list', JSON.stringify(staffList));
-  }, [staffList]);
+  }, [staffList, tenantPrefix]);
 
-  // Fetch backend users/staff from API on mount
+  // Fetch backend users/staff from API on mount scoped by businessId
   useEffect(() => {
-    fetch('/api/users')
+    fetch(`/api/users?businessId=${currentBusinessId}`, {
+      headers: { 'x-business-id': currentBusinessId }
+    })
       .then(res => res.json())
       .then((data: any[]) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -196,7 +201,7 @@ export default function EmployeeDirectory() {
                 email: u.email || existing?.email || '',
                 role: u.role || existing?.role || 'CASHIER',
                 category: existing?.category || 'Management/Admin',
-                applicationAccess: existing?.applicationAccess || u.applicationAccess || 'No Access',
+                applicationAccess: existing?.applicationAccess || u.applicationAccess || 'Attendance & Staff Portal',
                 status: u.status || existing?.status || 'ACTIVE',
                 pinCode: u.password || existing?.pinCode || '1234',
                 aadharNumber: u.aadharNumber || existing?.aadharNumber || '',
@@ -211,7 +216,7 @@ export default function EmployeeDirectory() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [currentBusinessId]);
 
   const STANDARD_ROLES = ['CASHIER', 'MANAGER', 'ADMIN', 'STAFF'];
 
@@ -350,6 +355,14 @@ export default function EmployeeDirectory() {
         ? 'No Access'
         : selectedAppAccess.join(', ');
     const computedRole = isCustomRole ? (customRoleTitle.trim() || 'CUSTOM') : staffRole;
+    
+    // Security Guard: Client Business Admins cannot create ADMIN or SUPER_ADMIN roles
+    const upperRole = computedRole.trim().toUpperCase();
+    if ((upperRole === 'ADMIN' || upperRole === 'SUPER_ADMIN') && (!selectedStaff || selectedStaff.role !== 'ADMIN')) {
+      alert('Security Policy: Client Business Admins can only create non-admin roles (Manager, Cashier, Staff, etc.). Only Super Admin can assign Business Admins.');
+      return;
+    }
+
     const computedStatus = computedRole === 'ADMIN' ? 'ACTIVE' : staffStatus;
     const formattedAadharVal = formatAadhar(aadharDigits);
 
@@ -402,11 +415,15 @@ export default function EmployeeDirectory() {
       setStaffList(prev => [...prev, newStaff]);
     }
 
-    // Persist employee to Supabase PostgreSQL database via API
+    // Persist employee to Supabase PostgreSQL database via API with businessId scope
     fetch('/api/users', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-business-id': currentBusinessId
+      },
       body: JSON.stringify({
+        businessId: currentBusinessId,
         name: staffName.trim(),
         fullName: staffName.trim(),
         staffName: staffName.trim(),
@@ -421,21 +438,29 @@ export default function EmployeeDirectory() {
       })
     }).then(res => res.json())
       .then(data => {
-        console.log('✅ Employee saved to Supabase:', data);
+        console.log('✅ Employee saved to backend:', data);
       })
-      .catch(err => console.error('Error syncing staff to Supabase:', err));
+      .catch(err => console.error('Error syncing staff to backend:', err));
 
     setIsModalOpen(false);
   };
 
   const handleDeleteStaff = (id: string, name: string) => {
+    const target = staffList.find(s => s.id === id);
+    if (target && target.role === 'ADMIN') {
+      alert('Security Policy: The primary Business Admin account cannot be deleted.');
+      return;
+    }
     if (staffList.length <= 1) {
       alert('At least one staff member must be maintained.');
       return;
     }
     if (confirm(`Are you sure you want to delete ${name}?`)) {
       setStaffList(prev => prev.filter(s => s.id !== id));
-      fetch(`/api/users/${id}`, { method: 'DELETE' }).catch(() => {});
+      fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+        headers: { 'x-business-id': currentBusinessId }
+      }).catch(() => {});
       if (selectedStaff?.id === id) setIsModalOpen(false);
     }
   };
