@@ -1348,22 +1348,23 @@ export default function SuperAdmin() {
                       <table className="w-full text-left text-xs">
                         <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[10px] border-b border-gray-200">
                           <tr>
-                            <th className="px-6 py-4">Business</th>
-                            <th className="px-4 py-4">Owner</th>
-                            <th className="px-4 py-4">Industry</th>
-                            <th className="px-4 py-4">Plan</th>
-                            <th className="px-4 py-4">Status</th>
-                            <th className="px-4 py-4">Users / Usage</th>
-                            <th className="px-4 py-4">Created</th>
-                            <th className="px-6 py-4 text-right">Actions</th>
+                            <th className="px-6 py-4 whitespace-nowrap">Business</th>
+                            <th className="px-4 py-4 whitespace-nowrap">Owner</th>
+                            <th className="px-4 py-4 whitespace-nowrap">Industry</th>
+                            <th className="px-4 py-4 whitespace-nowrap">Plan</th>
+                            <th className="px-4 py-4 whitespace-nowrap text-center">Status</th>
+                            <th className="px-4 py-4 whitespace-nowrap">Users / Usage</th>
+                            <th className="px-4 py-4 whitespace-nowrap">Created</th>
+                            <th className="px-6 py-4 text-right whitespace-nowrap">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {filteredTenants.length === 0 ? (
                             <tr>
                               <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
-                                <Building2 className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                                <p className="font-semibold">No businesses found matching current search.</p>
+                                <Building2 className="w-8 h-8 mx-auto mb-2 opacity-40 text-blue-500" />
+                                <p className="font-semibold text-gray-600">No businesses found matching current search.</p>
+                                <p className="text-[11px] text-gray-400 mt-0.5">Click "Provision New Business" to onboard a new client business.</p>
                               </td>
                             </tr>
                           ) : (
@@ -1373,25 +1374,25 @@ export default function SuperAdmin() {
 
                               return (
                                 <tr key={t.id} className="hover:bg-blue-50/20 transition-colors">
-                                  <td className="px-6 py-4">
+                                  <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="font-bold text-gray-900 text-sm">{t.businessName}</div>
                                     <div className="text-[11px] text-gray-500 font-mono mt-0.5">
                                       {t.id} • {t.city || 'Chennai'}
                                     </div>
                                   </td>
 
-                                  <td className="px-4 py-4">
+                                  <td className="px-4 py-4 whitespace-nowrap">
                                     <div className="font-semibold text-gray-800">{t.ownerName}</div>
                                     <div className="text-[11px] text-gray-500">{t.ownerEmail}</div>
                                   </td>
 
-                                  <td className="px-4 py-4">
-                                    <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#2563EB] font-bold text-[10px]">
+                                  <td className="px-4 py-4 whitespace-nowrap">
+                                    <span className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#2563EB] font-bold text-[10px] border border-blue-200">
                                       {t.businessType}
                                     </span>
                                   </td>
 
-                                  <td className="px-4 py-4">
+                                  <td className="px-4 py-4 whitespace-nowrap">
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold text-[10px] border border-indigo-200">
                                       {t.subscription.plan}
                                     </span>
@@ -1400,10 +1401,10 @@ export default function SuperAdmin() {
                                     </div>
                                   </td>
 
-                                  <td className="px-4 py-4">
+                                  <td className="px-4 py-4 whitespace-nowrap text-center">
                                     <span
                                       className={cn(
-                                        'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase',
+                                        'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap justify-center min-w-[80px]',
                                         t.subscription.status === 'ACTIVE'
                                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                           : t.subscription.status === 'TRIAL'
@@ -1415,7 +1416,7 @@ export default function SuperAdmin() {
                                     </span>
                                   </td>
 
-                                  <td className="px-4 py-4">
+                                  <td className="px-4 py-4 whitespace-nowrap">
                                     <div className="font-bold text-gray-800">
                                       {health.usersCount} / {health.maxUsers} Users
                                     </div>
@@ -1424,11 +1425,11 @@ export default function SuperAdmin() {
                                     </div>
                                   </td>
 
-                                  <td className="px-4 py-4 text-gray-500 text-[11px]">
+                                  <td className="px-4 py-4 text-gray-500 text-[11px] whitespace-nowrap">
                                     {new Date(t.createdAt).toLocaleDateString('en-IN')}
                                   </td>
 
-                                  <td className="px-6 py-4 text-right">
+                                  <td className="px-6 py-4 text-right whitespace-nowrap">
                                     <div className="flex items-center justify-end gap-1.5">
                                       {/* View Details */}
                                       <button
@@ -1572,48 +1573,67 @@ export default function SuperAdmin() {
                     <table className="w-full text-left text-xs">
                       <thead className="bg-white text-gray-500 font-bold uppercase tracking-wider text-[10px] border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-3">Tenant Name</th>
-                          <th className="px-4 py-3">Plan</th>
-                          <th className="px-4 py-3">Monthly Fee</th>
-                          <th className="px-4 py-3">Start Date</th>
-                          <th className="px-4 py-3">Renewal Date</th>
-                          <th className="px-4 py-3">Status</th>
-                          <th className="px-6 py-3 text-right">Actions</th>
+                          <th className="px-6 py-3 whitespace-nowrap">Tenant Name</th>
+                          <th className="px-4 py-3 whitespace-nowrap">Plan</th>
+                          <th className="px-4 py-3 whitespace-nowrap">Monthly Fee</th>
+                          <th className="px-4 py-3 whitespace-nowrap">Start Date</th>
+                          <th className="px-4 py-3 whitespace-nowrap">Renewal Date</th>
+                          <th className="px-4 py-3 whitespace-nowrap text-center">Status</th>
+                          <th className="px-6 py-3 text-right whitespace-nowrap">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {tenants.map(t => (
-                          <tr key={t.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-3.5 font-bold text-gray-900">{t.businessName}</td>
-                            <td className="px-4 py-3.5">
-                              <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold">
-                                {t.subscription.plan}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3.5 font-bold text-gray-800">
-                              ₹{(t.subscription.monthlyFee || 0).toLocaleString('en-IN')}/mo
-                            </td>
-                            <td className="px-4 py-3.5 text-gray-500 text-[11px]">
-                              {new Date(t.subscription.startDate).toLocaleDateString('en-IN')}
-                            </td>
-                            <td className="px-4 py-3.5 text-gray-500 text-[11px]">
-                              {new Date(t.subscription.expiryDate).toLocaleDateString('en-IN')}
-                            </td>
-                            <td className="px-4 py-3.5">
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
-                                {t.subscription.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-3.5 text-right">
-                              <button
-                                onClick={() => setChangePlanTenant(t)}
-                                className="px-3 py-1 bg-gray-100 hover:bg-blue-50 hover:text-[#2563EB] text-gray-700 font-bold rounded-lg text-xs transition-colors cursor-pointer"
-                              >
-                                Change Plan
-                              </button>
+                        {tenants.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                              <CreditCard className="w-8 h-8 mx-auto mb-2 opacity-40 text-blue-500" />
+                              <p className="font-semibold text-gray-600">No active subscriptions yet.</p>
+                              <p className="text-[11px] text-gray-400 mt-0.5">Provision a new business to start tracking active subscriptions.</p>
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          tenants.map(t => (
+                            <tr key={t.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-3.5 font-bold text-gray-900 whitespace-nowrap">{t.businessName}</td>
+                              <td className="px-4 py-3.5 whitespace-nowrap">
+                                <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 rounded-md text-[10px] font-bold border border-indigo-200">
+                                  {t.subscription.plan}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3.5 font-bold text-gray-800 whitespace-nowrap">
+                                ₹{(t.subscription.monthlyFee || 0).toLocaleString('en-IN')}/mo
+                              </td>
+                              <td className="px-4 py-3.5 text-gray-500 text-[11px] whitespace-nowrap">
+                                {new Date(t.subscription.startDate).toLocaleDateString('en-IN')}
+                              </td>
+                              <td className="px-4 py-3.5 text-gray-500 text-[11px] whitespace-nowrap">
+                                {new Date(t.subscription.expiryDate).toLocaleDateString('en-IN')}
+                              </td>
+                              <td className="px-4 py-3.5 whitespace-nowrap text-center">
+                                <span
+                                  className={cn(
+                                    'px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap inline-flex items-center justify-center min-w-[80px]',
+                                    t.subscription.status === 'ACTIVE'
+                                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                      : t.subscription.status === 'TRIAL'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  )}
+                                >
+                                  {t.subscription.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-3.5 text-right whitespace-nowrap">
+                                <button
+                                  onClick={() => setChangePlanTenant(t)}
+                                  className="px-3 py-1 bg-gray-100 hover:bg-blue-50 hover:text-[#2563EB] text-gray-700 font-bold rounded-lg text-xs transition-colors cursor-pointer whitespace-nowrap"
+                                >
+                                  Change Plan
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -1748,65 +1768,77 @@ export default function SuperAdmin() {
                   <table className="w-full text-left text-xs">
                     <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[10px] border-b border-gray-200">
                       <tr>
-                        <th className="px-6 py-4">Ticket ID</th>
-                        <th className="px-4 py-4">Business</th>
-                        <th className="px-6 py-4">Subject & Description</th>
-                        <th className="px-4 py-4">Priority</th>
-                        <th className="px-4 py-4">Status</th>
-                        <th className="px-4 py-4">Created Date</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
+                        <th className="px-6 py-4 whitespace-nowrap">Ticket ID</th>
+                        <th className="px-4 py-4 whitespace-nowrap">Business</th>
+                        <th className="px-6 py-4 min-w-[280px]">Subject & Description</th>
+                        <th className="px-4 py-4 whitespace-nowrap text-center">Priority</th>
+                        <th className="px-4 py-4 whitespace-nowrap text-center">Status</th>
+                        <th className="px-4 py-4 whitespace-nowrap">Created Date</th>
+                        <th className="px-6 py-4 text-right whitespace-nowrap">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {supportTickets
-                        .filter(t => ticketFilterStatus === 'ALL' || t.status === ticketFilterStatus)
-                        .map((ticket) => (
-                          <tr key={ticket.id} className="hover:bg-gray-50/50 transition-colors">
-                            <td className="px-6 py-4 font-mono font-bold text-[#2563EB]">{ticket.id}</td>
-                            <td className="px-4 py-4 font-bold text-gray-900">{ticket.businessName}</td>
-                            <td className="px-6 py-4 max-w-md">
-                              <div className="font-bold text-gray-900">{ticket.subject}</div>
-                              <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{ticket.description}</p>
-                            </td>
-                            <td className="px-4 py-4">
-                              <span
-                                className={cn(
-                                  'px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase',
-                                  ticket.priority === 'HIGH' || ticket.priority === 'URGENT'
-                                    ? 'bg-rose-50 text-rose-700'
-                                    : 'bg-amber-50 text-amber-700'
-                                )}
-                              >
-                                {ticket.priority}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4">
-                              <span
-                                className={cn(
-                                  'px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase',
-                                  ticket.status === 'OPEN'
-                                    ? 'bg-rose-50 text-rose-700'
-                                    : ticket.status === 'IN_PROGRESS'
-                                    ? 'bg-amber-50 text-amber-700'
-                                    : 'bg-emerald-50 text-emerald-700'
-                                )}
-                              >
-                                {ticket.status}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4 text-gray-500 text-[11px]">
-                              {new Date(ticket.createdAt).toLocaleDateString('en-IN')}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <button
-                                onClick={() => setSelectedTicket(ticket)}
-                                className="px-3 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors cursor-pointer"
-                              >
-                                Reply & Resolve
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                      {supportTickets.filter(t => ticketFilterStatus === 'ALL' || t.status === ticketFilterStatus).length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
+                            <LifeBuoy className="w-8 h-8 mx-auto mb-2 opacity-40 text-blue-500" />
+                            <p className="font-semibold text-gray-600">No support tickets found.</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">Tickets created by client businesses will appear here in real-time.</p>
+                          </td>
+                        </tr>
+                      ) : (
+                        supportTickets
+                          .filter(t => ticketFilterStatus === 'ALL' || t.status === ticketFilterStatus)
+                          .map((ticket) => (
+                            <tr key={ticket.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="px-6 py-4 font-mono font-bold text-[#2563EB] whitespace-nowrap">{ticket.id}</td>
+                              <td className="px-4 py-4 font-bold text-gray-900 whitespace-nowrap">{ticket.businessName}</td>
+                              <td className="px-6 py-4 min-w-[280px] max-w-md">
+                                <div className="font-bold text-gray-900">{ticket.subject}</div>
+                                <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{ticket.description}</p>
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-center">
+                                <span
+                                  className={cn(
+                                    'px-3 py-1 rounded-md text-[10px] font-bold uppercase whitespace-nowrap inline-flex items-center justify-center min-w-[70px]',
+                                    ticket.priority === 'HIGH' || ticket.priority === 'URGENT'
+                                      ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                      : ticket.priority === 'MEDIUM'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-slate-100 text-slate-700 border border-slate-200'
+                                  )}
+                                >
+                                  {ticket.priority}
+                                </span>
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-center">
+                                <span
+                                  className={cn(
+                                    'px-3 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap inline-flex items-center justify-center min-w-[90px]',
+                                    ticket.status === 'OPEN'
+                                      ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                      : ticket.status === 'IN_PROGRESS'
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  )}
+                                >
+                                  {ticket.status.replace('_', ' ')}
+                                </span>
+                              </td>
+                              <td className="px-4 py-4 text-gray-500 text-[11px] whitespace-nowrap">
+                                {new Date(ticket.createdAt).toLocaleDateString('en-IN')}
+                              </td>
+                              <td className="px-6 py-4 text-right whitespace-nowrap">
+                                <button
+                                  onClick={() => setSelectedTicket(ticket)}
+                                  className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors cursor-pointer whitespace-nowrap"
+                                >
+                                  Reply & Resolve
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -1973,29 +2005,39 @@ export default function SuperAdmin() {
                       <table className="w-full text-left text-xs">
                         <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[10px] border-b border-gray-200">
                           <tr>
-                            <th className="px-6 py-3">Filename</th>
-                            <th className="px-4 py-3">Type</th>
-                            <th className="px-4 py-3">Timestamp</th>
-                            <th className="px-4 py-3">Tenants Included</th>
-                            <th className="px-6 py-3 text-right">Status</th>
+                            <th className="px-6 py-3 whitespace-nowrap">Filename</th>
+                            <th className="px-4 py-3 whitespace-nowrap">Type</th>
+                            <th className="px-4 py-3 whitespace-nowrap">Timestamp</th>
+                            <th className="px-4 py-3 whitespace-nowrap">Tenants Included</th>
+                            <th className="px-6 py-3 text-right whitespace-nowrap">Status</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {backupsList.map((b) => (
-                            <tr key={b.id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-3 font-mono font-bold text-gray-900">{b.filename}</td>
-                              <td className="px-4 py-3 text-gray-600">{b.type}</td>
-                              <td className="px-4 py-3 text-gray-500 text-[11px] font-mono">
-                                {new Date(b.timestamp).toLocaleString('en-IN')}
-                              </td>
-                              <td className="px-4 py-3 font-bold text-gray-800">{b.tenantCount} Tenants</td>
-                              <td className="px-6 py-3 text-right">
-                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
-                                  {b.status}
-                                </span>
+                          {backupsList.length === 0 ? (
+                            <tr>
+                              <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
+                                <Database className="w-7 h-7 mx-auto mb-2 opacity-40 text-blue-500" />
+                                <p className="font-semibold text-gray-600">No backup snapshots generated yet.</p>
+                                <p className="text-[11px] text-gray-400 mt-0.5">Click "Download Full Backup JSON" above to create your first platform snapshot.</p>
                               </td>
                             </tr>
-                          ))}
+                          ) : (
+                            backupsList.map((b) => (
+                              <tr key={b.id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-3 font-mono font-bold text-gray-900 whitespace-nowrap">{b.filename}</td>
+                                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{b.type}</td>
+                                <td className="px-4 py-3 text-gray-500 text-[11px] font-mono whitespace-nowrap">
+                                  {new Date(b.timestamp).toLocaleString('en-IN')}
+                                </td>
+                                <td className="px-4 py-3 font-bold text-gray-800 whitespace-nowrap">{b.tenantCount} Tenants</td>
+                                <td className="px-6 py-3 text-right whitespace-nowrap">
+                                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    {b.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -2010,7 +2052,7 @@ export default function SuperAdmin() {
                     <h3 className="font-serif font-bold text-sm text-gray-900">Platform Administrators</h3>
                     <button
                       onClick={() => setIsAddUserModalOpen(true)}
-                      className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1 shadow-xs cursor-pointer"
+                      className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Platform Admin</span>
@@ -2021,29 +2063,29 @@ export default function SuperAdmin() {
                     <table className="w-full text-left text-xs">
                       <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[10px] border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-4">Admin Name</th>
-                          <th className="px-4 py-4">Email</th>
-                          <th className="px-4 py-4">Role</th>
-                          <th className="px-4 py-4">Status</th>
-                          <th className="px-6 py-4 text-right">Actions</th>
+                          <th className="px-6 py-4 whitespace-nowrap">Admin Name</th>
+                          <th className="px-4 py-4 whitespace-nowrap">Email</th>
+                          <th className="px-4 py-4 whitespace-nowrap">Role</th>
+                          <th className="px-4 py-4 whitespace-nowrap">Status</th>
+                          <th className="px-6 py-4 text-right whitespace-nowrap">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {platformUsers.map((u) => (
                           <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
-                            <td className="px-6 py-3.5 font-bold text-gray-900">{u.name}</td>
-                            <td className="px-4 py-3.5 text-gray-600">{u.email}</td>
-                            <td className="px-4 py-3.5">
-                              <span className="px-2.5 py-0.5 bg-blue-50 text-[#2563EB] rounded-md font-bold text-[10px]">
+                            <td className="px-6 py-3.5 font-bold text-gray-900 whitespace-nowrap">{u.name}</td>
+                            <td className="px-4 py-3.5 text-gray-600 whitespace-nowrap">{u.email}</td>
+                            <td className="px-4 py-3.5 whitespace-nowrap">
+                              <span className="px-2.5 py-0.5 bg-blue-50 text-[#2563EB] rounded-md font-bold text-[10px] border border-blue-200">
                                 {u.role}
                               </span>
                             </td>
-                            <td className="px-4 py-3.5">
-                              <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 rounded-full font-bold text-[10px]">
+                            <td className="px-4 py-3.5 whitespace-nowrap">
+                              <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 rounded-full font-bold text-[10px] border border-emerald-200">
                                 {u.status}
                               </span>
                             </td>
-                            <td className="px-6 py-3.5 text-right">
+                            <td className="px-6 py-3.5 text-right whitespace-nowrap">
                               {u.role !== 'SUPER_ADMIN' && (
                                 <button
                                   onClick={() => {
@@ -2084,33 +2126,52 @@ export default function SuperAdmin() {
                       <table className="w-full text-left text-xs">
                         <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[10px] border-b border-gray-200">
                           <tr>
-                            <th className="px-6 py-4">Timestamp</th>
-                            <th className="px-4 py-4">User</th>
-                            <th className="px-4 py-4">Tenant / Target</th>
-                            <th className="px-4 py-4">Action</th>
-                            <th className="px-6 py-4">Details</th>
-                            <th className="px-4 py-4 text-right">Result</th>
+                            <th className="px-6 py-4 whitespace-nowrap">Timestamp</th>
+                            <th className="px-4 py-4 whitespace-nowrap">User</th>
+                            <th className="px-4 py-4 whitespace-nowrap">Tenant / Target</th>
+                            <th className="px-4 py-4 whitespace-nowrap">Action</th>
+                            <th className="px-6 py-4 min-w-[240px]">Details</th>
+                            <th className="px-4 py-4 text-right whitespace-nowrap">Result</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {auditLogs
-                            .filter(l => !auditSearch || l.user.toLowerCase().includes(auditSearch.toLowerCase()) || l.action.toLowerCase().includes(auditSearch.toLowerCase()) || l.businessName.toLowerCase().includes(auditSearch.toLowerCase()))
-                            .map((log) => (
-                              <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="px-6 py-3.5 text-gray-500 text-[11px] font-mono">
-                                  {new Date(log.timestamp).toLocaleString('en-IN')}
-                                </td>
-                                <td className="px-4 py-3.5 font-bold text-gray-900">{log.user}</td>
-                                <td className="px-4 py-3.5 font-semibold text-gray-800">{log.businessName}</td>
-                                <td className="px-4 py-3.5 font-mono text-[10px] text-gray-700">{log.action}</td>
-                                <td className="px-6 py-3.5 text-gray-600 text-[11px] max-w-md">{log.details}</td>
-                                <td className="px-4 py-3.5 text-right">
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
-                                    {log.status}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
+                          {auditLogs.filter(l => !auditSearch || l.user.toLowerCase().includes(auditSearch.toLowerCase()) || l.action.toLowerCase().includes(auditSearch.toLowerCase()) || l.businessName.toLowerCase().includes(auditSearch.toLowerCase())).length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                                <FileText className="w-8 h-8 mx-auto mb-2 opacity-40 text-blue-500" />
+                                <p className="font-semibold text-gray-600">No audit logs recorded yet.</p>
+                                <p className="text-[11px] text-gray-400 mt-0.5">Platform and security events will be logged here in real-time.</p>
+                              </td>
+                            </tr>
+                          ) : (
+                            auditLogs
+                              .filter(l => !auditSearch || l.user.toLowerCase().includes(auditSearch.toLowerCase()) || l.action.toLowerCase().includes(auditSearch.toLowerCase()) || l.businessName.toLowerCase().includes(auditSearch.toLowerCase()))
+                              .map((log) => (
+                                <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+                                  <td className="px-6 py-3.5 text-gray-500 text-[11px] font-mono whitespace-nowrap">
+                                    {new Date(log.timestamp).toLocaleString('en-IN')}
+                                  </td>
+                                  <td className="px-4 py-3.5 font-bold text-gray-900 whitespace-nowrap">{log.user}</td>
+                                  <td className="px-4 py-3.5 font-semibold text-gray-800 whitespace-nowrap">{log.businessName}</td>
+                                  <td className="px-4 py-3.5 font-mono text-[10px] text-gray-700 whitespace-nowrap">{log.action}</td>
+                                  <td className="px-6 py-3.5 text-gray-600 text-[11px] min-w-[240px] max-w-md">{log.details}</td>
+                                  <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                                    <span
+                                      className={cn(
+                                        'px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase whitespace-nowrap inline-flex items-center justify-center',
+                                        log.status === 'SUCCESS'
+                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                          : log.status === 'WARNING'
+                                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                      )}
+                                    >
+                                      {log.status}
+                                    </span>
+                                  </td>
+                                </tr>
+                              ))
+                          )}
                         </tbody>
                       </table>
                     </div>

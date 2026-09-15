@@ -142,26 +142,6 @@ const DEFAULT_PLATFORM_USERS: PlatformUser[] = [
     createdAt: '2026-01-01T00:00:00.000Z',
     lastLoginAt: new Date().toISOString(),
   },
-  {
-    id: 'user-platform-devops',
-    name: 'SaaS Infrastructure Lead',
-    email: 'devops@saasplatform.io',
-    username: 'devops_lead',
-    role: 'PLATFORM_ADMIN',
-    status: 'ACTIVE',
-    createdAt: '2026-02-15T09:00:00.000Z',
-    lastLoginAt: '2026-09-11T14:30:00.000Z',
-  },
-  {
-    id: 'user-support-specialist',
-    name: 'Customer Support Lead',
-    email: 'support@saasplatform.io',
-    username: 'support_lead',
-    role: 'SUPPORT_AGENT',
-    status: 'ACTIVE',
-    createdAt: '2026-03-01T11:00:00.000Z',
-    lastLoginAt: '2026-09-12T08:15:00.000Z',
-  },
 ];
 
 const DEFAULT_INDUSTRY_TEMPLATES: IndustryTemplateConfig[] = [
@@ -327,7 +307,14 @@ export class PlatformEngine {
   static getPlatformUsers(): PlatformUser[] {
     try {
       const saved = localStorage.getItem(KEYS.USERS);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: PlatformUser[] = JSON.parse(saved);
+        const cleaned = parsed.filter(u => !['user-platform-devops', 'user-support-specialist'].includes(u.id));
+        if (cleaned.length !== parsed.length) {
+          this.savePlatformUsers(cleaned);
+        }
+        return cleaned;
+      }
     } catch {}
     this.savePlatformUsers(DEFAULT_PLATFORM_USERS);
     return DEFAULT_PLATFORM_USERS;
@@ -405,7 +392,16 @@ export class PlatformEngine {
   static getSupportTickets(): SupportTicket[] {
     try {
       const saved = localStorage.getItem(KEYS.TICKETS);
-      if (saved !== null) return JSON.parse(saved);
+      if (saved !== null) {
+        const parsed: SupportTicket[] = JSON.parse(saved);
+        const legacyNames = ['Apex Supermarket & Department Store', 'Spice Garden Restaurant & Cafe', 'Luxe Thread Fashion Boutique', 'Apex Supermarket', 'Spice Garden', 'Luxe Thread'];
+        const legacyIds = ['TICK-8841', 'TICK-8840', 'TICK-8839'];
+        const cleaned = parsed.filter(t => !legacyIds.includes(t.id) && !legacyNames.includes(t.businessName));
+        if (cleaned.length !== parsed.length) {
+          this.saveSupportTickets(cleaned);
+        }
+        return cleaned;
+      }
     } catch {}
     return [];
   }
@@ -482,7 +478,14 @@ export class PlatformEngine {
   static getNotifications(): PlatformNotification[] {
     try {
       const saved = localStorage.getItem(KEYS.NOTIFICATIONS);
-      if (saved !== null) return JSON.parse(saved);
+      if (saved !== null) {
+        const parsed: PlatformNotification[] = JSON.parse(saved);
+        const cleaned = parsed.filter(n => !['Apex Supermarket', 'Spice Garden', 'Luxe Thread'].some(l => (n.businessName || n.title || n.message)?.includes(l)));
+        if (cleaned.length !== parsed.length) {
+          this.saveNotifications(cleaned);
+        }
+        return cleaned;
+      }
     } catch {}
     return [];
   }
@@ -527,7 +530,14 @@ export class PlatformEngine {
   static getAuditLogs(): PlatformAuditLog[] {
     try {
       const saved = localStorage.getItem(KEYS.AUDIT_LOGS);
-      if (saved !== null) return JSON.parse(saved);
+      if (saved !== null) {
+        const parsed: PlatformAuditLog[] = JSON.parse(saved);
+        const cleaned = parsed.filter(a => !['Apex Supermarket', 'Spice Garden', 'Luxe Thread'].some(l => a.businessName?.includes(l)));
+        if (cleaned.length !== parsed.length) {
+          this.saveAuditLogs(cleaned);
+        }
+        return cleaned;
+      }
     } catch {}
     return [];
   }
