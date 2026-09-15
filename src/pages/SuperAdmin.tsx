@@ -274,12 +274,12 @@ export default function SuperAdmin() {
       mrr: totalMRR,
       arr: totalMRR * 12,
       totalPlatformUsers: totalUsers + platformUsers.length,
-      activeUsers: Math.round(totalUsers * 0.72) + 4,
+      activeUsers: totalUsers > 0 ? Math.round(totalUsers * 0.72) + platformUsers.length : platformUsers.length,
       newBusinessesThisMonth: tenants.filter(t => {
         const d = new Date(t.createdAt);
         const now = new Date();
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-      }).length || tenants.length,
+      }).length,
       totalInvoices,
       totalRevenue,
       planCounts,
@@ -1159,7 +1159,7 @@ export default function SuperAdmin() {
                     </div>
                     <div className="p-3 bg-gray-50 border border-gray-100 rounded-2xl">
                       <div className="text-[10px] font-bold text-gray-400 uppercase">Renewals</div>
-                      <div className="text-sm font-bold text-amber-600 mt-0.5">1 Upcoming</div>
+                      <div className="text-sm font-bold text-amber-600 mt-0.5">{metrics.trialBusinesses} Upcoming</div>
                     </div>
                   </div>
                 </div>
@@ -1245,21 +1245,22 @@ export default function SuperAdmin() {
                   </div>
 
                   <div className="space-y-2 text-xs">
-                    <div className="p-3 bg-amber-50 border border-amber-200/60 rounded-xl flex items-start gap-2.5">
-                      <Clock className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-bold text-amber-900">Subscription Renewal</div>
-                        <div className="text-[11px] text-amber-800">Spice Garden Restaurant renewal in 28 days.</div>
+                    {notifications.length === 0 ? (
+                      <div className="p-4 text-center text-gray-400 bg-gray-50 border border-gray-100 rounded-xl">
+                        <CheckCircle2 className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
+                        <p className="font-semibold text-[11px]">All systems operational. No active alerts.</p>
                       </div>
-                    </div>
-
-                    <div className="p-3 bg-blue-50 border border-blue-200/60 rounded-xl flex items-start gap-2.5">
-                      <Database className="w-4 h-4 text-[#2563EB] flex-shrink-0 mt-0.5" />
-                      <div>
-                        <div className="font-bold text-blue-900">Storage Usage Healthy</div>
-                        <div className="text-[11px] text-blue-800">Apex Supermarket reached 68% of storage limit.</div>
-                      </div>
-                    </div>
+                    ) : (
+                      notifications.slice(0, 3).map((n) => (
+                        <div key={n.id} className="p-3 bg-amber-50 border border-amber-200/60 rounded-xl flex items-start gap-2.5">
+                          <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <div className="font-bold text-amber-900">{n.title}</div>
+                            <div className="text-[11px] text-amber-800">{n.message}</div>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>

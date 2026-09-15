@@ -271,186 +271,11 @@ const DEFAULT_INDUSTRY_TEMPLATES: IndustryTemplateConfig[] = [
   },
 ];
 
-const DEFAULT_SUPPORT_TICKETS: SupportTicket[] = [
-  {
-    id: 'TICK-8841',
-    tenantId: 'biz-apex-retail',
-    businessName: 'Apex Supermarket & Department Store',
-    ownerEmail: 'venkat@apexretail.in',
-    subject: 'Assistance with Thermal Printer 3-inch Layout Alignment',
-    description: 'We recently added a new 80mm ESC/POS counter printer. Need help configuring barcode print density.',
-    priority: 'HIGH',
-    status: 'OPEN',
-    createdAt: '2026-09-11T10:14:00.000Z',
-    updatedAt: '2026-09-11T11:20:00.000Z',
-    assignedTo: 'support_lead',
-    replies: [
-      {
-        id: 'rep-1',
-        author: 'Venkatesh Raman',
-        isSuperAdmin: false,
-        message: 'Printer is connected via USB. Receipt cutting works but headers need center alignment.',
-        createdAt: '2026-09-11T10:14:00.000Z',
-      },
-      {
-        id: 'rep-2',
-        author: 'Customer Support Lead',
-        isSuperAdmin: true,
-        message: 'Hi Venkat! You can adjust receipt header margin under Settings > Thermal Printer > 80mm format. Let us know if you need remote assistance.',
-        createdAt: '2026-09-11T11:20:00.000Z',
-      },
-    ],
-  },
-  {
-    id: 'TICK-8840',
-    tenantId: 'biz-spice-garden',
-    businessName: 'Spice Garden Restaurant & Cafe',
-    ownerEmail: 'rahul@spicegarden.co.in',
-    subject: 'Request to Upgrade to Professional Plan with Custom Domain',
-    description: 'We would like to link our live custom domain www.spicegarden.co.in to our storefront website.',
-    priority: 'MEDIUM',
-    status: 'IN_PROGRESS',
-    createdAt: '2026-09-10T15:30:00.000Z',
-    updatedAt: '2026-09-10T16:45:00.000Z',
-    assignedTo: 'devops_lead',
-    replies: [
-      {
-        id: 'rep-3',
-        author: 'Chef Rahul Menon',
-        isSuperAdmin: false,
-        message: 'We have configured CNAME to saas platform server. Please verify DNS verification.',
-        createdAt: '2026-09-10T15:30:00.000Z',
-      },
-    ],
-  },
-  {
-    id: 'TICK-8839',
-    tenantId: 'biz-luxe-fashion',
-    businessName: 'Luxe Thread Fashion Boutique',
-    ownerEmail: 'ananya@luxethread.com',
-    subject: 'Bulk Excel Import for Autumn Sarees Catalog',
-    description: 'Need confirmation on column headers for color and size matrix fields during inventory spreadsheet upload.',
-    priority: 'LOW',
-    status: 'RESOLVED',
-    createdAt: '2026-09-08T09:00:00.000Z',
-    updatedAt: '2026-09-09T14:00:00.000Z',
-    assignedTo: 'support_lead',
-    replies: [
-      {
-        id: 'rep-4',
-        author: 'Customer Support Lead',
-        isSuperAdmin: true,
-        message: 'Provided standard CSV template with SKU, Variant, Cost and Selling price columns. Verified upload successfully.',
-        createdAt: '2026-09-09T14:00:00.000Z',
-      },
-    ],
-  },
-];
+const DEFAULT_SUPPORT_TICKETS: SupportTicket[] = [];
 
-const DEFAULT_PLATFORM_NOTIFICATIONS: PlatformNotification[] = [
-  {
-    id: 'notif-1',
-    title: 'New Client Business Provisioned',
-    message: 'Luxe Thread Fashion Boutique joined Starter Plan with 3 staff licenses.',
-    type: 'BUSINESS_REGISTERED',
-    tenantId: 'biz-luxe-fashion',
-    businessName: 'Luxe Thread Fashion Boutique',
-    createdAt: '2026-09-10T09:30:00.000Z',
-    read: false,
-  },
-  {
-    id: 'notif-2',
-    title: 'Storage Usage Warning',
-    message: 'Apex Supermarket has reached 68% of allocated plan storage (680 MB / 1 GB).',
-    type: 'USAGE_LIMIT',
-    tenantId: 'biz-apex-retail',
-    businessName: 'Apex Supermarket & Department Store',
-    createdAt: '2026-09-11T12:00:00.000Z',
-    read: false,
-  },
-  {
-    id: 'notif-3',
-    title: 'Support Ticket #TICK-8841 Received',
-    message: 'Printer configuration request received from Apex Supermarket.',
-    type: 'SUPPORT_TICKET',
-    tenantId: 'biz-apex-retail',
-    businessName: 'Apex Supermarket & Department Store',
-    createdAt: '2026-09-11T10:14:00.000Z',
-    read: true,
-  },
-  {
-    id: 'notif-4',
-    title: 'Subscription Renewal Upcoming',
-    message: 'Spice Garden Restaurant plan renewal scheduled in 28 days (₹1,999/mo).',
-    type: 'SUBSCRIPTION_EXPIRING',
-    tenantId: 'biz-spice-garden',
-    businessName: 'Spice Garden Restaurant & Cafe',
-    createdAt: '2026-09-09T08:00:00.000Z',
-    read: true,
-  },
-];
+const DEFAULT_PLATFORM_NOTIFICATIONS: PlatformNotification[] = [];
 
-const DEFAULT_AUDIT_LOGS: PlatformAuditLog[] = [
-  {
-    id: 'aud-101',
-    timestamp: new Date().toISOString(),
-    user: 'superadmin',
-    role: 'SUPER_ADMIN',
-    businessName: 'Apex Supermarket & Department Store',
-    tenantId: 'biz-apex-retail',
-    action: 'IMPERSONATION_LOGIN',
-    details: 'Super Admin initiated secure support session for Apex Supermarket.',
-    status: 'SUCCESS',
-    ipAddress: '192.168.1.100',
-  },
-  {
-    id: 'aud-102',
-    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-    user: 'superadmin',
-    role: 'SUPER_ADMIN',
-    businessName: 'Platform Global',
-    action: 'BACKUP_EXPORT',
-    details: 'Full platform JSON database export generated and downloaded.',
-    status: 'SUCCESS',
-    ipAddress: '192.168.1.100',
-  },
-  {
-    id: 'aud-103',
-    timestamp: new Date(Date.now() - 3600000 * 18).toISOString(),
-    user: 'superadmin',
-    role: 'SUPER_ADMIN',
-    businessName: 'Luxe Thread Fashion Boutique',
-    tenantId: 'biz-luxe-fashion',
-    action: 'PROVISION_BUSINESS',
-    details: 'Created and seeded tenant namespace for Luxe Thread Fashion (GARMENTS).',
-    status: 'SUCCESS',
-    ipAddress: '192.168.1.100',
-  },
-  {
-    id: 'aud-104',
-    timestamp: new Date(Date.now() - 3600000 * 48).toISOString(),
-    user: 'superadmin',
-    role: 'SUPER_ADMIN',
-    businessName: 'Spice Garden Restaurant & Cafe',
-    tenantId: 'biz-spice-garden',
-    action: 'UPDATE_SUBSCRIPTION',
-    details: 'Updated plan parameters: Enabled Online Store & Website modules.',
-    status: 'SUCCESS',
-    ipAddress: '192.168.1.100',
-  },
-  {
-    id: 'aud-105',
-    timestamp: new Date(Date.now() - 3600000 * 72).toISOString(),
-    user: 'apexadmin',
-    role: 'BUSINESS_ADMIN',
-    businessName: 'Apex Supermarket & Department Store',
-    tenantId: 'biz-apex-retail',
-    action: 'BUSINESS_CONFIG_UPDATE',
-    details: 'Updated store contact information and invoice footer notes.',
-    status: 'SUCCESS',
-    ipAddress: '49.207.210.45',
-  },
-];
+const DEFAULT_AUDIT_LOGS: PlatformAuditLog[] = [];
 
 const DEFAULT_SETTINGS: PlatformSettingsConfig = {
   platformName: 'MultiBiz SaaS Platform',
@@ -481,35 +306,7 @@ const DEFAULT_SETTINGS: PlatformSettingsConfig = {
   },
 };
 
-const DEFAULT_BACKUPS: BackupRecord[] = [
-  {
-    id: 'bkp-2026-09-12-001',
-    timestamp: '2026-09-12T04:00:00.000Z',
-    filename: 'saas_backup_full_2026-09-12.json',
-    sizeBytes: 1485200,
-    type: 'AUTOMATED_DAILY',
-    tenantCount: 3,
-    status: 'SUCCESS',
-  },
-  {
-    id: 'bkp-2026-09-11-002',
-    timestamp: '2026-09-11T04:00:00.000Z',
-    filename: 'saas_backup_full_2026-09-11.json',
-    sizeBytes: 1452000,
-    type: 'AUTOMATED_DAILY',
-    tenantCount: 3,
-    status: 'SUCCESS',
-  },
-  {
-    id: 'bkp-2026-09-10-003',
-    timestamp: '2026-09-10T14:22:00.000Z',
-    filename: 'manual_platform_snapshot_20260910.json',
-    sizeBytes: 1390400,
-    type: 'FULL_PLATFORM',
-    tenantCount: 2,
-    status: 'SUCCESS',
-  },
-];
+const DEFAULT_BACKUPS: BackupRecord[] = [];
 
 // ─── STORAGE KEYS ───────────────────────────────────────────────
 
@@ -608,10 +405,9 @@ export class PlatformEngine {
   static getSupportTickets(): SupportTicket[] {
     try {
       const saved = localStorage.getItem(KEYS.TICKETS);
-      if (saved) return JSON.parse(saved);
+      if (saved !== null) return JSON.parse(saved);
     } catch {}
-    this.saveSupportTickets(DEFAULT_SUPPORT_TICKETS);
-    return DEFAULT_SUPPORT_TICKETS;
+    return [];
   }
 
   static saveSupportTickets(tickets: SupportTicket[]): void {
@@ -686,10 +482,9 @@ export class PlatformEngine {
   static getNotifications(): PlatformNotification[] {
     try {
       const saved = localStorage.getItem(KEYS.NOTIFICATIONS);
-      if (saved) return JSON.parse(saved);
+      if (saved !== null) return JSON.parse(saved);
     } catch {}
-    this.saveNotifications(DEFAULT_PLATFORM_NOTIFICATIONS);
-    return DEFAULT_PLATFORM_NOTIFICATIONS;
+    return [];
   }
 
   static saveNotifications(notifications: PlatformNotification[]): void {
@@ -732,10 +527,9 @@ export class PlatformEngine {
   static getAuditLogs(): PlatformAuditLog[] {
     try {
       const saved = localStorage.getItem(KEYS.AUDIT_LOGS);
-      if (saved) return JSON.parse(saved);
+      if (saved !== null) return JSON.parse(saved);
     } catch {}
-    this.saveAuditLogs(DEFAULT_AUDIT_LOGS);
-    return DEFAULT_AUDIT_LOGS;
+    return [];
   }
 
   static saveAuditLogs(logs: PlatformAuditLog[]): void {
@@ -788,10 +582,9 @@ export class PlatformEngine {
   static getBackups(): BackupRecord[] {
     try {
       const saved = localStorage.getItem(KEYS.BACKUPS);
-      if (saved) return JSON.parse(saved);
+      if (saved !== null) return JSON.parse(saved);
     } catch {}
-    this.saveBackups(DEFAULT_BACKUPS);
-    return DEFAULT_BACKUPS;
+    return [];
   }
 
   static saveBackups(backups: BackupRecord[]): void {

@@ -96,7 +96,7 @@ export function getDefaultRoleForCategory(cat: string): string {
 export default function EmployeeDirectory() {
   const navigate = useNavigate();
   const { user, activeTenant, businessId } = useAuth();
-  const currentBusinessId = activeTenant?.id || businessId || user?.businessId || 'biz-apex-retail';
+  const currentBusinessId = activeTenant?.id || businessId || user?.businessId || 'biz-default-business';
   const tenantPrefix = `tenant_${currentBusinessId}_`;
 
   const [staffList, setStaffList] = useState<StaffUser[]>(() => {

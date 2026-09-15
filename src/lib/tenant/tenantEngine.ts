@@ -116,116 +116,7 @@ export const SAAS_PLANS: SaaSPlanConfig[] = [
   },
 ];
 
-const DEFAULT_TENANTS: Tenant[] = [
-  {
-    id: 'biz-apex-retail',
-    businessName: 'Apex Supermarket & Department Store',
-    legalEntityName: 'Apex Retail Enterprises Pvt Ltd',
-    ownerName: 'Venkatesh Raman',
-    ownerEmail: 'venkat@apexretail.in',
-    ownerPhone: '+91 98765 11223',
-    adminUsername: 'apexadmin',
-    adminPasswordHash: 'admin123',
-    businessType: 'RETAIL',
-    currency: 'INR',
-    currencySymbol: '₹',
-    gstin: '33AAAAA1234A1Z5',
-    city: 'Chennai',
-    state: 'Tamil Nadu',
-    address: '42, Grand Mall Complex, Anna Nagar, Chennai - 600040',
-    subdomain: 'apex-retail',
-    subscription: {
-      plan: 'PROFESSIONAL',
-      status: 'ACTIVE',
-      startDate: '2026-01-01T00:00:00.000Z',
-      expiryDate: '2027-01-01T00:00:00.000Z',
-      monthlyFee: 3499,
-      maxStaff: 25,
-      maxInvoicesPerMonth: 10000,
-      allowWebsite: true,
-      allowCustomDomain: true,
-      autoRenew: true,
-    },
-    createdAt: '2026-01-01T09:00:00.000Z',
-    updatedAt: '2026-09-10T12:00:00.000Z',
-    lastLoginAt: '2026-09-11T08:30:00.000Z',
-    totalInvoicesCount: 412,
-    totalRevenueGenerated: 384500,
-    notes: 'Premium enterprise client. Multi-counter setup.',
-  },
-  {
-    id: 'biz-spice-garden',
-    businessName: 'Spice Garden Restaurant & Cafe',
-    legalEntityName: 'Spice Garden Hospitality LLP',
-    ownerName: 'Chef Rahul Menon',
-    ownerEmail: 'rahul@spicegarden.co.in',
-    ownerPhone: '+91 99887 22334',
-    adminUsername: 'spiceadmin',
-    adminPasswordHash: 'admin123',
-    businessType: 'RESTAURANT',
-    currency: 'INR',
-    currencySymbol: '₹',
-    gstin: '33BBBBB5678B1Z2',
-    city: 'Bengaluru',
-    state: 'Karnataka',
-    address: '18/A, 100 Feet Road, Indiranagar, Bengaluru - 560038',
-    subdomain: 'spice-garden',
-    subscription: {
-      plan: 'GROWTH',
-      status: 'ACTIVE',
-      startDate: '2026-03-15T00:00:00.000Z',
-      expiryDate: '2027-03-15T00:00:00.000Z',
-      monthlyFee: 1999,
-      maxStaff: 10,
-      maxInvoicesPerMonth: 2500,
-      allowWebsite: true,
-      allowCustomDomain: false,
-      autoRenew: true,
-    },
-    createdAt: '2026-03-15T10:30:00.000Z',
-    updatedAt: '2026-09-08T15:20:00.000Z',
-    lastLoginAt: '2026-09-10T19:45:00.000Z',
-    totalInvoicesCount: 289,
-    totalRevenueGenerated: 215400,
-    notes: 'Dine-in, takeaway and kitchen orders active.',
-  },
-  {
-    id: 'biz-luxe-fashion',
-    businessName: 'Luxe Thread Fashion Boutique',
-    legalEntityName: 'Luxe Apparel & Lifestyle',
-    ownerName: 'Ananya Deshmukh',
-    ownerEmail: 'ananya@luxethread.com',
-    ownerPhone: '+91 91234 33445',
-    adminUsername: 'luxeadmin',
-    adminPasswordHash: 'admin123',
-    businessType: 'GARMENTS',
-    currency: 'INR',
-    currencySymbol: '₹',
-    gstin: '27CCCCC9012C1Z8',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    address: 'Shop 4, Bandra Linking Road, Mumbai - 400050',
-    subdomain: 'luxe-fashion',
-    subscription: {
-      plan: 'STARTER',
-      status: 'ACTIVE',
-      startDate: '2026-05-01T00:00:00.000Z',
-      expiryDate: '2027-05-01T00:00:00.000Z',
-      monthlyFee: 999,
-      maxStaff: 3,
-      maxInvoicesPerMonth: 500,
-      allowWebsite: false,
-      allowCustomDomain: false,
-      autoRenew: true,
-    },
-    createdAt: '2026-05-01T11:00:00.000Z',
-    updatedAt: '2026-09-01T10:00:00.000Z',
-    lastLoginAt: '2026-09-09T14:15:00.000Z',
-    totalInvoicesCount: 145,
-    totalRevenueGenerated: 189000,
-    notes: 'Garment and sizing inventory.',
-  }
-];
+const DEFAULT_TENANTS: Tenant[] = [];
 
 const TENANTS_STORAGE_KEY = 'saas_tenants_master_registry';
 const SUPER_ADMIN_CREDENTIALS_KEY = 'saas_super_admin_credentials';
@@ -237,9 +128,9 @@ export class TenantEngine {
   static getTenants(): Tenant[] {
     try {
       const saved = localStorage.getItem(TENANTS_STORAGE_KEY);
-      if (saved) {
+      if (saved !== null) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed.map((t: any) => ({
             ...t,
             subscription: {
@@ -258,9 +149,7 @@ export class TenantEngine {
         }
       }
     } catch {}
-    // Initialize default tenants
-    this.saveTenants(DEFAULT_TENANTS);
-    return DEFAULT_TENANTS;
+    return [];
   }
 
   /**
@@ -290,9 +179,6 @@ export class TenantEngine {
     if (!identifier) return null;
     const q = identifier.trim().toLowerCase();
     const list = this.getTenants();
-    if (q === 'admin') {
-      return list[0] || null;
-    }
     return list.find(t => 
       t.adminUsername.toLowerCase() === q || 
       t.ownerEmail.toLowerCase() === q ||

@@ -108,7 +108,7 @@ interface AuthContextType {
   refreshTenants: () => void;
 }
 
-const DEFAULT_BUSINESS_ID = 'biz-apex-retail';
+const DEFAULT_BUSINESS_ID = 'biz-default-business';
 const DEFAULT_BUSINESS_TYPE: BusinessType = 'RETAIL';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
