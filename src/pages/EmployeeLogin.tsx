@@ -39,8 +39,40 @@ export default function EmployeeLogin() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      // 1. Check in universal staff list
+    setTimeout(async () => {
+      // 1. Super Admin Master Credentials (access to attendance for Super Admin)
+      const superUsers = ['superadmin', 'super_admin', 'super-admin', 'admin@saas.com', 'saasadmin', 'saas_admin'];
+      if (superUsers.includes(cleanUser.toLowerCase())) {
+        if (TenantEngine.verifySuperAdmin(cleanUser, cleanPin)) {
+          const superSession = {
+            id: 'user-super-admin',
+            name: 'Master Super Admin',
+            username: 'superadmin',
+            role: 'SUPER_ADMIN',
+            phone: '',
+            email: 'admin@saas.com',
+            applicationAccess: 'Master Super Admin (Global Platform Access)',
+          };
+          localStorage.setItem('employee_session', JSON.stringify(superSession));
+
+          login('demo-live-token-superadmin', {
+            id: 'user-super-admin',
+            username: 'superadmin',
+            role: 'SUPER_ADMIN',
+            applicationAccess: 'Master Super Admin (Global Platform Access)',
+          });
+
+          setLoading(false);
+          navigate('/employee');
+          return;
+        } else {
+          setLoading(false);
+          setError('Invalid Super Admin password or PIN.');
+          return;
+        }
+      }
+
+      // 2. Check in universal staff list (Created & provided by Business Admin)
       const staffRaw = localStorage.getItem('universal_staff_list');
       const staffList = staffRaw ? JSON.parse(staffRaw) : [];
       const match = staffList.find(
@@ -92,7 +124,7 @@ export default function EmployeeLogin() {
         return;
       }
 
-      // 2. Allow Business Admins (created in Super Admin) to access attendance
+      // 3. Allow Business Admins (created in Super Admin) to access attendance
       const tenantMatch = TenantEngine.findTenantByLogin(cleanUser);
       if (tenantMatch) {
         const isCorrectAdminPass =
@@ -130,7 +162,42 @@ export default function EmployeeLogin() {
         }
       }
 
-      // 3. Invalid credentials
+      // 4. Live database API backend fallback for staff
+      try {
+        const apiRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: cleanUser, password: cleanPin })
+        });
+        if (apiRes.ok) {
+          const apiData = await apiRes.json();
+          if (apiData && apiData.user) {
+            const sessionObj = {
+              id: apiData.user.id,
+              name: apiData.user.name || apiData.user.username,
+              username: apiData.user.username,
+              role: apiData.user.role || 'STAFF',
+              phone: apiData.user.phone,
+              email: apiData.user.email,
+              applicationAccess: apiData.user.applicationAccess || 'Attendance & Staff Portal',
+            };
+            localStorage.setItem('employee_session', JSON.stringify(sessionObj));
+            login('demo-live-token-' + apiData.user.id, {
+              id: apiData.user.id,
+              username: apiData.user.username,
+              role: apiData.user.role || 'STAFF',
+              businessId: apiData.user.businessId,
+              businessType: apiData.user.businessType,
+              applicationAccess: apiData.user.applicationAccess || 'Attendance & Staff Portal',
+            });
+            setLoading(false);
+            navigate('/employee');
+            return;
+          }
+        }
+      } catch (backendErr) {}
+
+      // 5. Invalid credentials
       setLoading(false);
       setError('Invalid employee ID, phone number or PIN. Please check your credentials.');
     }, 600);
@@ -245,6 +312,15 @@ export default function EmployeeLogin() {
                   )}
                 </button>
               </form>
+
+              <div className="mt-5 pt-4 text-center border-t border-gray-100">
+                <p className="text-xs text-gray-500 font-medium">
+                  Business Administrator?{' '}
+                  <a href="/login" className="text-[#2563EB] font-bold hover:underline">
+                    Sign in to Admin Dashboard &rarr;
+                  </a>
+                </p>
+              </div>
 
             </div>
           </div>

@@ -125,7 +125,7 @@ export default function Login() {
         }
       }
 
-      // 2. Client Business Admin Authentication (Only provisioned by Super Admin)
+      // 2. Client Business Admin Authentication (Created exclusively by Super Admin)
       const matchedTenant = TenantEngine.findTenantByLogin(cleanUser);
       if (matchedTenant) {
         const isPasswordCorrect =
@@ -154,7 +154,36 @@ export default function Login() {
         }
       }
 
-      // 3. Staff List check
+      // 3. Check live database API (Supabase PostgreSQL backend fallback for Admins)
+      try {
+        const apiRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: cleanUser, password: cleanPass })
+        });
+        if (apiRes.ok) {
+          const apiData = await apiRes.json();
+          if (apiData && apiData.user) {
+            if (apiData.user.role === 'ADMIN' || apiData.user.role === 'SUPER_ADMIN') {
+              performLogin(apiData.user.username, apiData.user.role || 'ADMIN', {
+                id: apiData.user.id,
+                businessId: apiData.user.businessId,
+                businessType: apiData.user.businessType,
+                applicationAccess: apiData.user.applicationAccess || 'Full Business Access'
+              });
+              return;
+            } else {
+              setError('Access Restricted: This login is exclusively for Business Administrators. Staff, Cashiers, and other roles must sign in via the Employee Portal (/employee-login).');
+              setLoading(false);
+              return;
+            }
+          }
+        }
+      } catch (backendErr) {
+        // Backend offline or network error
+      }
+
+      // 4. Staff List Check (Strict Role Isolation: Non-admin staff cannot access Admin Dashboard)
       const staffRaw = localStorage.getItem('universal_staff_list');
       const staffList = staffRaw ? JSON.parse(staffRaw) : [];
       const staffMatch = staffList.find(
@@ -165,61 +194,43 @@ export default function Login() {
       );
 
       if (staffMatch) {
+        if (staffMatch.role !== 'ADMIN' && staffMatch.role !== 'SUPER_ADMIN') {
+          setError('Access Restricted: This login is exclusively for Business Administrators. Staff and employees must use the Employee Portal login (/employee-login).');
+          setLoading(false);
+          return;
+        }
+
         const isStaffPassCorrect =
           (staffMatch.pinCode && staffMatch.pinCode === cleanPass) ||
           (staffMatch.password && staffMatch.password === cleanPass) ||
           (cleanPass === '1234' || cleanPass === 'admin123');
 
         if (!isStaffPassCorrect) {
-          setError('Invalid password or PIN for this staff account.');
+          setError('Invalid administrator password or PIN.');
           setLoading(false);
           return;
         }
 
         if (staffMatch.status === 'INACTIVE') {
-          setError('This staff account has been deactivated. Please contact your store administrator.');
+          setError('This administrator account has been deactivated.');
           setLoading(false);
           return;
         }
 
-        performLogin(staffMatch.username || staffMatch.name || staffMatch.phone, staffMatch.role || 'STAFF', {
+        performLogin(staffMatch.username || staffMatch.name || staffMatch.phone, 'ADMIN', {
           id: staffMatch.id,
           name: staffMatch.name,
           username: staffMatch.username || staffMatch.phone,
-          role: staffMatch.role || 'STAFF',
+          role: 'ADMIN',
           phone: staffMatch.phone,
           email: staffMatch.email,
-          applicationAccess: staffMatch.applicationAccess || 'Attendance & Staff Portal',
-          employeeSession: staffMatch,
+          applicationAccess: 'Full Business Admin Access',
         });
         return;
       }
 
-      // 4. Check live database API (Supabase PostgreSQL backend fallback)
-      try {
-        const apiRes = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: cleanUser, password: cleanPass })
-        });
-        if (apiRes.ok) {
-          const apiData = await apiRes.json();
-          if (apiData && apiData.user) {
-            performLogin(apiData.user.username, apiData.user.role || 'ADMIN', {
-              id: apiData.user.id,
-              businessId: apiData.user.businessId,
-              businessType: apiData.user.businessType,
-              applicationAccess: apiData.user.applicationAccess || 'Full Business Access'
-            });
-            return;
-          }
-        }
-      } catch (backendErr) {
-        // Backend offline or network error, fallback to local error
-      }
-
-      // 5. No match found - Strictly reject invalid credentials (Admin credentials must only come from Super Admin)
-      setError('Invalid username, phone number, or password. Business administrator accounts must be created by Super Admin.');
+      // 5. No valid Admin match found - Reject invalid credentials
+      setError('Invalid username or password. Business administrator accounts must be created by Super Admin.');
     } catch (err: any) {
       setError(err.message || 'Authentication error occurred.');
     } finally {
@@ -332,6 +343,15 @@ export default function Login() {
               </button>
             </div>
           </form>
+
+          <div className="pt-4 text-center border-t border-gray-100">
+            <p className="text-xs text-gray-500 font-medium">
+              Staff, Cashier or Employee?{' '}
+              <a href="/employee-login" className="text-[#2563EB] font-bold hover:underline">
+                Sign in to Employee Portal &rarr;
+              </a>
+            </p>
+          </div>
 
         </div>
       </div>

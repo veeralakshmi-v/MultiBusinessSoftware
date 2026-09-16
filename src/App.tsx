@@ -33,7 +33,7 @@ function PageLoader() {
   );
 }
 
-/** Guard for the admin panel — redirect unauthenticated users to /login */
+/** Guard for the admin panel — only users with valid Admin / Super Admin credentials can access the Admin Dashboard */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
@@ -42,6 +42,17 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const redirectParam = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/login?redirect=${redirectParam}`} replace />;
   }
+
+  const isSuperOrAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' || user.username === 'superadmin';
+  if (!isSuperOrAdmin) {
+    // Attendance module is accessible to all roles
+    if (location.pathname.startsWith('/dashboard/attendance')) {
+      return <>{children}</>;
+    }
+    // Non-admin roles are restricted to their employee portal
+    return <Navigate to="/employee" replace />;
+  }
+
   return <>{children}</>;
 }
 
