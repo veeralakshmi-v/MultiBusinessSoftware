@@ -33,23 +33,81 @@ function PageLoader() {
   );
 }
 
-/** Guard for the admin panel — only users with valid Admin / Super Admin credentials can access the Admin Dashboard */
+export function isRouteAllowed(user: any, pathname: string): boolean {
+  if (!user) return false;
+  const role = user.role || 'STAFF';
+  if (role === 'ADMIN' || role === 'SUPER_ADMIN' || user.username === 'superadmin' || user.username === 'admin') return true;
+  if (pathname.startsWith('/dashboard/attendance')) return true;
+
+  const appAccess = user.applicationAccess;
+  if (appAccess && typeof appAccess === 'string' && appAccess.trim().length > 0) {
+    if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules') || appAccess.includes('Super Admin')) {
+      return true;
+    }
+    if (appAccess.includes('No Access')) {
+      return pathname === '/dashboard' || pathname.startsWith('/dashboard/attendance');
+    }
+
+    const routeMenuMap: Record<string, string[]> = {
+      '/dashboard': ['Dashboard'],
+      '/dashboard/billing': ['Billing POS', 'POS'],
+      '/dashboard/items': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
+      '/dashboard/menu': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
+      '/dashboard/inventory': ['Inventory', 'Products & Inventory', 'Categories & Items'],
+      '/dashboard/reports': ['Sales Reports', 'Reports'],
+      '/dashboard/employees': ['Employee Details', 'Staff'],
+      '/dashboard/attendance': ['Staff Attendance', 'Attendance'],
+      '/dashboard/customers': ['Customers', 'CRM'],
+      '/dashboard/settings': ['Settings'],
+      '/dashboard/website': ['My Website'],
+    };
+
+    const allowedItems = appAccess.split(',').map(s => s.trim().toLowerCase());
+    for (const [route, names] of Object.entries(routeMenuMap)) {
+      if (pathname === route || pathname.startsWith(route + '/')) {
+        return names.some(name => allowedItems.includes(name.toLowerCase()));
+      }
+    }
+    return false;
+  }
+
+  if (role === 'MANAGER') {
+    return !pathname.startsWith('/dashboard/settings') && !pathname.startsWith('/dashboard/employees');
+  }
+
+  if (role === 'CASHIER') {
+    return pathname.startsWith('/dashboard/billing') || pathname.startsWith('/dashboard/customers') || pathname.startsWith('/dashboard/attendance') || pathname === '/dashboard';
+  }
+
+  return pathname === '/dashboard' || pathname.startsWith('/dashboard/attendance');
+}
+
+/** Guard for the admin & employee dashboard — permits admins and authorized employees */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const location = useLocation();
   if (isLoading) return <PageLoader />;
-  if (!user) {
+
+  // Resolve user either from AuthContext or from active employee session
+  let activeUser = user;
+  if (!activeUser) {
+    const empSaved = localStorage.getItem('employee_session');
+    if (empSaved) {
+      try {
+        const emp = JSON.parse(empSaved);
+        if (emp && emp.id) {
+          activeUser = emp;
+        }
+      } catch {}
+    }
+  }
+
+  if (!activeUser) {
     const redirectParam = encodeURIComponent(location.pathname + location.search);
     return <Navigate to={`/login?redirect=${redirectParam}`} replace />;
   }
 
-  const isSuperOrAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' || user.username === 'superadmin';
-  if (!isSuperOrAdmin) {
-    // Attendance module is accessible to all roles
-    if (location.pathname.startsWith('/dashboard/attendance')) {
-      return <>{children}</>;
-    }
-    // Non-admin roles are restricted to their employee portal
+  if (!isRouteAllowed(activeUser, location.pathname)) {
     return <Navigate to="/employee" replace />;
   }
 

@@ -464,6 +464,15 @@ export default function DashboardLayout() {
               );
             })()}
 
+            <Link
+              to="/employee"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#2563EB] hover:text-[#1D4ED8] border border-blue-200 text-xs font-bold rounded-xl transition-all"
+              title="Return to Employee Attendance & Portal"
+            >
+              <Users className="w-4 h-4 text-[#2563EB]" />
+              <span className="hidden sm:inline">Employee Portal</span>
+            </Link>
+
             {/* Quick POS Shortcut */}
             {isRouteAllowedForRole(user.role, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
               <Link
@@ -479,19 +488,28 @@ export default function DashboardLayout() {
             <NotificationCenter />
 
             {/* User Badge */}
-            <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 bg-gray-100 rounded-xl border border-gray-200">
-              <div className="w-7 h-7 rounded-full bg-[#2563EB] flex items-center justify-center text-xs font-bold text-white shadow-xs flex-shrink-0">
-                {(effectiveTenant?.ownerName || user.username).substring(0, 2).toUpperCase()}
-              </div>
-              <div className="hidden sm:flex flex-col pr-1 text-left">
-                <span className="text-xs font-bold text-gray-900 leading-none">
-                  {effectiveTenant?.ownerName || (user as any).fullName || user.username}
-                </span>
-                <span className="text-[10px] text-gray-500 uppercase mt-0.5">
-                  {effectiveTenant?.adminUsername ? `@${effectiveTenant.adminUsername} • ${user.role}` : user.role}
-                </span>
-              </div>
-            </div>
+            {(() => {
+              const isEmp = user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.username !== 'superadmin';
+              const nameToShow = isEmp ? ((user as any).name || (user as any).fullName || user.username) : (effectiveTenant?.ownerName || (user as any).fullName || user.username);
+              const subToShow = isEmp ? `${user.role} · Staff` : (effectiveTenant?.adminUsername ? `@${effectiveTenant.adminUsername} • ${user.role}` : user.role);
+              const initials = (nameToShow || user.username).substring(0, 2).toUpperCase();
+
+              return (
+                <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 bg-gray-100 rounded-xl border border-gray-200">
+                  <div className="w-7 h-7 rounded-full bg-[#2563EB] flex items-center justify-center text-xs font-bold text-white shadow-xs flex-shrink-0">
+                    {initials}
+                  </div>
+                  <div className="hidden sm:flex flex-col pr-1 text-left">
+                    <span className="text-xs font-bold text-gray-900 leading-none">
+                      {nameToShow}
+                    </span>
+                    <span className="text-[10px] text-gray-500 uppercase mt-0.5">
+                      {subToShow}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </header>
 

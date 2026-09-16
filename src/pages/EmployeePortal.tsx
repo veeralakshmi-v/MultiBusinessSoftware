@@ -349,10 +349,13 @@ export default function EmployeePortal() {
     if (!session) return;
     login('demo-live-token-' + session.id, {
       id: session.id,
+      name: session.name,
+      fullName: session.name,
       username: session.username || session.phone,
       role: session.role,
+      businessId: (session as any).businessId || localStorage.getItem('businessId') || '',
       applicationAccess: session.applicationAccess || 'Full Access (All Modules & POS)',
-    });
+    } as any);
     navigate(path);
   };
 
