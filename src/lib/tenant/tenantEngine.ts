@@ -23,6 +23,7 @@ export interface Tenant {
   ownerName: string;
   ownerEmail: string;
   ownerPhone: string;
+  ownerAadhaar?: string;
   adminUsername: string;
   adminPasswordHash: string; // stored for direct client auth
   businessType: BusinessType;
@@ -213,6 +214,7 @@ export class TenantEngine {
     ownerName: string;
     ownerEmail: string;
     ownerPhone: string;
+    ownerAadhaar?: string;
     adminUsername: string;
     adminPassword: string;
     businessType: BusinessType;
@@ -249,6 +251,7 @@ export class TenantEngine {
       ownerName: data.ownerName.trim(),
       ownerEmail: data.ownerEmail.trim(),
       ownerPhone: data.ownerPhone.trim(),
+      ownerAadhaar: data.ownerAadhaar?.trim() || '',
       adminUsername: data.adminUsername.trim() || slug,
       adminPasswordHash: data.adminPassword.trim() || 'admin123',
       businessType: data.businessType,

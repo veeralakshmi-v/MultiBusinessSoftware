@@ -137,6 +137,7 @@ export default function SuperAdmin() {
     ownerName: '',
     ownerEmail: '',
     ownerPhone: '',
+    ownerAadhaar: '',
     address: '',
     city: 'Chennai',
     state: 'Tamil Nadu',
@@ -322,12 +323,31 @@ export default function SuperAdmin() {
       return;
     }
 
+    // Phone Number Validation (Standard 10-digit Indian Mobile Number)
+    const digitsPhone = newBizForm.ownerPhone.replace(/\D/g, '');
+    const phone10 = digitsPhone.length === 12 && digitsPhone.startsWith('91')
+      ? digitsPhone.slice(2)
+      : (digitsPhone.length === 11 && digitsPhone.startsWith('0') ? digitsPhone.slice(1) : digitsPhone);
+
+    if (!phone10 || phone10.length !== 10 || !/^[6-9]\d{9}$/.test(phone10)) {
+      alert('Please enter a valid 10-digit phone number starting with 6, 7, 8, or 9 (e.g. 9876543210).');
+      return;
+    }
+
+    // Aadhaar Card Validation (12-digit Indian Aadhaar Number)
+    const digitsAadhaar = newBizForm.ownerAadhaar.replace(/\D/g, '');
+    if (!digitsAadhaar || digitsAadhaar.length !== 12 || !/^\d{12}$/.test(digitsAadhaar)) {
+      alert('Please enter a valid 12-digit Aadhaar Card number (e.g. 1234 5678 9012).');
+      return;
+    }
+
     const created = createTenant({
       businessName: newBizForm.businessName,
       legalEntityName: newBizForm.legalEntityName || newBizForm.businessName,
       ownerName: newBizForm.ownerName,
       ownerEmail: newBizForm.ownerEmail,
-      ownerPhone: newBizForm.ownerPhone || '+91 98765 00000',
+      ownerPhone: `+91 ${phone10}`,
+      ownerAadhaar: digitsAadhaar.replace(/(\d{4})(?=\d)/g, '$1 '),
       adminUsername: newBizForm.adminUsername || newBizForm.businessName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 10),
       adminPassword: newBizForm.adminPassword || 'admin123',
       businessType: newBizForm.businessType,
@@ -369,6 +389,7 @@ export default function SuperAdmin() {
       ownerName: '',
       ownerEmail: '',
       ownerPhone: '',
+      ownerAadhaar: '',
       address: '',
       city: 'Chennai',
       state: 'Tamil Nadu',
@@ -2399,10 +2420,12 @@ export default function SuperAdmin() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-gray-700 font-bold mb-1">Phone Number</label>
+                  <label className="block text-gray-700 font-bold mb-1">Phone Number *</label>
                   <input
                     type="tel"
-                    placeholder="+91 98765 43210"
+                    required
+                    placeholder="98765 43210"
+                    maxLength={14}
                     value={newBizForm.ownerPhone}
                     onChange={(e) => setNewBizForm({ ...newBizForm, ownerPhone: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
@@ -2410,19 +2433,36 @@ export default function SuperAdmin() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-bold mb-1">Subscription Plan</label>
-                  <select
-                    value={newBizForm.plan}
-                    onChange={(e) => setNewBizForm({ ...newBizForm, plan: e.target.value as TenantPlan })}
+                  <label className="block text-gray-700 font-bold mb-1">Aadhaar Card Number *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="1234 5678 9012"
+                    maxLength={14}
+                    value={newBizForm.ownerAadhaar}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
+                      const formatted = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+                      setNewBizForm({ ...newBizForm, ownerAadhaar: formatted });
+                    }}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
-                  >
-                    <option value="TRIAL">14-Day Free Trial (₹0)</option>
-                    <option value="STARTER">Starter Business (₹999/mo)</option>
-                    <option value="GROWTH">Growth Retail & Cafe (₹1,999/mo)</option>
-                    <option value="PROFESSIONAL">Professional Enterprise (₹3,499/mo)</option>
-                    <option value="ENTERPRISE">Custom Enterprise (₹6,999/mo)</option>
-                  </select>
+                  />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-bold mb-1">Subscription Plan</label>
+                <select
+                  value={newBizForm.plan}
+                  onChange={(e) => setNewBizForm({ ...newBizForm, plan: e.target.value as TenantPlan })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]"
+                >
+                  <option value="TRIAL">14-Day Free Trial (₹0)</option>
+                  <option value="STARTER">Starter Business (₹999/mo)</option>
+                  <option value="GROWTH">Growth Retail & Cafe (₹1,999/mo)</option>
+                  <option value="PROFESSIONAL">Professional Enterprise (₹3,499/mo)</option>
+                  <option value="ENTERPRISE">Custom Enterprise (₹6,999/mo)</option>
+                </select>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
