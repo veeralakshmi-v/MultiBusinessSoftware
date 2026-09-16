@@ -176,10 +176,40 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   try {
-    const user = await prisma.user.findFirst({
+    // 1. Direct User lookup by username
+    let user = await prisma.user.findFirst({
       where: { username: cleanUser },
     });
+
+    // 2. If not found by username, lookup employee by phone or email
+    if (!user) {
+      const emp = await prisma.employee.findFirst({
+        where: {
+          OR: [
+            { phone: cleanUser },
+            { email: cleanUser },
+            { employeeCode: `EMP-${cleanUser}` }
+          ]
+        }
+      });
+      if (emp) {
+        user = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { username: emp.phone || '' },
+              { username: emp.employeeCode },
+              { businessId: emp.businessId }
+            ]
+          }
+        });
+      }
+    }
+
     if (user && user.password === cleanPass) {
+      const biz = await prisma.business.findUnique({
+        where: { id: user.businessId }
+      });
+
       return res.json({
         token: `jwt-token-${user.id}-${Date.now()}`,
         user: {
@@ -187,12 +217,177 @@ app.post('/api/auth/login', async (req, res) => {
           username: user.username,
           role: user.role,
           businessId: user.businessId,
+          businessType: biz?.type || 'RETAIL',
         },
       });
     }
   } catch (err) {}
 
-  return res.status(401).json({ error: 'Invalid username or password' });
+  return res.status(401).json({ error: 'Invalid username, phone number, or password' });
+});
+
+// 2.5 Multi-Tenant Super Admin Provisioning & Sync API
+app.get('/api/tenants', async (req, res) => {
+  try {
+    const businesses = await prisma.business.findMany({
+      include: {
+        profileSettings: true,
+        users: { where: { role: 'ADMIN' } },
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    return res.json(businesses);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/tenants', async (req, res) => {
+  const { isSuper } = getRequestContext(req);
+  const data = req.body;
+  if (!data.id || !data.businessName) {
+    return res.status(400).json({ error: 'Business ID and Business Name are required' });
+  }
+
+  try {
+    // 1. Upsert Business in Supabase
+    const business = await prisma.business.upsert({
+      where: { id: data.id },
+      update: {
+        name: data.businessName,
+        type: data.businessType || 'RETAIL',
+        isActive: data.subscription?.status !== 'SUSPENDED',
+      },
+      create: {
+        id: data.id,
+        name: data.businessName,
+        type: data.businessType || 'RETAIL',
+        isActive: true,
+      }
+    });
+
+    // 2. Upsert BusinessProfileSettings
+    await prisma.businessProfileSettings.upsert({
+      where: { businessId: data.id },
+      update: {
+        businessName: data.businessName,
+        legalName: data.legalEntityName || data.businessName,
+        address: data.address || '',
+        city: data.city || 'Chennai',
+        state: data.state || 'Tamil Nadu',
+        phone: data.ownerPhone || '',
+        email: data.ownerEmail || '',
+        gstin: data.gstin || '',
+        currencyCode: data.currency || 'INR',
+        currencySymbol: data.currencySymbol || '₹',
+        invoicePrefix: `${data.businessName.slice(0, 3).toUpperCase()}/2026/`,
+      },
+      create: {
+        businessId: data.id,
+        businessName: data.businessName,
+        legalName: data.legalEntityName || data.businessName,
+        address: data.address || '',
+        city: data.city || 'Chennai',
+        state: data.state || 'Tamil Nadu',
+        phone: data.ownerPhone || '',
+        email: data.ownerEmail || '',
+        gstin: data.gstin || '',
+        currencyCode: data.currency || 'INR',
+        currencySymbol: data.currencySymbol || '₹',
+        invoicePrefix: `${data.businessName.slice(0, 3).toUpperCase()}/2026/`,
+      }
+    });
+
+    // 3. Upsert Admin User (by adminUsername and ownerPhone)
+    const adminUsername = data.adminUsername || data.ownerPhone || `admin_${data.id}`;
+    const adminPassword = data.adminPassword || data.adminPasswordHash || 'admin123';
+
+    await prisma.user.upsert({
+      where: { username: adminUsername },
+      update: {
+        businessId: data.id,
+        password: adminPassword,
+        role: 'ADMIN',
+      },
+      create: {
+        businessId: data.id,
+        username: adminUsername,
+        password: adminPassword,
+        role: 'ADMIN',
+      }
+    });
+
+    // If ownerPhone is different from adminUsername, also register phone user so phone login works directly
+    if (data.ownerPhone && data.ownerPhone !== adminUsername) {
+      try {
+        await prisma.user.upsert({
+          where: { username: data.ownerPhone },
+          update: {
+            businessId: data.id,
+            password: adminPassword,
+            role: 'ADMIN',
+          },
+          create: {
+            businessId: data.id,
+            username: data.ownerPhone,
+            password: adminPassword,
+            role: 'ADMIN',
+          }
+        });
+      } catch (phoneUserErr) {}
+    }
+
+    // 4. Upsert Admin Employee record
+    const empCode = `EMP-${adminUsername}`;
+    const nameParts = (data.ownerName || `${data.businessName} Admin`).split(' ');
+    const firstName = nameParts[0] || 'Admin';
+    const lastName = nameParts.slice(1).join(' ') || 'Owner';
+
+    await prisma.employee.upsert({
+      where: { employeeCode: empCode },
+      update: {
+        businessId: data.id,
+        fullName: data.ownerName || `${data.businessName} Admin`,
+        firstName,
+        lastName,
+        phone: data.ownerPhone || adminUsername,
+        email: data.ownerEmail || undefined,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+      },
+      create: {
+        businessId: data.id,
+        employeeCode: empCode,
+        firstName,
+        lastName,
+        fullName: data.ownerName || `${data.businessName} Admin`,
+        phone: data.ownerPhone || adminUsername,
+        email: data.ownerEmail || undefined,
+        role: 'ADMIN',
+        status: 'ACTIVE',
+      }
+    });
+
+    console.log(`✅ Provisioned Tenant and Admin in Supabase PostgreSQL: [${data.id}] ${data.businessName} (Admin: ${adminUsername} / ${data.ownerPhone})`);
+    return res.status(201).json({ success: true, business });
+  } catch (err: any) {
+    console.error('❌ Failed to provision tenant in DB:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/tenants/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.business.delete({
+      where: { id }
+    });
+    console.log(`🗑️ Deleted business [${id}] from Supabase`);
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error(`❌ Failed to delete business [${id}]:`, err);
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/auth/me', (req, res) => {

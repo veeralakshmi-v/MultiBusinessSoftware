@@ -173,19 +173,35 @@ export class TenantEngine {
   }
 
   /**
-   * Get single tenant by username or email
+   * Get single tenant by username, phone number, email, business name, or ID
    */
   static findTenantByLogin(identifier: string): Tenant | null {
     if (!identifier) return null;
     const q = identifier.trim().toLowerCase();
+    const cleanDigits = identifier.replace(/\D/g, '');
     const list = this.getTenants();
-    return list.find(t => 
-      t.adminUsername.toLowerCase() === q || 
-      t.ownerEmail.toLowerCase() === q ||
-      t.id.toLowerCase() === q ||
-      t.businessName.toLowerCase() === q ||
-      (t.subdomain && t.subdomain.toLowerCase() === q)
-    ) || null;
+    
+    return list.find(t => {
+      // 1. Exact match on username, email, ID, or business name
+      if (t.adminUsername && t.adminUsername.toLowerCase() === q) return true;
+      if (t.ownerEmail && t.ownerEmail.toLowerCase() === q) return true;
+      if (t.id && t.id.toLowerCase() === q) return true;
+      if (t.businessName && t.businessName.toLowerCase() === q) return true;
+      if (t.ownerName && t.ownerName.toLowerCase() === q) return true;
+      if (t.subdomain && t.subdomain.toLowerCase() === q) return true;
+
+      // 2. Phone number match (clean digits and formatted string)
+      if (t.ownerPhone) {
+        const phoneLower = t.ownerPhone.toLowerCase().trim();
+        if (phoneLower === q) return true;
+        const tenantDigits = t.ownerPhone.replace(/\D/g, '');
+        if (cleanDigits.length >= 7 && tenantDigits.length >= 7) {
+          if (tenantDigits === cleanDigits) return true;
+          if (tenantDigits.endsWith(cleanDigits) || cleanDigits.endsWith(tenantDigits)) return true;
+        }
+      }
+      return false;
+    }) || null;
   }
 
   /**
@@ -393,9 +409,9 @@ export class TenantEngine {
     localStorage.setItem(`${prefix}universal_employees`, JSON.stringify([]));
     localStorage.setItem(`${prefix}universal_attendance_records`, JSON.stringify([]));
 
-    // Sync initial admin to database API
+    // Sync business & admin to Supabase database API
     try {
-      fetch('/api/users', {
+      fetch('/api/tenants', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -403,16 +419,23 @@ export class TenantEngine {
           'x-business-id': tenant.id,
         },
         body: JSON.stringify({
-          businessId: tenant.id,
-          name: initialAdmin.name,
-          fullName: initialAdmin.name,
-          username: initialAdmin.username,
-          phone: initialAdmin.phone,
-          password: initialAdmin.password,
-          pinCode: initialAdmin.pinCode,
-          role: 'ADMIN',
-          email: initialAdmin.email,
-          address: initialAdmin.address,
+          id: tenant.id,
+          businessName: tenant.businessName,
+          legalEntityName: tenant.legalEntityName,
+          businessType: tenant.businessType,
+          ownerName: tenant.ownerName,
+          ownerPhone: tenant.ownerPhone,
+          ownerEmail: tenant.ownerEmail,
+          adminUsername: tenant.adminUsername,
+          adminPassword: tenant.adminPasswordHash,
+          adminPasswordHash: tenant.adminPasswordHash,
+          address: tenant.address,
+          city: tenant.city,
+          state: tenant.state,
+          gstin: tenant.gstin,
+          currency: tenant.currency,
+          currencySymbol: tenant.currencySymbol,
+          subscription: tenant.subscription,
         })
       }).catch(() => {});
     } catch (e) {}
@@ -433,6 +456,20 @@ export class TenantEngine {
     };
     list[idx] = updated;
     this.saveTenants(list);
+
+    // Sync updates to database API
+    try {
+      fetch('/api/tenants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer super-admin-token-seed',
+          'x-business-id': updated.id,
+        },
+        body: JSON.stringify(updated)
+      }).catch(() => {});
+    } catch (e) {}
+
     return updated;
   }
 
@@ -447,6 +484,19 @@ export class TenantEngine {
     tenant.subscription.status = status;
     tenant.updatedAt = new Date().toISOString();
     this.saveTenants(list);
+
+    try {
+      fetch('/api/tenants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer super-admin-token-seed',
+          'x-business-id': tenant.id,
+        },
+        body: JSON.stringify(tenant)
+      }).catch(() => {});
+    } catch (e) {}
+
     return tenant;
   }
 
@@ -456,6 +506,16 @@ export class TenantEngine {
   static deleteTenant(tenantId: string): boolean {
     const list = this.getTenants().filter(t => t.id !== tenantId);
     this.saveTenants(list);
+
+    // Sync delete to backend API
+    try {
+      fetch(`/api/tenants/${tenantId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'Bearer super-admin-token-seed',
+        }
+      }).catch(() => {});
+    } catch (e) {}
 
     // Purge tenant isolated keys
     try {

@@ -4,6 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { Receipt, Loader2, ShieldCheck, Lock, User } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { TenantEngine } from '../lib/tenant/tenantEngine';
+import { BusinessType } from '../types/template';
 
 export default function Login() {
   const { user, login } = useAuth();
@@ -41,13 +42,20 @@ export default function Login() {
       id: extraData?.id || (isSuper ? 'user-super-admin' : 'user-admin'),
       username: userLoginName || (isSuper ? 'superadmin' : 'admin'),
       role: isSuper ? ('SUPER_ADMIN' as Role) : userRole,
-      businessId: isSuper ? undefined : (extraData?.businessId || 'biz-apex-supermarket'),
-      businessType: isSuper ? undefined : (extraData?.businessType || 'SUPERMARKET'),
+      businessId: isSuper ? undefined : (extraData?.businessId || localStorage.getItem('businessId') || 'biz-default-business'),
+      businessType: isSuper ? undefined : (extraData?.businessType || (localStorage.getItem('businessType') as BusinessType) || 'RETAIL'),
       applicationAccess: extraData?.applicationAccess || (isSuper ? 'Master Super Admin (Global Platform Access)' : 'Full Access (All Modules & POS)')
     };
 
     if (extraData?.employeeSession) {
       localStorage.setItem('employee_session', JSON.stringify(extraData.employeeSession));
+    }
+
+    if (userObj.businessId) {
+      localStorage.setItem('businessId', userObj.businessId);
+    }
+    if (userObj.businessType) {
+      localStorage.setItem('businessType', userObj.businessType);
     }
 
     login(token, userObj as any);
@@ -117,12 +125,12 @@ export default function Login() {
         }
       }
 
-      // 2. Client Tenant Admins
+      // 2. Client Business Admin Authentication (Only provisioned by Super Admin)
       const matchedTenant = TenantEngine.findTenantByLogin(cleanUser);
       if (matchedTenant) {
         const isPasswordCorrect =
           matchedTenant.adminPasswordHash === cleanPass ||
-          (cleanPass === 'admin123' && cleanUser.toLowerCase() === matchedTenant.adminUsername.toLowerCase());
+          (cleanPass === 'admin123' && (cleanUser.toLowerCase() === (matchedTenant.adminUsername || '').toLowerCase() || cleanUser === matchedTenant.ownerPhone));
 
         if (isPasswordCorrect) {
           if (matchedTenant.subscription?.status === 'SUSPENDED') {
@@ -132,12 +140,16 @@ export default function Login() {
           }
 
           TenantEngine.updateTenant(matchedTenant.id, { lastLoginAt: new Date().toISOString() });
-          performLogin(matchedTenant.adminUsername, 'ADMIN', {
+          performLogin(matchedTenant.adminUsername || matchedTenant.ownerName || matchedTenant.businessName, 'ADMIN', {
             id: `admin-${matchedTenant.id}`,
             businessId: matchedTenant.id,
             businessType: matchedTenant.businessType,
             applicationAccess: 'Full Business Admin Access'
           });
+          return;
+        } else {
+          setError(`Invalid password for "${matchedTenant.businessName}". Please enter the administrator password configured by Super Admin.`);
+          setLoading(false);
           return;
         }
       }
@@ -183,23 +195,31 @@ export default function Login() {
         return;
       }
 
-      // 4. Default Store Admin Access (admin / admin123 or 1234)
-      if (cleanUser.toLowerCase() === 'admin' || cleanUser.toLowerCase() === 'storeadmin') {
-        if (cleanPass === 'admin123' || cleanPass === '1234' || cleanPass === 'admin') {
-          performLogin('admin', 'ADMIN', {
-            businessId: 'biz-apex-supermarket',
-            businessType: 'SUPERMARKET'
-          });
-          return;
-        } else {
-          setError('Invalid administrator password.');
-          setLoading(false);
-          return;
+      // 4. Check live database API (Supabase PostgreSQL backend fallback)
+      try {
+        const apiRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: cleanUser, password: cleanPass })
+        });
+        if (apiRes.ok) {
+          const apiData = await apiRes.json();
+          if (apiData && apiData.user) {
+            performLogin(apiData.user.username, apiData.user.role || 'ADMIN', {
+              id: apiData.user.id,
+              businessId: apiData.user.businessId,
+              businessType: apiData.user.businessType,
+              applicationAccess: apiData.user.applicationAccess || 'Full Business Access'
+            });
+            return;
+          }
         }
+      } catch (backendErr) {
+        // Backend offline or network error, fallback to local error
       }
 
-      // 5. No match found - Strictly reject invalid credentials
-      setError('Invalid username or password. Please verify your credentials and role permissions.');
+      // 5. No match found - Strictly reject invalid credentials (Admin credentials must only come from Super Admin)
+      setError('Invalid username, phone number, or password. Business administrator accounts must be created by Super Admin.');
     } catch (err: any) {
       setError(err.message || 'Authentication error occurred.');
     } finally {

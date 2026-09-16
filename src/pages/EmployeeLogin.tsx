@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { UserCircle, Lock, ArrowLeft, Clock, CalendarDays, FileCheck, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { ThemeEngine } from '../lib/theme/themeEngine';
 
+import { TenantEngine } from '../lib/tenant/tenantEngine';
+
 export default function EmployeeLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -90,45 +92,17 @@ export default function EmployeeLogin() {
         return;
       }
 
-      // 2. Allow Store Admin to access attendance
-      if (cleanUser.toLowerCase() === 'admin' || cleanUser.toLowerCase() === 'storeadmin') {
-        if (cleanPin === '1234' || cleanPin === 'admin123' || cleanPin === 'admin') {
-          const adminSession = {
-            id: 'emp-admin',
-            name: 'Store Administrator',
-            username: 'admin',
-            role: 'ADMIN',
-            phone: '9876543210',
-            email: 'admin@mybusiness.com',
-            applicationAccess: 'Full Access (All Modules & POS)',
-          };
-          localStorage.setItem('employee_session', JSON.stringify(adminSession));
-
-          login('demo-live-token-admin', {
-            id: 'emp-admin',
-            username: 'admin',
-            role: 'ADMIN',
-            applicationAccess: 'Full Access (All Modules & POS)',
-          });
-
-          setLoading(false);
-          navigate('/employee');
-          return;
-        } else {
-          setLoading(false);
-          setError('Invalid administrator password/PIN.');
-          return;
-        }
-      }
-
-      // 3. Allow Tenant Admins to access attendance
-      const { TenantEngine } = require('../lib/tenant/tenantEngine');
+      // 2. Allow Business Admins (created in Super Admin) to access attendance
       const tenantMatch = TenantEngine.findTenantByLogin(cleanUser);
       if (tenantMatch) {
-        if (tenantMatch.adminPasswordHash === cleanPin || cleanPin === 'admin123' || cleanPin === '1234') {
+        const isCorrectAdminPass =
+          tenantMatch.adminPasswordHash === cleanPin ||
+          (cleanPin === 'admin123' && (cleanUser.toLowerCase() === (tenantMatch.adminUsername || '').toLowerCase() || cleanUser === tenantMatch.ownerPhone));
+
+        if (isCorrectAdminPass) {
           const tenantSession = {
             id: `admin-${tenantMatch.id}`,
-            name: tenantMatch.ownerName || tenantMatch.businessName,
+            name: tenantMatch.ownerName || `${tenantMatch.businessName} Admin`,
             username: tenantMatch.adminUsername,
             role: 'ADMIN',
             phone: tenantMatch.ownerPhone,
@@ -141,18 +115,24 @@ export default function EmployeeLogin() {
             id: `admin-${tenantMatch.id}`,
             username: tenantMatch.adminUsername,
             role: 'ADMIN',
+            businessId: tenantMatch.id,
+            businessType: tenantMatch.businessType,
             applicationAccess: 'Full Business Admin Access',
           });
 
           setLoading(false);
           navigate('/employee');
           return;
+        } else {
+          setLoading(false);
+          setError(`Invalid password/PIN for "${tenantMatch.businessName}" admin account.`);
+          return;
         }
       }
 
-      // 4. Invalid credentials
+      // 3. Invalid credentials
       setLoading(false);
-      setError('Invalid employee ID or PIN. Please try again.');
+      setError('Invalid employee ID, phone number or PIN. Please check your credentials.');
     }, 600);
   };
 
