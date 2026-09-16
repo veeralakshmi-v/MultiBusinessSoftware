@@ -46,9 +46,10 @@ export default function DashboardLayout() {
     return <Navigate to="/login" replace />;
   }
 
-  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '');
-  const brandTitle = effectiveTenant?.businessName || businessProfile.businessName || "My Business";
-  const brandTagline = businessProfile.tagline || (effectiveTenant ? `${effectiveTenant.businessType} Management POS` : "Universal Billing System");
+  const allTenants = TenantEngine.getTenants();
+  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '') || (allTenants.length > 0 ? allTenants[0] : null);
+  const brandTitle = effectiveTenant?.businessName || (businessProfile.businessName !== 'My Business' ? businessProfile.businessName : (effectiveTenant?.businessName || "My Business"));
+  const brandTagline = (effectiveTenant ? `${effectiveTenant.businessType} Management POS` : null) || businessProfile.tagline || "Universal Billing System";
 
   // Role-Based Access Helper
   const isRouteAllowedForRole = (role: string, href: string): boolean => {

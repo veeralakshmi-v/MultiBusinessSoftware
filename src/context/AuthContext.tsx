@@ -150,18 +150,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Determine active tenant
   const activeTenant = useMemo(() => {
+    const list = tenants.length > 0 ? tenants : TenantEngine.getTenants();
     if (impersonatingTenantId) {
-      return tenants.find(t => t.id === impersonatingTenantId) || null;
+      const found = list.find(t => t.id === impersonatingTenantId) || TenantEngine.getTenantById(impersonatingTenantId);
+      if (found) return found;
     }
-    if (user?.businessId) {
-      return tenants.find(t => t.id === user.businessId) || null;
+    const storedBizId = user?.businessId || localStorage.getItem('businessId');
+    if (storedBizId && storedBizId !== DEFAULT_BUSINESS_ID) {
+      const found = list.find(t => t.id === storedBizId) || TenantEngine.getTenantById(storedBizId);
+      if (found) return found;
     }
-    return tenants[0] || null;
+    // Fallback to first non-default tenant if available
+    const nonDefault = list.filter(t => t.id !== DEFAULT_BUSINESS_ID);
+    if (nonDefault.length > 0) {
+      return nonDefault[0];
+    }
+    return list[0] || null;
   }, [tenants, impersonatingTenantId, user?.businessId]);
 
   const impersonatingTenant = useMemo(() => {
     if (impersonatingTenantId) {
-      return tenants.find(t => t.id === impersonatingTenantId) || null;
+      const list = tenants.length > 0 ? tenants : TenantEngine.getTenants();
+      return list.find(t => t.id === impersonatingTenantId) || TenantEngine.getTenantById(impersonatingTenantId);
     }
     return null;
   }, [tenants, impersonatingTenantId]);
@@ -187,25 +197,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Universal Business Profile State (isolated per tenant when activeTenant is set)
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile>(() => {
-    const tenantPrefix = activeTenant ? `tenant_${activeTenant.id}_` : '';
+    const eff = activeTenant || (TenantEngine.getTenants().length > 0 ? TenantEngine.getTenants()[0] : null);
+    const tenantPrefix = eff ? `tenant_${eff.id}_` : '';
     const saved = localStorage.getItem(`${tenantPrefix}business_profile`) || localStorage.getItem('universal_business_profile');
     if (saved) {
       try {
-        return { ...DEFAULT_BUSINESS_PROFILE, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        if (parsed.businessName && parsed.businessName !== 'My Business') {
+          return { ...DEFAULT_BUSINESS_PROFILE, ...parsed };
+        }
       } catch {}
     }
-    if (activeTenant) {
+    if (eff) {
       return {
         ...DEFAULT_BUSINESS_PROFILE,
-        businessName: activeTenant.businessName,
-        legalName: activeTenant.legalEntityName,
-        phone: activeTenant.ownerPhone,
-        email: activeTenant.ownerEmail,
-        gstin: activeTenant.gstin || '',
-        city: activeTenant.city || 'Chennai',
-        state: activeTenant.state || 'Tamil Nadu',
-        currencySymbol: activeTenant.currencySymbol || '₹',
-        currencyCode: activeTenant.currency || 'INR',
+        businessName: eff.businessName,
+        legalName: eff.legalEntityName || eff.businessName,
+        phone: eff.ownerPhone,
+        email: eff.ownerEmail,
+        gstin: eff.gstin || '',
+        city: eff.city || 'Chennai',
+        state: eff.state || 'Tamil Nadu',
+        currencySymbol: eff.currencySymbol || '₹',
+        currencyCode: eff.currency || 'INR',
+        invoicePrefix: `${eff.businessName.slice(0, 3).toUpperCase()}/2026/`,
       };
     }
     return DEFAULT_BUSINESS_PROFILE;
@@ -218,14 +233,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem(`${tenantPrefix}business_profile`);
       if (saved) {
         try {
-          setBusinessProfile({ ...DEFAULT_BUSINESS_PROFILE, ...JSON.parse(saved) });
-          return;
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.businessName && parsed.businessName !== 'My Business') {
+            setBusinessProfile({ ...DEFAULT_BUSINESS_PROFILE, ...parsed });
+            return;
+          }
         } catch {}
       }
-      setBusinessProfile({
+      const newProf = {
         ...DEFAULT_BUSINESS_PROFILE,
         businessName: activeTenant.businessName,
-        legalName: activeTenant.legalEntityName,
+        legalName: activeTenant.legalEntityName || activeTenant.businessName,
         phone: activeTenant.ownerPhone,
         email: activeTenant.ownerEmail,
         gstin: activeTenant.gstin || '',
@@ -234,9 +252,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         currencySymbol: activeTenant.currencySymbol || '₹',
         currencyCode: activeTenant.currency || 'INR',
         invoicePrefix: `${activeTenant.businessName.slice(0, 3).toUpperCase()}/2026/`,
-      });
+      };
+      setBusinessProfile(newProf);
+      localStorage.setItem(`${tenantPrefix}business_profile`, JSON.stringify(newProf));
     }
-  }, [activeTenant?.id]);
+  }, [activeTenant?.id, activeTenant?.businessName]);
 
   const updateBusinessProfile = (updates: Partial<BusinessProfile>) => {
     setBusinessProfile(prev => {
@@ -253,7 +273,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         fetch('/api/settings', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-business-id': activeTenant?.id || businessId,
+          },
           body: JSON.stringify(updated),
         }).catch(() => {});
       } catch (e) {}
@@ -264,13 +287,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const impersonateTenant = (tenantId: string) => {
-    const t = TenantEngine.getTenantById(tenantId);
+    const list = tenants.length > 0 ? tenants : TenantEngine.getTenants();
+    const t = list.find(item => item.id === tenantId) || TenantEngine.getTenantById(tenantId);
     if (!t) return;
+
     setImpersonatingTenantId(t.id);
     localStorage.setItem('saas_impersonating_tenant_id', t.id);
     setBusinessId(t.id);
+    localStorage.setItem('businessId', t.id);
     setBusinessTypeState(t.businessType);
+    localStorage.setItem('businessType', t.businessType);
+
+    const adminUser: User = {
+      id: `admin-${t.id}`,
+      username: t.adminUsername || 'admin',
+      role: 'ADMIN',
+      businessId: t.id,
+      businessType: t.businessType,
+      applicationAccess: 'Full Business Admin Access',
+    };
+    setUser(adminUser);
+    localStorage.setItem('user_profile', JSON.stringify(adminUser));
+
+    const profile: BusinessProfile = {
+      ...DEFAULT_BUSINESS_PROFILE,
+      businessName: t.businessName,
+      legalName: t.legalEntityName || t.businessName,
+      phone: t.ownerPhone,
+      email: t.ownerEmail,
+      address: t.address || '',
+      city: t.city || 'Chennai',
+      state: t.state || 'Tamil Nadu',
+      gstin: t.gstin || '',
+      currencySymbol: t.currencySymbol || '₹',
+      currencyCode: t.currency || 'INR',
+      invoicePrefix: `${t.businessName.slice(0, 3).toUpperCase()}/2026/`,
+    };
+    setBusinessProfile(profile);
+    localStorage.setItem(`tenant_${t.id}_business_profile`, JSON.stringify(profile));
+
     window.dispatchEvent(new Event('saas_tenants_updated'));
+    window.dispatchEvent(new Event('settings_updated'));
   };
 
   const exitImpersonation = () => {
@@ -305,28 +362,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshTenants();
     return updated;
   };
-  // Sync Business Profile settings from backend database API on mount
+
+  // Sync Tenants from backend database API on mount
   useEffect(() => {
-    fetch('/api/settings')
+    fetch('/api/tenants')
       .then(res => res.json())
-      .then(data => {
-        if (data && (data.businessName || data.phone || data.email)) {
-          setBusinessProfile(prev => ({
-            ...prev,
-            businessName: data.businessName || prev.businessName,
-            legalName: data.legalName || prev.legalName,
-            address: data.address || prev.address,
-            phone: data.phone || prev.phone,
-            email: data.email || prev.email,
-            gstin: data.gstin || prev.gstin,
-            currencySymbol: data.currencySymbol || prev.currencySymbol,
-            currencyCode: data.currencyCode || prev.currencyCode,
-            invoicePrefix: data.invoicePrefix || prev.invoicePrefix,
-            taxMode: data.taxMode || prev.taxMode,
-            termsText: data.termsText || prev.termsText,
-            thankYouNote: data.thankYouNote || prev.thankYouNote,
-            logoUrl: data.logoUrl || prev.logoUrl,
-          }));
+      .then((data: any[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: Tenant[] = data.map(b => {
+            const p = b.profileSettings || {};
+            const u = b.users?.[0] || {};
+            return {
+              id: b.id,
+              businessName: p.businessName || b.name,
+              legalEntityName: p.legalName || p.businessName || b.name,
+              ownerName: p.legalName || p.businessName || b.name,
+              ownerEmail: p.email || '',
+              ownerPhone: p.phone || '',
+              ownerAadhaar: p.gstin || '',
+              adminUsername: u.username || b.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+              adminPasswordHash: u.password || 'admin123',
+              businessType: b.type || 'RETAIL',
+              currency: p.currencyCode || 'INR',
+              currencySymbol: p.currencySymbol || '₹',
+              gstin: p.gstin || '',
+              city: p.city || 'Chennai',
+              state: p.state || 'Tamil Nadu',
+              address: p.address || '',
+              subdomain: b.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+              subscription: {
+                plan: 'GROWTH',
+                status: b.isActive ? 'ACTIVE' : 'SUSPENDED',
+                startDate: b.createdAt || new Date().toISOString(),
+                expiryDate: new Date(Date.now() + 365*24*3600*1000).toISOString(),
+                monthlyFee: 1999,
+                maxStaff: 10,
+                maxInvoicesPerMonth: 2500,
+                allowWebsite: true,
+                allowCustomDomain: false,
+                autoRenew: true,
+              },
+              createdAt: b.createdAt || new Date().toISOString(),
+              updatedAt: b.updatedAt || new Date().toISOString(),
+            };
+          });
+          const existing = TenantEngine.getTenants();
+          const merged = [...existing];
+          mapped.forEach(mt => {
+            if (!merged.some(e => e.id === mt.id)) {
+              merged.push(mt);
+            }
+          });
+          TenantEngine.saveTenants(merged);
+          setTenants(merged);
         }
       })
       .catch(() => {});
@@ -427,20 +515,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // If already Super Admin session, preserve it without backend override
+      // If already Super Admin session or valid tenant admin session, preserve it without generic backend override
       const isSuper = localStorage.getItem('saas_super_admin_active') === 'true' || user?.role === 'SUPER_ADMIN';
       if (isSuper) {
         setIsLoading(false);
         return;
       }
 
+      const savedProfile = localStorage.getItem('user_profile');
+      if (savedProfile) {
+        try {
+          const parsed = JSON.parse(savedProfile);
+          if (parsed && (parsed.businessId || parsed.username !== 'admin')) {
+            setUser(parsed);
+            setIsLoading(false);
+            return;
+          }
+        } catch {}
+      }
+
       try {
+        const curBizId = activeTenant?.id || impersonatingTenantId || user?.businessId || localStorage.getItem('businessId') || '';
         const response = await fetch('/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'x-business-id': curBizId,
+          },
         });
         if (response.ok) {
           const data = await response.json();
-          if (data?.user) {
+          if (data?.user && data.user.username !== 'admin') {
             setUser(data.user);
             localStorage.setItem('user_profile', JSON.stringify(data.user));
           }
@@ -451,12 +555,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     };
+
     const fetchSettings = async () => {
       try {
-        const res = await fetch('/api/settings');
+        const curBizId = activeTenant?.id || impersonatingTenantId || user?.businessId || localStorage.getItem('businessId');
+        if (!curBizId || curBizId === DEFAULT_BUSINESS_ID) return;
+
+        const res = await fetch(`/api/settings?businessId=${curBizId}`, {
+          headers: { 'x-business-id': curBizId }
+        });
         if (res.ok) {
           const data = await res.json();
-          if (data && data.businessName) {
+          if (data && data.businessName && data.businessName !== 'My Business') {
             setBusinessProfile(prev => ({
               ...prev,
               businessName: data.businessName || prev.businessName,
@@ -481,7 +591,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     fetchSettings();
     fetchUser();
-  }, [token]);
+  }, [token, activeTenant?.id]);
 
   const login = (newToken: string, newUser: User) => {
     localStorage.setItem('token', newToken);

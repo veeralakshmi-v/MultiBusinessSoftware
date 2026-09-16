@@ -97,28 +97,32 @@ export function getDefaultRoleForCategory(cat: string): string {
 export default function EmployeeDirectory() {
   const navigate = useNavigate();
   const { user, activeTenant, impersonatingTenant, businessId } = useAuth();
-  const currentBusinessId = impersonatingTenant?.id || activeTenant?.id || businessId || user?.businessId || localStorage.getItem('businessId') || 'biz-default-business';
+  const allTenants = TenantEngine.getTenants();
+  const currentBusinessId = impersonatingTenant?.id || activeTenant?.id || businessId || user?.businessId || localStorage.getItem('businessId') || (allTenants.length > 0 ? allTenants[0].id : 'biz-default-business');
   const tenantPrefix = `tenant_${currentBusinessId}_`;
-  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId);
+  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId) || (allTenants.length > 0 ? allTenants[0] : null);
 
   const [staffList, setStaffList] = useState<StaffUser[]>(() => {
-    const saved = localStorage.getItem(`${tenantPrefix}universal_staff_list`);
+    const all = TenantEngine.getTenants();
+    const eff = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId) || (all.length > 0 ? all[0] : null);
+    const prefix = eff ? `tenant_${eff.id}_` : tenantPrefix;
+    const saved = localStorage.getItem(`${prefix}universal_staff_list`) || localStorage.getItem('universal_staff_list');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           // If the list has a placeholder admin, update with effectiveTenant details
-          if (effectiveTenant?.ownerName) {
+          if (eff?.ownerName) {
             return parsed.map(s => {
-              if (s.role === 'ADMIN' && (s.name === 'Business Administrator' || s.username === 'admin' || s.id === `admin-${currentBusinessId}`)) {
+              if (s.role === 'ADMIN') {
                 return {
                   ...s,
-                  name: (s.name === 'Business Administrator' || !s.name) ? effectiveTenant.ownerName : s.name,
-                  username: (s.username === 'admin' || !s.username) ? (effectiveTenant.adminUsername || s.username) : s.username,
-                  phone: (!s.phone || s.phone === '9876543210') ? (effectiveTenant.ownerPhone || s.phone) : s.phone,
-                  aadharNumber: (!s.aadharNumber || s.aadharNumber === '1234 5678 9012') ? (effectiveTenant.ownerAadhaar ? formatAadhar(effectiveTenant.ownerAadhaar) : s.aadharNumber) : s.aadharNumber,
-                  email: (!s.email || s.email === 'admin@mybusiness.com') ? (effectiveTenant.ownerEmail || s.email) : s.email,
-                  address: (!s.address || s.address === '123 Main St, Central City') ? (effectiveTenant.address || s.address) : s.address,
+                  name: eff.ownerName,
+                  username: eff.adminUsername || s.username,
+                  phone: eff.ownerPhone || s.phone,
+                  aadharNumber: eff.ownerAadhaar ? formatAadhar(eff.ownerAadhaar) : (s.aadharNumber || ''),
+                  email: eff.ownerEmail || s.email,
+                  address: eff.address || s.address,
                 };
               }
               return s;
@@ -130,22 +134,22 @@ export default function EmployeeDirectory() {
     }
     return [
       {
-        id: `admin-${currentBusinessId}`,
-        name: effectiveTenant?.ownerName || 'Business Administrator',
-        username: effectiveTenant?.adminUsername || 'admin',
+        id: `admin-${eff?.id || currentBusinessId}`,
+        name: eff?.ownerName || 'Business Administrator',
+        username: eff?.adminUsername || 'admin',
         role: 'ADMIN',
         category: 'Management/Admin',
         applicationAccess: 'Full Access (All Modules & POS)',
-        phone: effectiveTenant?.ownerPhone || '',
+        phone: eff?.ownerPhone || '',
         familyPhone: '',
-        email: effectiveTenant?.ownerEmail || 'admin@mybusiness.com',
-        pinCode: effectiveTenant?.adminPasswordHash || '1234',
+        email: eff?.ownerEmail || 'admin@mybusiness.com',
+        pinCode: eff?.adminPasswordHash || '1234',
         status: 'ACTIVE',
         dob: '1990-01-01',
         doj: new Date().toISOString().slice(0, 10),
         dor: '',
-        aadharNumber: effectiveTenant?.ownerAadhaar ? formatAadhar(effectiveTenant.ownerAadhaar) : '',
-        address: effectiveTenant?.address || '',
+        aadharNumber: eff?.ownerAadhaar ? formatAadhar(eff.ownerAadhaar) : '',
+        address: eff?.address || '',
       },
     ];
   });
@@ -185,8 +189,10 @@ export default function EmployeeDirectory() {
 
   // Load and reload staff list when business changes
   useEffect(() => {
-    const eff = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId);
-    const saved = localStorage.getItem(`${tenantPrefix}universal_staff_list`);
+    const all = TenantEngine.getTenants();
+    const eff = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId) || (all.length > 0 ? all[0] : null);
+    const prefix = eff ? `tenant_${eff.id}_` : tenantPrefix;
+    const saved = localStorage.getItem(`${prefix}universal_staff_list`) || localStorage.getItem('universal_staff_list');
     let currentList: StaffUser[] = [];
     if (saved) {
       try {
@@ -206,7 +212,7 @@ export default function EmployeeDirectory() {
     if (currentList.length === 0) {
       currentList = [
         {
-          id: `admin-${currentBusinessId}`,
+          id: `admin-${eff?.id || currentBusinessId}`,
           name: defaultOwnerName,
           username: defaultAdminUsername,
           role: 'ADMIN',
@@ -227,15 +233,15 @@ export default function EmployeeDirectory() {
     } else if (eff?.ownerName) {
       // Update placeholder admin details with real tenant owner information
       currentList = currentList.map(s => {
-        if (s.role === 'ADMIN' && (s.name === 'Business Administrator' || s.username === 'admin' || s.id === `admin-${currentBusinessId}`)) {
+        if (s.role === 'ADMIN') {
           return {
             ...s,
-            name: (s.name === 'Business Administrator' || !s.name) ? eff.ownerName : s.name,
-            username: (s.username === 'admin' || !s.username) ? (eff.adminUsername || s.username) : s.username,
-            phone: (!s.phone || s.phone === '9876543210') ? (eff.ownerPhone || s.phone) : s.phone,
-            aadharNumber: (!s.aadharNumber || s.aadharNumber === '1234 5678 9012') ? (defaultOwnerAadhaar || s.aadharNumber) : s.aadharNumber,
-            email: (!s.email || s.email === 'admin@mybusiness.com') ? (eff.ownerEmail || s.email) : s.email,
-            address: (!s.address || s.address === '123 Main St, Central City') ? (eff.address || s.address) : s.address,
+            name: eff.ownerName,
+            username: eff.adminUsername || s.username,
+            phone: eff.ownerPhone || s.phone,
+            aadharNumber: defaultOwnerAadhaar || s.aadharNumber,
+            email: eff.ownerEmail || s.email,
+            address: eff.address || s.address,
           };
         }
         return s;
