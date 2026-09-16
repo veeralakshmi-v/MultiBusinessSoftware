@@ -12,6 +12,7 @@ import { cn, compressImageFile } from '../lib/utils';
 import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceModal';
 import { COMMON_UNITS } from './Inventory';
 import { NotificationEngine } from '../lib/notifications/notificationEngine';
+import { TenantEngine } from '../lib/tenant/tenantEngine';
 
 interface Category {
   id: string;
@@ -118,12 +119,31 @@ export function formatQuantityWithSubunit(qty: number, unitStr?: string): string
   return `${qty} ${unitStr}`;
 }
 
+// Universal Unit conversion / label helper
+function formatUnitQty(qty: number, unit?: string) {
+  const unitStr = unit || 'Pcs';
+  if (['Kg', 'Ltr', 'Meter'].includes(unitStr)) {
+    if (qty >= 1) {
+      return `${qty.toFixed(2)} ${unitStr}`;
+    } else {
+      const sub = unitStr === 'Kg' ? 'g' : (unitStr === 'Ltr' ? 'ml' : 'cm');
+      return `${Math.round(qty * 1000)} ${sub}`;
+    }
+  }
+
+  return `${qty} ${unitStr}`;
+}
+
 export default function BillingPOS() {
-  const { businessProfile } = useAuth();
-  const currency = businessProfile.currencySymbol || '₹';
+  const { businessProfile, activeTenant, impersonatingTenant, user, businessId } = useAuth();
+  const allTenants = TenantEngine.getTenants();
+  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '') || (allTenants.length > 0 ? allTenants[0] : null);
+  const currentBusinessId = effectiveTenant?.id || impersonatingTenant?.id || activeTenant?.id || businessId || user?.businessId || localStorage.getItem('businessId') || (allTenants.length > 0 ? allTenants[0].id : 'biz-default-business');
+  const tenantPrefix = `tenant_${currentBusinessId}_`;
+  const currency = effectiveTenant?.currencySymbol || businessProfile.currencySymbol || '₹';
 
   const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('universal_categories');
+    const saved = localStorage.getItem(`${tenantPrefix}universal_categories`) || localStorage.getItem('universal_categories');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -134,7 +154,7 @@ export default function BillingPOS() {
   });
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
-    const saved = localStorage.getItem('universal_items');
+    const saved = localStorage.getItem(`${tenantPrefix}universal_items`) || localStorage.getItem('universal_items');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -146,7 +166,7 @@ export default function BillingPOS() {
 
   const [customers, setCustomers] = useState<Customer[]>(() => {
     try {
-      const saved = localStorage.getItem('universal_customers');
+      const saved = localStorage.getItem(`${tenantPrefix}universal_customers`) || localStorage.getItem('universal_customers');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -218,17 +238,17 @@ export default function BillingPOS() {
   const refreshData = () => {
     // 1. Read from LocalStorage immediately
     try {
-      const savedCats = localStorage.getItem('universal_categories');
+      const savedCats = localStorage.getItem(`${tenantPrefix}universal_categories`) || localStorage.getItem('universal_categories');
       if (savedCats) {
         const parsed = JSON.parse(savedCats);
-        if (Array.isArray(parsed)) setCategories(parsed);
+        if (Array.isArray(parsed) && parsed.length > 0) setCategories(parsed);
       }
-      const savedItems = localStorage.getItem('universal_items');
+      const savedItems = localStorage.getItem(`${tenantPrefix}universal_items`) || localStorage.getItem('universal_items');
       if (savedItems) {
         const parsed = JSON.parse(savedItems);
-        if (Array.isArray(parsed)) setMenuItems(parsed);
+        if (Array.isArray(parsed) && parsed.length > 0) setMenuItems(parsed);
       }
-      const savedCusts = localStorage.getItem('universal_customers');
+      const savedCusts = localStorage.getItem(`${tenantPrefix}universal_customers`) || localStorage.getItem('universal_customers');
       if (savedCusts) {
         const parsed = JSON.parse(savedCusts);
         if (Array.isArray(parsed) && parsed.length > 0) setCustomers(parsed);
@@ -236,23 +256,27 @@ export default function BillingPOS() {
     } catch {}
 
     // 2. Fetch from Backend API and sync state
-    fetch('/api/categories')
+    fetch(`/api/categories?businessId=${currentBusinessId}`, {
+      headers: { 'x-business-id': currentBusinessId }
+    })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           setCategories(data);
-          localStorage.setItem('universal_categories', JSON.stringify(data));
+          localStorage.setItem(`${tenantPrefix}universal_categories`, JSON.stringify(data));
         }
       })
       .catch(() => {});
 
-    fetch('/api/menu-items')
+    fetch(`/api/menu-items?businessId=${currentBusinessId}`, {
+      headers: { 'x-business-id': currentBusinessId }
+    })
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
           let existing: any[] = [];
           try {
-            const saved = localStorage.getItem('universal_items');
+            const saved = localStorage.getItem(`${tenantPrefix}universal_items`) || localStorage.getItem('universal_items');
             if (saved) existing = JSON.parse(saved);
           } catch {}
 
@@ -285,7 +309,7 @@ export default function BillingPOS() {
           });
 
           setMenuItems(merged);
-          localStorage.setItem('universal_items', JSON.stringify(merged));
+          localStorage.setItem(`${tenantPrefix}universal_items`, JSON.stringify(merged));
         }
       })
       .catch(() => {});
@@ -1026,7 +1050,7 @@ export default function BillingPOS() {
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <Link
-                      to="/inventory"
+                      to="/dashboard/inventory"
                       className="px-4 py-2 bg-[#2563EB] text-white font-bold text-xs rounded-xl shadow-md"
                     >
                       Manage Categories & Catalog →

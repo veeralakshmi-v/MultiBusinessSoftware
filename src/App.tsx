@@ -117,6 +117,18 @@ export default function App() {
                 <Route path="website"    element={<WebsiteBuilder />} />
               </Route>
 
+              {/* ── TOP-LEVEL ADMIN SHORTCUTS & REDIRECTS ──────── */}
+              <Route path="/billing" element={<Navigate to="/dashboard/billing" replace />} />
+              <Route path="/inventory" element={<Navigate to="/dashboard/inventory" replace />} />
+              <Route path="/items" element={<Navigate to="/dashboard/inventory" replace />} />
+              <Route path="/menu" element={<Navigate to="/dashboard/inventory" replace />} />
+              <Route path="/reports" element={<Navigate to="/dashboard/reports" replace />} />
+              <Route path="/customers" element={<Navigate to="/dashboard/customers" replace />} />
+              <Route path="/orders" element={<Navigate to="/dashboard/orders" replace />} />
+              <Route path="/employees" element={<Navigate to="/dashboard/employees" replace />} />
+              <Route path="/attendance" element={<Navigate to="/dashboard/attendance" replace />} />
+              <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
+
               {/* ── DYNAMIC STOREFRONT BY STORE NAME (https://domain/:storeSlug) ── */}
               <Route path="/:storeSlug" element={<PublicStorefront />} />
 
