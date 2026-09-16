@@ -100,7 +100,7 @@ export default function EmployeeDirectory() {
   const tenantPrefix = `tenant_${currentBusinessId}_`;
 
   const [staffList, setStaffList] = useState<StaffUser[]>(() => {
-    const saved = localStorage.getItem(`${tenantPrefix}universal_staff_list`) || localStorage.getItem('universal_staff_list');
+    const saved = localStorage.getItem(`${tenantPrefix}universal_staff_list`);
     if (saved) {
       try { return JSON.parse(saved); } catch { }
     }
@@ -159,10 +159,42 @@ export default function EmployeeDirectory() {
   const [staffPhoto, setStaffPhoto] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync to tenant isolated storage
+  // Load and reload staff list when business changes
   useEffect(() => {
-    localStorage.setItem(`${tenantPrefix}universal_staff_list`, JSON.stringify(staffList));
-    localStorage.setItem('universal_staff_list', JSON.stringify(staffList));
+    const saved = localStorage.getItem(`${tenantPrefix}universal_staff_list`);
+    if (saved) {
+      try {
+        setStaffList(JSON.parse(saved));
+        return;
+      } catch { }
+    }
+    setStaffList([
+      {
+        id: `admin-${currentBusinessId}`,
+        name: activeTenant?.ownerName || 'Business Administrator',
+        username: activeTenant?.adminUsername || 'admin',
+        role: 'ADMIN',
+        category: 'Management/Admin',
+        applicationAccess: 'Full Access (All Modules & POS)',
+        phone: activeTenant?.ownerPhone || '9876543210',
+        familyPhone: '',
+        email: activeTenant?.ownerEmail || 'admin@mybusiness.com',
+        pinCode: activeTenant?.adminPasswordHash || '1234',
+        status: 'ACTIVE',
+        dob: '1990-01-01',
+        doj: '2022-01-01',
+        dor: '',
+        aadharNumber: '1234 5678 9012',
+        address: activeTenant?.address || '123 Main St, Central City',
+      },
+    ]);
+  }, [currentBusinessId, tenantPrefix, activeTenant]);
+
+  // Sync strictly to tenant isolated database namespace
+  useEffect(() => {
+    if (staffList.length > 0) {
+      localStorage.setItem(`${tenantPrefix}universal_staff_list`, JSON.stringify(staffList));
+    }
   }, [staffList, tenantPrefix]);
 
   // Fetch backend users/staff from API on mount scoped by businessId
