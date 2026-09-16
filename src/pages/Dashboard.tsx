@@ -10,6 +10,7 @@ import { cn } from '../lib/utils';
 import { cleanPhone } from '../utils/validation';
 import { WebsiteInquiry } from '../types/website';
 import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceModal';
+import { TenantEngine } from '../lib/tenant/tenantEngine';
 
 interface TrendDay {
   date: string;
@@ -64,8 +65,10 @@ function paymentBadgeClass(method: string) {
 }
 
 export default function Dashboard() {
-  const { businessProfile } = useAuth();
-  const currency = businessProfile.currencySymbol || '₹';
+  const { businessProfile, activeTenant, impersonatingTenant, user } = useAuth();
+  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '');
+  const currentBusinessName = effectiveTenant?.businessName || businessProfile.businessName || 'My Business';
+  const currency = effectiveTenant?.currencySymbol || businessProfile.currencySymbol || '₹';
   const navigate = useNavigate();
 
   const [data, setData] = useState<DashboardData | null>(null);
@@ -209,11 +212,11 @@ export default function Dashboard() {
               <BarChart3 className="w-5 h-5" />
             </div>
             <h1 className="text-xl sm:text-2xl font-serif font-black text-[#0F172A] tracking-tight truncate">
-              {businessProfile.businessName} Dashboard
+              {currentBusinessName} Dashboard
             </h1>
           </div>
           <p className="text-xs text-gray-500 mt-1.5 leading-relaxed truncate">
-            Universal Sales Overview & POS Performance for <span className="text-[#0F172A] font-bold">{businessProfile.businessName}</span>
+            Universal Sales Overview & POS Performance for <span className="text-[#0F172A] font-bold">{currentBusinessName}</span>
           </p>
         </div>
 

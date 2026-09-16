@@ -10,6 +10,7 @@ import {
 import { cn } from '../lib/utils';
 import NotificationCenter from '../components/notifications/NotificationCenter';
 import { ThemeEngine } from '../lib/theme/themeEngine';
+import { TenantEngine } from '../lib/tenant/tenantEngine';
 
 export default function DashboardLayout() {
   const { user, logout, businessProfile, isSuperAdmin, activeTenant, impersonatingTenant } = useAuth();
@@ -41,14 +42,13 @@ export default function DashboardLayout() {
     };
   }, []);
 
-
-
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  const brandTitle = businessProfile.businessName || "My Business";
-  const brandTagline = businessProfile.tagline || "Universal Billing System";
+  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '');
+  const brandTitle = effectiveTenant?.businessName || businessProfile.businessName || "My Business";
+  const brandTagline = businessProfile.tagline || (effectiveTenant ? `${effectiveTenant.businessType} Management POS` : "Universal Billing System");
 
   // Role-Based Access Helper
   const isRouteAllowedForRole = (role: string, href: string): boolean => {
@@ -480,11 +480,15 @@ export default function DashboardLayout() {
             {/* User Badge */}
             <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 bg-gray-100 rounded-xl border border-gray-200">
               <div className="w-7 h-7 rounded-full bg-[#2563EB] flex items-center justify-center text-xs font-bold text-white shadow-xs flex-shrink-0">
-                {user.username.substring(0, 2).toUpperCase()}
+                {(effectiveTenant?.ownerName || user.username).substring(0, 2).toUpperCase()}
               </div>
-              <div className="hidden sm:flex flex-col pr-1">
-                <span className="text-xs font-bold text-gray-900 leading-none">{user.username}</span>
-                <span className="text-[10px] text-gray-500 uppercase mt-0.5">{user.role}</span>
+              <div className="hidden sm:flex flex-col pr-1 text-left">
+                <span className="text-xs font-bold text-gray-900 leading-none">
+                  {effectiveTenant?.ownerName || (user as any).fullName || user.username}
+                </span>
+                <span className="text-[10px] text-gray-500 uppercase mt-0.5">
+                  {effectiveTenant?.adminUsername ? `@${effectiveTenant.adminUsername} • ${user.role}` : user.role}
+                </span>
               </div>
             </div>
           </div>

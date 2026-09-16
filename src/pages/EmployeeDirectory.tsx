@@ -8,6 +8,7 @@ import {
   ArrowLeft, Upload, X, Save, Clock, ChevronRight, UserCheck
 } from 'lucide-react';
 import { StaffUser } from './Settings';
+import { TenantEngine } from '../lib/tenant/tenantEngine';
 import {
   isValidPhone, isValidAadhar, cleanPhone, cleanAadhar, formatAadhar
 } from '../utils/validation';
@@ -95,33 +96,56 @@ export function getDefaultRoleForCategory(cat: string): string {
 
 export default function EmployeeDirectory() {
   const navigate = useNavigate();
-  const { user, activeTenant, businessId } = useAuth();
-  const currentBusinessId = activeTenant?.id || businessId || user?.businessId || 'biz-default-business';
+  const { user, activeTenant, impersonatingTenant, businessId } = useAuth();
+  const currentBusinessId = impersonatingTenant?.id || activeTenant?.id || businessId || user?.businessId || localStorage.getItem('businessId') || 'biz-default-business';
   const tenantPrefix = `tenant_${currentBusinessId}_`;
+  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId);
 
   const [staffList, setStaffList] = useState<StaffUser[]>(() => {
     const saved = localStorage.getItem(`${tenantPrefix}universal_staff_list`);
     if (saved) {
-      try { return JSON.parse(saved); } catch { }
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // If the list has a placeholder admin, update with effectiveTenant details
+          if (effectiveTenant?.ownerName) {
+            return parsed.map(s => {
+              if (s.role === 'ADMIN' && (s.name === 'Business Administrator' || s.username === 'admin' || s.id === `admin-${currentBusinessId}`)) {
+                return {
+                  ...s,
+                  name: (s.name === 'Business Administrator' || !s.name) ? effectiveTenant.ownerName : s.name,
+                  username: (s.username === 'admin' || !s.username) ? (effectiveTenant.adminUsername || s.username) : s.username,
+                  phone: (!s.phone || s.phone === '9876543210') ? (effectiveTenant.ownerPhone || s.phone) : s.phone,
+                  aadharNumber: (!s.aadharNumber || s.aadharNumber === '1234 5678 9012') ? (effectiveTenant.ownerAadhaar ? formatAadhar(effectiveTenant.ownerAadhaar) : s.aadharNumber) : s.aadharNumber,
+                  email: (!s.email || s.email === 'admin@mybusiness.com') ? (effectiveTenant.ownerEmail || s.email) : s.email,
+                  address: (!s.address || s.address === '123 Main St, Central City') ? (effectiveTenant.address || s.address) : s.address,
+                };
+              }
+              return s;
+            });
+          }
+          return parsed;
+        }
+      } catch { }
     }
     return [
       {
         id: `admin-${currentBusinessId}`,
-        name: activeTenant?.ownerName || 'Business Administrator',
-        username: activeTenant?.adminUsername || 'admin',
+        name: effectiveTenant?.ownerName || 'Business Administrator',
+        username: effectiveTenant?.adminUsername || 'admin',
         role: 'ADMIN',
         category: 'Management/Admin',
         applicationAccess: 'Full Access (All Modules & POS)',
-        phone: activeTenant?.ownerPhone || '9876543210',
+        phone: effectiveTenant?.ownerPhone || '',
         familyPhone: '',
-        email: activeTenant?.ownerEmail || 'admin@mybusiness.com',
-        pinCode: activeTenant?.adminPasswordHash || '1234',
+        email: effectiveTenant?.ownerEmail || 'admin@mybusiness.com',
+        pinCode: effectiveTenant?.adminPasswordHash || '1234',
         status: 'ACTIVE',
         dob: '1990-01-01',
-        doj: '2022-01-01',
+        doj: new Date().toISOString().slice(0, 10),
         dor: '',
-        aadharNumber: '1234 5678 9012',
-        address: activeTenant?.address || '123 Main St, Central City',
+        aadharNumber: effectiveTenant?.ownerAadhaar ? formatAadhar(effectiveTenant.ownerAadhaar) : '',
+        address: effectiveTenant?.address || '',
       },
     ];
   });
@@ -161,6 +185,7 @@ export default function EmployeeDirectory() {
 
   // Load and reload staff list when business changes
   useEffect(() => {
+    const eff = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId);
     const saved = localStorage.getItem(`${tenantPrefix}universal_staff_list`);
     let currentList: StaffUser[] = [];
     if (saved) {
@@ -172,31 +197,49 @@ export default function EmployeeDirectory() {
       } catch { }
     }
 
-    const defaultAdminUsername = activeTenant?.adminUsername || 'admin';
-    const defaultOwnerPhone = activeTenant?.ownerPhone || '';
+    const defaultAdminUsername = eff?.adminUsername || 'admin';
+    const defaultOwnerPhone = eff?.ownerPhone || '';
+    const defaultOwnerName = eff?.ownerName || 'Business Administrator';
+    const defaultOwnerAadhaar = eff?.ownerAadhaar ? formatAadhar(eff.ownerAadhaar) : '';
 
     // If empty, seed with the single primary owner/admin account
     if (currentList.length === 0) {
       currentList = [
         {
           id: `admin-${currentBusinessId}`,
-          name: activeTenant?.ownerName || 'Business Administrator',
+          name: defaultOwnerName,
           username: defaultAdminUsername,
           role: 'ADMIN',
           category: 'Management/Admin',
           applicationAccess: 'Full Access (All Modules & POS)',
           phone: defaultOwnerPhone,
           familyPhone: '',
-          email: activeTenant?.ownerEmail || '',
-          pinCode: activeTenant?.adminPasswordHash || 'admin123',
+          email: eff?.ownerEmail || '',
+          pinCode: eff?.adminPasswordHash || 'admin123',
           status: 'ACTIVE',
           dob: '1990-01-01',
           doj: new Date().toISOString().slice(0, 10),
           dor: '',
-          aadharNumber: (activeTenant as any)?.ownerAadhaar || '',
-          address: activeTenant?.address || '',
+          aadharNumber: defaultOwnerAadhaar,
+          address: eff?.address || '',
         },
       ];
+    } else if (eff?.ownerName) {
+      // Update placeholder admin details with real tenant owner information
+      currentList = currentList.map(s => {
+        if (s.role === 'ADMIN' && (s.name === 'Business Administrator' || s.username === 'admin' || s.id === `admin-${currentBusinessId}`)) {
+          return {
+            ...s,
+            name: (s.name === 'Business Administrator' || !s.name) ? eff.ownerName : s.name,
+            username: (s.username === 'admin' || !s.username) ? (eff.adminUsername || s.username) : s.username,
+            phone: (!s.phone || s.phone === '9876543210') ? (eff.ownerPhone || s.phone) : s.phone,
+            aadharNumber: (!s.aadharNumber || s.aadharNumber === '1234 5678 9012') ? (defaultOwnerAadhaar || s.aadharNumber) : s.aadharNumber,
+            email: (!s.email || s.email === 'admin@mybusiness.com') ? (eff.ownerEmail || s.email) : s.email,
+            address: (!s.address || s.address === '123 Main St, Central City') ? (eff.address || s.address) : s.address,
+          };
+        }
+        return s;
+      });
     }
 
     // Clean duplicate phone/username copies
@@ -219,7 +262,7 @@ export default function EmployeeDirectory() {
     });
 
     setStaffList(deduped.length > 0 ? deduped : currentList);
-  }, [currentBusinessId, tenantPrefix, activeTenant]);
+  }, [currentBusinessId, tenantPrefix, activeTenant, impersonatingTenant]);
 
   // Sync strictly to tenant isolated database namespace
   useEffect(() => {
