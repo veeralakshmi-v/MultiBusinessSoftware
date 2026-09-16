@@ -298,8 +298,8 @@ app.post('/api/tenants', async (req, res) => {
       }
     });
 
-    // 3. Upsert Admin User (by adminUsername and ownerPhone)
-    const adminUsername = data.adminUsername || data.ownerPhone || `admin_${data.id}`;
+    // 3. Upsert Single Admin User (by adminUsername)
+    const adminUsername = data.adminUsername || `admin_${data.id}`;
     const adminPassword = data.adminPassword || data.adminPasswordHash || 'admin123';
 
     await prisma.user.upsert({
@@ -316,26 +316,6 @@ app.post('/api/tenants', async (req, res) => {
         role: 'ADMIN',
       }
     });
-
-    // If ownerPhone is different from adminUsername, also register phone user so phone login works directly
-    if (data.ownerPhone && data.ownerPhone !== adminUsername) {
-      try {
-        await prisma.user.upsert({
-          where: { username: data.ownerPhone },
-          update: {
-            businessId: data.id,
-            password: adminPassword,
-            role: 'ADMIN',
-          },
-          create: {
-            businessId: data.id,
-            username: data.ownerPhone,
-            password: adminPassword,
-            role: 'ADMIN',
-          }
-        });
-      } catch (phoneUserErr) {}
-    }
 
     // 4. Upsert Admin Employee record
     const empCode = `EMP-${adminUsername}`;

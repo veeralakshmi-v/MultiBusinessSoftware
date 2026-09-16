@@ -162,32 +162,63 @@ export default function EmployeeDirectory() {
   // Load and reload staff list when business changes
   useEffect(() => {
     const saved = localStorage.getItem(`${tenantPrefix}universal_staff_list`);
+    let currentList: StaffUser[] = [];
     if (saved) {
       try {
-        setStaffList(JSON.parse(saved));
-        return;
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          currentList = parsed;
+        }
       } catch { }
     }
-    setStaffList([
-      {
-        id: `admin-${currentBusinessId}`,
-        name: activeTenant?.ownerName || 'Business Administrator',
-        username: activeTenant?.adminUsername || 'admin',
-        role: 'ADMIN',
-        category: 'Management/Admin',
-        applicationAccess: 'Full Access (All Modules & POS)',
-        phone: activeTenant?.ownerPhone || '9876543210',
-        familyPhone: '',
-        email: activeTenant?.ownerEmail || 'admin@mybusiness.com',
-        pinCode: activeTenant?.adminPasswordHash || '1234',
-        status: 'ACTIVE',
-        dob: '1990-01-01',
-        doj: '2022-01-01',
-        dor: '',
-        aadharNumber: '1234 5678 9012',
-        address: activeTenant?.address || '123 Main St, Central City',
-      },
-    ]);
+
+    const defaultAdminUsername = activeTenant?.adminUsername || 'admin';
+    const defaultOwnerPhone = activeTenant?.ownerPhone || '';
+
+    // If empty, seed with the single primary owner/admin account
+    if (currentList.length === 0) {
+      currentList = [
+        {
+          id: `admin-${currentBusinessId}`,
+          name: activeTenant?.ownerName || 'Business Administrator',
+          username: defaultAdminUsername,
+          role: 'ADMIN',
+          category: 'Management/Admin',
+          applicationAccess: 'Full Access (All Modules & POS)',
+          phone: defaultOwnerPhone,
+          familyPhone: '',
+          email: activeTenant?.ownerEmail || '',
+          pinCode: activeTenant?.adminPasswordHash || 'admin123',
+          status: 'ACTIVE',
+          dob: '1990-01-01',
+          doj: new Date().toISOString().slice(0, 10),
+          dor: '',
+          aadharNumber: (activeTenant as any)?.ownerAadhaar || '',
+          address: activeTenant?.address || '',
+        },
+      ];
+    }
+
+    // Clean duplicate phone/username copies
+    const deduped: StaffUser[] = [];
+    const seen = new Set<string>();
+
+    currentList.forEach((s) => {
+      const uKey = (s.username || '').toLowerCase().trim();
+      const pKey = (s.phone || '').replace(/\D/g, '').slice(-10);
+      const isPlaceholder = uKey === 'admin' && s.name === 'Business Administrator' && defaultAdminUsername !== 'admin';
+
+      if (isPlaceholder) return; // ignore legacy generic placeholder if customized admin exists
+
+      if (uKey && seen.has(uKey)) return;
+      if (pKey && pKey.length >= 7 && seen.has(pKey)) return;
+
+      if (uKey) seen.add(uKey);
+      if (pKey && pKey.length >= 7) seen.add(pKey);
+      deduped.push(s);
+    });
+
+    setStaffList(deduped.length > 0 ? deduped : currentList);
   }, [currentBusinessId, tenantPrefix, activeTenant]);
 
   // Sync strictly to tenant isolated database namespace
@@ -206,44 +237,53 @@ export default function EmployeeDirectory() {
       .then((data: any[]) => {
         if (Array.isArray(data) && data.length > 0) {
           setStaffList(prev => {
-            const map = new Map<string, StaffUser>();
-            prev.forEach(p => {
-              const key = p.username || p.phone || p.id;
-              if (key) map.set(key, p);
+            const list = [...prev];
+            const seenUsers = new Set<string>();
+            const seenPhones = new Set<string>();
+
+            list.forEach(p => {
+              if (p.username) seenUsers.add(p.username.toLowerCase().trim());
+              const pClean = (p.phone || '').replace(/\D/g, '').slice(-10);
+              if (pClean) seenPhones.add(pClean);
             });
 
             data.forEach((u: any) => {
-              const key = u.username || u.phone || u.id;
-              if (!key) return;
-              const existing = map.get(key);
+              const uName = (u.username || '').toLowerCase().trim();
+              const uPhone = (u.phone || '').replace(/\D/g, '').slice(-10);
 
-              const serverName = (u.fullName && u.fullName.trim()) || (u.name && u.name.trim());
-              const isServerNameValid = serverName && serverName !== u.username && serverName !== u.phone;
-              const isExistingNameValid = existing?.name && existing.name !== existing.username && existing.name !== existing.phone;
+              // Don't add phone duplicate of existing user
+              if (seenUsers.has(uName)) return;
+              if (uPhone && seenPhones.has(uPhone)) return;
 
-              const displayName = isServerNameValid
-                ? serverName
-                : (isExistingNameValid ? existing!.name : (serverName || u.username));
+              if (uName) seenUsers.add(uName);
+              if (uPhone) seenPhones.add(uPhone);
 
-              map.set(key, {
-                id: u.id || existing?.id || `emp-${Date.now()}`,
+              const displayName = (u.fullName && u.fullName.trim()) || (u.name && u.name.trim()) || u.username;
+
+              list.push({
+                id: u.id || `emp-${Date.now()}`,
                 name: displayName,
-                username: u.username || existing?.username || key,
-                phone: u.phone || existing?.phone || u.username || '',
-                email: u.email || existing?.email || '',
-                role: u.role || existing?.role || 'CASHIER',
-                category: existing?.category || 'Management/Admin',
-                applicationAccess: existing?.applicationAccess || u.applicationAccess || 'Attendance & Staff Portal',
-                status: u.status || existing?.status || 'ACTIVE',
-                pinCode: u.password || existing?.pinCode || '1234',
-                aadharNumber: u.aadharNumber || existing?.aadharNumber || '',
-                address: u.address || existing?.address || '',
-                dob: u.dob || existing?.dob || '',
-                doj: u.doj || existing?.doj || '',
-                photoUrl: u.photoUrl || existing?.photoUrl,
+                username: u.username || uName,
+                phone: u.phone || '',
+                email: u.email || '',
+                role: u.role || 'CASHIER',
+                category: u.category || 'Management/Admin',
+                applicationAccess: u.applicationAccess || 'Attendance & Staff Portal',
+                status: u.status || 'ACTIVE',
+                pinCode: u.password || '1234',
+                aadharNumber: u.aadharNumber || '',
+                address: u.address || '',
+                dob: u.dob || '',
+                doj: u.doj || '',
+                photoUrl: u.photoUrl,
               });
             });
-            return Array.from(map.values());
+
+            // Filter out placeholder admin if customized admin exists
+            const hasCustomAdmin = list.some(l => l.username && l.username !== 'admin' && l.role === 'ADMIN');
+            return hasCustomAdmin
+              ? list.filter(l => !(l.username === 'admin' && l.name === 'Business Administrator'))
+              : list;
           });
         }
       })
