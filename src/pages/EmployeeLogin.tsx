@@ -72,10 +72,39 @@ export default function EmployeeLogin() {
         }
       }
 
-      // 2. Check in universal staff list (Created & provided by Business Admin)
-      const staffRaw = localStorage.getItem('universal_staff_list');
-      const staffList = staffRaw ? JSON.parse(staffRaw) : [];
-      const match = staffList.find(
+      // 2. Check in universal staff list across all businesses
+      const allStaff: any[] = [];
+      try {
+        const staffRaw = localStorage.getItem('universal_staff_list');
+        if (staffRaw) {
+          const parsed = JSON.parse(staffRaw);
+          if (Array.isArray(parsed)) allStaff.push(...parsed);
+        }
+      } catch {}
+
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('tenant_') && key.endsWith('_universal_staff_list')) {
+            const tenantId = key.replace(/^tenant_/, '').replace(/_universal_staff_list$/, '');
+            try {
+              const raw = localStorage.getItem(key);
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                  parsed.forEach(s => {
+                    if (!allStaff.some(existing => existing.id === s.id)) {
+                      allStaff.push({ ...s, businessId: s.businessId || tenantId });
+                    }
+                  });
+                }
+              }
+            } catch {}
+          }
+        }
+      } catch {}
+
+      const match = allStaff.find(
         (s: any) =>
           (s.username?.toLowerCase() === cleanUser.toLowerCase() ||
            s.phone === cleanUser ||
@@ -108,16 +137,23 @@ export default function EmployeeLogin() {
           role: match.role || 'STAFF',
           phone: match.phone,
           email: match.email,
-          applicationAccess: match.applicationAccess || 'Attendance & Staff Portal',
+          businessId: match.businessId || localStorage.getItem('businessId') || '',
+          applicationAccess: match.applicationAccess || 'Full Access (All Modules & POS)',
         };
         localStorage.setItem('employee_session', JSON.stringify(sessionObj));
+        if (sessionObj.businessId) {
+          localStorage.setItem('businessId', sessionObj.businessId);
+        }
 
         login('demo-live-token-' + match.id, {
           id: match.id,
+          name: match.name,
+          fullName: match.name,
           username: match.username || match.phone,
           role: match.role || 'STAFF',
-          applicationAccess: match.applicationAccess || 'Attendance & Staff Portal',
-        });
+          businessId: sessionObj.businessId,
+          applicationAccess: match.applicationAccess || 'Full Access (All Modules & POS)',
+        } as any);
 
         setLoading(false);
         navigate('/employee');

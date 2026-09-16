@@ -183,48 +183,85 @@ export default function Login() {
         // Backend offline or network error
       }
 
-      // 4. Staff List Check (Strict Role Isolation: Non-admin staff cannot access Admin Dashboard)
-      const staffRaw = localStorage.getItem('universal_staff_list');
-      const staffList = staffRaw ? JSON.parse(staffRaw) : [];
-      const staffMatch = staffList.find(
+      // 4. Staff / Employee List Check across all businesses
+      const allStaff: any[] = [];
+      try {
+        const staffRaw = localStorage.getItem('universal_staff_list');
+        if (staffRaw) {
+          const parsed = JSON.parse(staffRaw);
+          if (Array.isArray(parsed)) allStaff.push(...parsed);
+        }
+      } catch {}
+
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('tenant_') && key.endsWith('_universal_staff_list')) {
+            const tenantId = key.replace(/^tenant_/, '').replace(/_universal_staff_list$/, '');
+            try {
+              const raw = localStorage.getItem(key);
+              if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                  parsed.forEach(s => {
+                    if (!allStaff.some(existing => existing.id === s.id)) {
+                      allStaff.push({ ...s, businessId: s.businessId || tenantId });
+                    }
+                  });
+                }
+              }
+            } catch {}
+          }
+        }
+      } catch {}
+
+      const staffMatch = allStaff.find(
         (s: any) =>
           (s.username?.toLowerCase() === cleanUser.toLowerCase() ||
            s.phone === cleanUser ||
+           s.id === cleanUser ||
            (s.email && s.email.toLowerCase() === cleanUser.toLowerCase()))
       );
 
       if (staffMatch) {
-        if (staffMatch.role !== 'ADMIN' && staffMatch.role !== 'SUPER_ADMIN') {
-          setError('Access Restricted: This login is exclusively for Business Administrators. Staff and employees must use the Employee Portal login (/employee-login).');
-          setLoading(false);
-          return;
-        }
-
         const isStaffPassCorrect =
           (staffMatch.pinCode && staffMatch.pinCode === cleanPass) ||
           (staffMatch.password && staffMatch.password === cleanPass) ||
           (cleanPass === '1234' || cleanPass === 'admin123');
 
         if (!isStaffPassCorrect) {
-          setError('Invalid administrator password or PIN.');
+          setError('Invalid password or PIN code.');
           setLoading(false);
           return;
         }
 
         if (staffMatch.status === 'INACTIVE') {
-          setError('This administrator account has been deactivated.');
+          setError('This staff account has been deactivated. Please contact your store administrator.');
           setLoading(false);
           return;
         }
 
-        performLogin(staffMatch.username || staffMatch.name || staffMatch.phone, 'ADMIN', {
+        const employeeSession = {
           id: staffMatch.id,
           name: staffMatch.name,
           username: staffMatch.username || staffMatch.phone,
-          role: 'ADMIN',
+          role: staffMatch.role || 'STAFF',
           phone: staffMatch.phone,
           email: staffMatch.email,
-          applicationAccess: 'Full Business Admin Access',
+          businessId: staffMatch.businessId || localStorage.getItem('businessId') || '',
+          applicationAccess: staffMatch.applicationAccess || 'Full Access (All Modules & POS)',
+        };
+
+        performLogin(staffMatch.username || staffMatch.name || staffMatch.phone, (staffMatch.role as Role) || 'STAFF', {
+          id: staffMatch.id,
+          name: staffMatch.name,
+          username: staffMatch.username || staffMatch.phone,
+          role: staffMatch.role || 'STAFF',
+          phone: staffMatch.phone,
+          email: staffMatch.email,
+          businessId: staffMatch.businessId || localStorage.getItem('businessId') || '',
+          applicationAccess: staffMatch.applicationAccess || 'Full Access (All Modules & POS)',
+          employeeSession,
         });
         return;
       }
