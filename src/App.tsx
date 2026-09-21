@@ -101,8 +101,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!activeUser) {
-    const redirectParam = encodeURIComponent(location.pathname + location.search);
-    return <Navigate to={`/login?redirect=${redirectParam}`} replace />;
+    return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
   }
 
   if (!isRouteAllowed(activeUser, location.pathname)) {

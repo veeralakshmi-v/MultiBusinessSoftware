@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth, Role } from '../context/AuthContext';
-import { Navigate, useLocation } from 'react-router-dom';
-import { Receipt, Loader2, ShieldCheck, Lock, User } from 'lucide-react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Receipt, Loader2, ShieldCheck, Lock, User, ArrowLeft } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { TenantEngine } from '../lib/tenant/tenantEngine';
 import { BusinessType } from '../types/template';
 
 export default function Login() {
+  const navigate = useNavigate();
   const { user, login } = useAuth();
   const location = useLocation();
 
   // After login go to requested redirect route
   const params = new URLSearchParams(location.search);
-  const redirectTo = params.get('redirect') || '/dashboard';
+  const redirectTo = (location.state as any)?.from || params.get('redirect') || '/dashboard';
   const forcePrompt = params.get('prompt') === 'true';
 
   const [username, setUsername] = useState('');
@@ -254,17 +255,29 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F6FB] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-[#F4F6FB] flex flex-col justify-between font-sans relative overflow-hidden">
+
+      {/* Top Header Bar with Back to Home button */}
+      <header className="px-6 py-4 flex items-center border-b border-gray-200/80 bg-white/80 backdrop-blur-xl z-10 relative">
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-xs font-bold text-gray-700 hover:text-[#2563EB] px-3.5 py-2 rounded-xl transition-all hover:bg-blue-50 border border-gray-200/80 group cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-[#2563EB]" />
+          <span>Back to Home</span>
+        </button>
+      </header>
 
       {/* Ambient background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-blue-100/50 via-purple-50/30 to-transparent blur-3xl pointer-events-none -z-10" />
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="flex justify-center">
-          <div className="h-16 w-16 bg-[#2563EB] rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25 text-white">
-            <Receipt className="h-8 w-8 text-white" />
+      <div className="flex-1 flex flex-col justify-center py-10 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+          <div className="flex justify-center">
+            <div className="h-16 w-16 bg-[#2563EB] rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25 text-white">
+              <Receipt className="h-8 w-8 text-white" />
+            </div>
           </div>
-        </div>
         <h2 className="mt-6 text-center text-3xl font-serif font-black tracking-tight text-[#0F172A]">
           Store Sign In
         </h2>
@@ -369,6 +382,7 @@ export default function Login() {
           </div>
 
         </div>
+      </div>
       </div>
     </div>
   );
