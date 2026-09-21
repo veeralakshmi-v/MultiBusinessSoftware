@@ -241,17 +241,6 @@ export default function DashboardLayout() {
 
         {/* Sidebar Footer & Collapse Toggle */}
         <div className="p-3 border-t border-gray-200 space-y-1">
-          {activeTenant && !isCollapsed && (
-            <div className="px-3 py-2 mb-1 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between">
-              <div className="truncate">
-                <p className="text-[10px] uppercase font-bold text-gray-400">Current Plan</p>
-                <p className="text-xs font-bold text-gray-800">{activeTenant.subscription?.plan || 'GROWTH'}</p>
-              </div>
-              <span className="px-1.5 py-0.5 text-[9px] font-black uppercase rounded-md bg-emerald-100 text-emerald-800">
-                {activeTenant.subscription?.status || activeTenant.status || 'ACTIVE'}
-              </span>
-            </div>
-          )}
 
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}

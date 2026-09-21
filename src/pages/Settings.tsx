@@ -5,8 +5,7 @@ import { cn } from '../lib/utils';
 import {
   Building2, Printer, Shield, Users, Save, CheckCircle2,
   UserPlus, Edit2, Trash2, Key, Phone, Mail, FileText, Sparkles,
-  Image as ImageIcon, Upload, Plus, X, Monitor, ExternalLink, Lock, KeyRound, ShieldCheck, Eye, EyeOff, Palette,
-  LifeBuoy, MessageSquare, Send, Clock, AlertCircle
+  Image as ImageIcon, Upload, Plus, X, Monitor, ExternalLink, Lock, KeyRound, ShieldCheck, Eye, EyeOff, Palette
 } from 'lucide-react';
 import ThemeCustomizer from '../components/theme/ThemeCustomizer';
 import {
@@ -16,7 +15,6 @@ import {
 import {
   isValidPhone, isValidAadhar, cleanPhone, cleanAadhar, formatAadhar
 } from '../utils/validation';
-import { PlatformEngine, SupportTicket, TicketPriority, TicketStatus } from '../lib/tenant/platformEngine';
 
 export interface StaffUser {
   id: string;
@@ -59,7 +57,7 @@ const DEFAULT_STAFF: StaffUser[] = [
   },
 ];
 
-export type SettingsTab = 'profile' | 'billing' | 'staff' | 'landing' | 'security' | 'theme' | 'support';
+export type SettingsTab = 'profile' | 'billing' | 'staff' | 'landing' | 'security' | 'theme';
 
 export default function Settings({ initialTab = 'profile' }: { initialTab?: SettingsTab }) {
   const { businessProfile, updateBusinessProfile, user } = useAuth();
@@ -69,7 +67,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
   const getResolvedTab = (): SettingsTab => {
     const stateTab = (location.state as { tab?: SettingsTab })?.tab;
     const queryTab = searchParams.get('tab') as SettingsTab;
-    const validTabs: SettingsTab[] = ['profile', 'billing', 'staff', 'landing', 'security', 'theme', 'support'];
+    const validTabs: SettingsTab[] = ['profile', 'billing', 'staff', 'landing', 'security', 'theme'];
     if (stateTab && validTabs.includes(stateTab)) return stateTab;
     if (queryTab && validTabs.includes(queryTab)) return queryTab;
     return initialTab;
@@ -183,74 +181,6 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
   const staffPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const [saveToast, setSaveToast] = useState(false);
-
-  // Help & Support Helpdesk State
-  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(() => {
-    const all = PlatformEngine.getSupportTickets();
-    const currentBizName = businessProfile?.businessName || '';
-    const currentTenantId = user?.businessId || '';
-    return all.filter(t => (currentTenantId && t.tenantId === currentTenantId) || (currentBizName && t.businessName === currentBizName));
-  });
-
-  const [isRaiseTicketModalOpen, setIsRaiseTicketModalOpen] = useState(false);
-  const [ticketSubject, setTicketSubject] = useState('');
-  const [ticketCategory, setTicketCategory] = useState('Printer / POS Setup');
-  const [ticketPriority, setTicketPriority] = useState<TicketPriority>('MEDIUM');
-  const [ticketDescription, setTicketDescription] = useState('');
-  const [ticketFilterStatus, setTicketFilterStatus] = useState<'ALL' | TicketStatus>('ALL');
-  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
-  const [ticketReplyText, setTicketReplyText] = useState('');
-
-  const refreshSupportTickets = () => {
-    const all = PlatformEngine.getSupportTickets();
-    const currentBizName = businessProfile?.businessName || '';
-    const currentTenantId = user?.businessId || '';
-    setSupportTickets(all.filter(t => (currentTenantId && t.tenantId === currentTenantId) || (currentBizName && t.businessName === currentBizName)));
-  };
-
-  const handleRaiseTicket = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!ticketSubject.trim() || !ticketDescription.trim()) {
-      alert('Please fill out all required fields.');
-      return;
-    }
-
-    const currentBizName = businessProfile?.businessName || 'Business Admin';
-    const currentTenantId = user?.businessId || `biz-${Date.now()}`;
-    const ownerEmail = businessProfile?.email || 'admin@business.com';
-
-    const fullDesc = `[Category: ${ticketCategory}]\n${ticketDescription.trim()}`;
-
-    const newTicket = PlatformEngine.createTicket({
-      tenantId: currentTenantId,
-      businessName: currentBizName,
-      ownerEmail,
-      subject: ticketSubject.trim(),
-      description: fullDesc,
-      priority: ticketPriority,
-    });
-
-    refreshSupportTickets();
-
-    setTicketSubject('');
-    setTicketDescription('');
-    setTicketPriority('MEDIUM');
-    setIsRaiseTicketModalOpen(false);
-    alert(`Support Ticket #${newTicket.id} created successfully! Our Super Admin team has been notified.`);
-  };
-
-  const handleSendTicketReply = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTicket || !ticketReplyText.trim()) return;
-
-    const currentBizName = businessProfile?.businessName || 'Business Admin';
-    const updated = PlatformEngine.addTicketReply(selectedTicket.id, currentBizName, ticketReplyText.trim(), false);
-    if (updated) {
-      setSelectedTicket(updated);
-      refreshSupportTickets();
-      setTicketReplyText('');
-    }
-  };
 
   // Landing Page state
   const [landingTagline, setLandingTagline] = useState(businessProfile.landingTagline || businessProfile.tagline || '');
@@ -719,24 +649,6 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         >
           <Palette className="w-4 h-4" />
           <span>Theme & Color Palette</span>
-        </button>
-
-        <button
-          onClick={() => handleTabChange('support')}
-          className={cn(
-            "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer",
-            activeTab === 'support'
-              ? "bg-[#2563EB] text-white shadow-md shadow-blue-500/25 font-extrabold"
-              : "bg-white hover:bg-slate-50 text-gray-700 border border-gray-200 shadow-xs"
-          )}
-        >
-          <LifeBuoy className="w-4 h-4 text-blue-600" />
-          <span>Help & Support</span>
-          {supportTickets.filter(t => t.status !== 'RESOLVED').length > 0 && (
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-blue-100 text-[#2563EB] font-mono font-bold">
-              {supportTickets.filter(t => t.status !== 'RESOLVED').length}
-            </span>
-          )}
         </button>
       </div>
 
@@ -1829,324 +1741,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         </div>
       )}
 
-      {/* TAB 7: HELP & SUPPORT HELPDESK */}
-      {activeTab === 'support' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Header Banner & Action */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0">
-                <LifeBuoy className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-base">Super Admin Helpdesk & Support</h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Need assistance with thermal printers, GST billing, or subscription changes? Raise a ticket directly to the platform Super Admin.
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setIsRaiseTicketModalOpen(true)}
-              className="px-4 py-2.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-md shadow-blue-500/20 cursor-pointer self-start sm:self-auto whitespace-nowrap transition-all hover:scale-105 active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Raise Support Ticket</span>
-            </button>
-          </div>
-
-          {/* Filter Status Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            {(['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED'] as (TicketStatus | 'ALL')[]).map((st) => (
-              <button
-                key={st}
-                onClick={() => setTicketFilterStatus(st)}
-                className={cn(
-                  'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap',
-                  ticketFilterStatus === st
-                    ? 'bg-[#2563EB] text-white shadow-xs'
-                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                )}
-              >
-                {st === 'ALL' ? 'All Tickets' : st.replace('_', ' ')}
-              </button>
-            ))}
-          </div>
-
-          {/* Tickets Table */}
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[10px] border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 whitespace-nowrap">Ticket ID</th>
-                    <th className="px-6 py-4 min-w-[280px]">Subject & Category</th>
-                    <th className="px-4 py-4 whitespace-nowrap text-center">Priority</th>
-                    <th className="px-4 py-4 whitespace-nowrap text-center">Status</th>
-                    <th className="px-4 py-4 whitespace-nowrap">Created Date</th>
-                    <th className="px-6 py-4 text-right whitespace-nowrap">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {supportTickets.filter(t => ticketFilterStatus === 'ALL' || t.status === ticketFilterStatus).length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
-                        <LifeBuoy className="w-8 h-8 mx-auto mb-2 opacity-40 text-blue-500" />
-                        <p className="font-semibold text-gray-600">No support tickets found.</p>
-                        <p className="text-[11px] text-gray-400 mt-0.5 mb-4">You have not submitted any tickets yet under this category.</p>
-                        <button
-                          onClick={() => setIsRaiseTicketModalOpen(true)}
-                          className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-[#2563EB] font-bold rounded-xl text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Submit a New Ticket</span>
-                        </button>
-                      </td>
-                    </tr>
-                  ) : (
-                    supportTickets
-                      .filter(t => ticketFilterStatus === 'ALL' || t.status === ticketFilterStatus)
-                      .map((ticket) => (
-                        <tr key={ticket.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-6 py-4 font-mono font-bold text-[#2563EB] whitespace-nowrap">{ticket.id}</td>
-                          <td className="px-6 py-4 min-w-[280px] max-w-md">
-                            <div className="font-bold text-gray-900">{ticket.subject}</div>
-                            <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{ticket.description}</p>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-center">
-                            <span
-                              className={cn(
-                                'px-3 py-1 rounded-md text-[10px] font-bold uppercase whitespace-nowrap inline-flex items-center justify-center min-w-[70px]',
-                                ticket.priority === 'HIGH' || ticket.priority === 'URGENT'
-                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                  : ticket.priority === 'MEDIUM'
-                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                  : 'bg-slate-100 text-slate-700 border border-slate-200'
-                              )}
-                            >
-                              {ticket.priority}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-center">
-                            <span
-                              className={cn(
-                                'px-3 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap inline-flex items-center justify-center min-w-[90px]',
-                                ticket.status === 'OPEN'
-                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                  : ticket.status === 'IN_PROGRESS'
-                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              )}
-                            >
-                              {ticket.status.replace('_', ' ')}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 text-gray-500 text-[11px] whitespace-nowrap">
-                            {new Date(ticket.createdAt).toLocaleDateString('en-IN')}
-                          </td>
-                          <td className="px-6 py-4 text-right whitespace-nowrap">
-                            <button
-                              onClick={() => setSelectedTicket(ticket)}
-                              className="px-3 py-1.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors cursor-pointer whitespace-nowrap"
-                            >
-                              View & Reply ({ticket.replies.length})
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: RAISE NEW SUPPORT TICKET */}
-      {isRaiseTicketModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-5 border border-gray-100 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center">
-                  <LifeBuoy className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-900 text-base">Raise Support Ticket</h3>
-                  <p className="text-[11px] text-gray-500">Directly contact the Super Admin platform team</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsRaiseTicketModalOpen(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleRaiseTicket} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-gray-700 font-bold mb-1">Issue Category *</label>
-                  <select
-                    value={ticketCategory}
-                    onChange={(e) => setTicketCategory(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
-                  >
-                    <option value="Printer / POS Setup">Printer / POS Setup</option>
-                    <option value="Billing & Invoicing">Billing & Invoicing</option>
-                    <option value="GST & Taxes">GST & Taxes</option>
-                    <option value="Subscription & Plan Upgrade">Subscription & Plan Upgrade</option>
-                    <option value="Custom Domain & Website">Custom Domain & Website</option>
-                    <option value="Staff & Access Issue">Staff & Access Issue</option>
-                    <option value="Technical Bug / Other">Technical Bug / Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 font-bold mb-1">Priority Level *</label>
-                  <select
-                    value={ticketPriority}
-                    onChange={(e) => setTicketPriority(e.target.value as TicketPriority)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                    <option value="URGENT">Urgent (Billing Down)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-bold mb-1">Subject / Summary *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. 80mm ESC/POS thermal printer layout alignment assistance"
-                  value={ticketSubject}
-                  onChange={(e) => setTicketSubject(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 font-bold mb-1">Detailed Description *</label>
-                <textarea
-                  required
-                  rows={4}
-                  placeholder="Describe your issue, questions, or setup requirements in detail..."
-                  value={ticketDescription}
-                  onChange={(e) => setTicketDescription(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30 resize-none"
-                />
-              </div>
-
-              <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 flex items-start gap-2 text-[11px] text-blue-800">
-                <Clock className="w-4 h-4 text-[#2563EB] shrink-0 mt-0.5" />
-                <span>Super Admin receives high-priority instant notifications for all new tickets and will respond directly to this helpdesk thread.</span>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsRaiseTicketModalOpen(false)}
-                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-[#2563EB] hover:bg-blue-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 cursor-pointer transition-all hover:scale-105 active:scale-95"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Submit Ticket</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: VIEW TICKET CONVERSATION & REPLY */}
-      {selectedTicket && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 border border-gray-100 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-xs text-[#2563EB] bg-blue-50 px-2 py-0.5 rounded-md">{selectedTicket.id}</span>
-                  <span
-                    className={cn(
-                      'px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase',
-                      selectedTicket.status === 'OPEN'
-                        ? 'bg-rose-50 text-rose-700'
-                        : selectedTicket.status === 'IN_PROGRESS'
-                        ? 'bg-amber-50 text-amber-700'
-                        : 'bg-emerald-50 text-emerald-700'
-                    )}
-                  >
-                    {selectedTicket.status.replace('_', ' ')}
-                  </span>
-                  <span className="text-[10px] text-gray-400 font-bold uppercase">• Priority: {selectedTicket.priority}</span>
-                </div>
-                <h3 className="font-bold text-gray-900 text-base mt-1">{selectedTicket.subject}</h3>
-              </div>
-              <button
-                onClick={() => setSelectedTicket(null)}
-                className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Conversation Messages Thread */}
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[350px]">
-              {selectedTicket.replies.map((rep) => (
-                <div
-                  key={rep.id}
-                  className={cn(
-                    'p-4 rounded-2xl border text-xs space-y-1.5',
-                    rep.isSuperAdmin
-                      ? 'bg-blue-50/70 border-blue-200 text-blue-950 ml-4 sm:ml-8'
-                      : 'bg-gray-50 border-gray-200 text-gray-900 mr-4 sm:mr-8'
-                  )}
-                >
-                  <div className="flex items-center justify-between font-bold text-[11px]">
-                    <span className={rep.isSuperAdmin ? 'text-[#2563EB] flex items-center gap-1' : 'text-gray-700'}>
-                      {rep.isSuperAdmin ? '🛡️ Platform Support' : rep.author}
-                    </span>
-                    <span className="text-gray-400 font-mono text-[10px]">
-                      {new Date(rep.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(rep.createdAt).toLocaleDateString('en-IN')}
-                    </span>
-                  </div>
-                  <p className="whitespace-pre-wrap leading-relaxed text-xs">{rep.message}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Reply Input Box */}
-            <form onSubmit={handleSendTicketReply} className="pt-2 border-t border-gray-100 flex gap-2">
-              <input
-                type="text"
-                placeholder="Type your reply to Super Admin..."
-                value={ticketReplyText}
-                onChange={(e) => setTicketReplyText(e.target.value)}
-                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2563EB]/30"
-              />
-              <button
-                type="submit"
-                disabled={!ticketReplyText.trim()}
-                className="px-4 py-2.5 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 cursor-pointer transition-all"
-              >
-                <Send className="w-3.5 h-3.5" />
-                <span>Send Reply</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
+      {/* END OF SETTINGS TABS */}
     </div>
   );
 }
