@@ -430,15 +430,6 @@ export default function DashboardLayout() {
               );
             })()}
 
-            <Link
-              to="/employee"
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#2563EB] hover:text-[#1D4ED8] border border-blue-200 text-xs font-bold rounded-xl transition-all"
-              title="Return to Employee Attendance & Portal"
-            >
-              <Users className="w-4 h-4 text-[#2563EB]" />
-              <span className="hidden sm:inline">Employee Portal</span>
-            </Link>
-
             {/* Quick POS Shortcut */}
             {isRouteAllowedForRole(user.role, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
               <Link
