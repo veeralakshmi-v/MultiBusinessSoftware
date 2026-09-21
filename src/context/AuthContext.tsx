@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { BusinessTemplate, BusinessType } from '../types/template';
 import { ModuleId, EnabledModulesState, UserRole } from '../types/module';
 import { TemplateResolver } from '../lib/templates/templateResolver';
 import { ModuleEngine } from '../lib/modules/moduleEngine';
-import { TenantEngine, Tenant, TenantPlan, TenantStatus, SAAS_PLANS } from '../lib/tenant/tenantEngine';
+import { TenantEngine, Tenant, TenantStatus } from '../lib/tenant/tenantEngine';
 
-export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'CASHIER' | 'STAFF' | string;
+export type Role = 'ADMIN' | 'MANAGER' | 'CASHIER' | 'STAFF' | string;
 
 export interface User {
   id: string;
@@ -94,13 +94,8 @@ interface AuthContextType {
   login: (token: string, user: User) => void;
   logout: () => void;
   isLoading: boolean;
-  // Multi-Tenant SaaS & Super Admin
-  isSuperAdmin: boolean;
   tenants: Tenant[];
   activeTenant: Tenant | null;
-  impersonatingTenant: Tenant | null;
-  impersonateTenant: (tenantId: string) => void;
-  exitImpersonation: () => void;
   createTenant: (data: Parameters<typeof TenantEngine.createTenant>[0]) => Tenant;
   updateTenant: (tenantId: string, updates: Partial<Tenant>) => Tenant | null;
   deleteTenant: (tenantId: string) => boolean;
@@ -128,33 +123,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // SaaS Tenants Registry State
   const [tenants, setTenants] = useState<Tenant[]>(() => TenantEngine.getTenants());
 
-  const refreshTenants = () => {
-    setTenants(TenantEngine.getTenants());
-  };
-
   useEffect(() => {
-    const handleTenantsUpdated = () => refreshTenants();
+    const handleTenantsUpdated = () => setTenants(TenantEngine.getTenants());
     window.addEventListener('saas_tenants_updated', handleTenantsUpdated);
     return () => window.removeEventListener('saas_tenants_updated', handleTenantsUpdated);
   }, []);
 
-  // Super Admin Impersonation State
-  const [impersonatingTenantId, setImpersonatingTenantId] = useState<string | null>(() => {
-    return localStorage.getItem('saas_impersonating_tenant_id') || null;
-  });
-
-  const isSuperAdmin = useMemo(() => {
-    if (localStorage.getItem('saas_super_admin_active') === 'true') return true;
-    return user?.role === 'SUPER_ADMIN' || user?.username === 'superadmin' || user?.username === 'admin@saas.com';
-  }, [user]);
-
   // Determine active tenant
   const activeTenant = useMemo(() => {
     const list = tenants.length > 0 ? tenants : TenantEngine.getTenants();
-    if (impersonatingTenantId) {
-      const found = list.find(t => t.id === impersonatingTenantId) || TenantEngine.getTenantById(impersonatingTenantId);
-      if (found) return found;
-    }
     const storedBizId = user?.businessId || localStorage.getItem('businessId');
     if (storedBizId && storedBizId !== DEFAULT_BUSINESS_ID) {
       const found = list.find(t => t.id === storedBizId) || TenantEngine.getTenantById(storedBizId);
@@ -166,18 +143,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return nonDefault[0];
     }
     return list[0] || null;
-  }, [tenants, impersonatingTenantId, user?.businessId]);
-
-  const impersonatingTenant = useMemo(() => {
-    if (impersonatingTenantId) {
-      const list = tenants.length > 0 ? tenants : TenantEngine.getTenants();
-      return list.find(t => t.id === impersonatingTenantId) || TenantEngine.getTenantById(impersonatingTenantId);
-    }
-    return null;
-  }, [tenants, impersonatingTenantId]);
+  }, [tenants, user?.businessId]);
 
   const [businessId, setBusinessId] = useState<string>(() => {
-    return impersonatingTenantId || user?.businessId || localStorage.getItem('businessId') || DEFAULT_BUSINESS_ID;
+    return user?.businessId || localStorage.getItem('businessId') || DEFAULT_BUSINESS_ID;
   });
 
   const [businessType, setBusinessTypeState] = useState<BusinessType>(() => {
@@ -286,56 +255,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.dispatchEvent(new Event('settings_updated'));
   };
 
-  const impersonateTenant = (tenantId: string) => {
-    const list = tenants.length > 0 ? tenants : TenantEngine.getTenants();
-    const t = list.find(item => item.id === tenantId) || TenantEngine.getTenantById(tenantId);
-    if (!t) return;
-
-    setImpersonatingTenantId(t.id);
-    localStorage.setItem('saas_impersonating_tenant_id', t.id);
-    setBusinessId(t.id);
-    localStorage.setItem('businessId', t.id);
-    setBusinessTypeState(t.businessType);
-    localStorage.setItem('businessType', t.businessType);
-
-    const adminUser: User = {
-      id: `admin-${t.id}`,
-      username: t.adminUsername || 'admin',
-      role: 'ADMIN',
-      businessId: t.id,
-      businessType: t.businessType,
-      applicationAccess: 'Full Business Admin Access',
-    };
-    setUser(adminUser);
-    localStorage.setItem('user_profile', JSON.stringify(adminUser));
-
-    const profile: BusinessProfile = {
-      ...DEFAULT_BUSINESS_PROFILE,
-      businessName: t.businessName,
-      legalName: t.legalEntityName || t.businessName,
-      phone: t.ownerPhone,
-      email: t.ownerEmail,
-      address: t.address || '',
-      city: t.city || 'Chennai',
-      state: t.state || 'Tamil Nadu',
-      gstin: t.gstin || '',
-      currencySymbol: t.currencySymbol || '₹',
-      currencyCode: t.currency || 'INR',
-      invoicePrefix: `${t.businessName.slice(0, 3).toUpperCase()}/2026/`,
-    };
-    setBusinessProfile(profile);
-    localStorage.setItem(`tenant_${t.id}_business_profile`, JSON.stringify(profile));
-
-    window.dispatchEvent(new Event('saas_tenants_updated'));
-    window.dispatchEvent(new Event('settings_updated'));
-  };
-
-  const exitImpersonation = () => {
-    setImpersonatingTenantId(null);
-    localStorage.removeItem('saas_impersonating_tenant_id');
-    window.dispatchEvent(new Event('saas_tenants_updated'));
-  };
-
   const createTenant = (data: Parameters<typeof TenantEngine.createTenant>[0]): Tenant => {
     const created = TenantEngine.createTenant(data);
     refreshTenants();
@@ -350,9 +269,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const deleteTenant = (tenantId: string): boolean => {
     const res = TenantEngine.deleteTenant(tenantId);
-    if (impersonatingTenantId === tenantId) {
-      exitImpersonation();
-    }
     refreshTenants();
     return res;
   };
@@ -363,62 +279,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return updated;
   };
 
-  // Sync Tenants from backend database API on mount
-  useEffect(() => {
-    fetch('/api/tenants')
-      .then(res => res.json())
-      .then((data: any[]) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped: Tenant[] = data.map(b => {
-            const p = b.profileSettings || {};
-            const u = b.users?.[0] || {};
-            return {
-              id: b.id,
-              businessName: p.businessName || b.name,
-              legalEntityName: p.legalName || p.businessName || b.name,
-              ownerName: p.legalName || p.businessName || b.name,
-              ownerEmail: p.email || '',
-              ownerPhone: p.phone || '',
-              ownerAadhaar: p.gstin || '',
-              adminUsername: u.username || b.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
-              adminPasswordHash: u.password || 'admin123',
-              businessType: b.type || 'RETAIL',
-              currency: p.currencyCode || 'INR',
-              currencySymbol: p.currencySymbol || '₹',
-              gstin: p.gstin || '',
-              city: p.city || 'Chennai',
-              state: p.state || 'Tamil Nadu',
-              address: p.address || '',
-              subdomain: b.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-              subscription: {
-                plan: 'GROWTH',
-                status: b.isActive ? 'ACTIVE' : 'SUSPENDED',
-                startDate: b.createdAt || new Date().toISOString(),
-                expiryDate: new Date(Date.now() + 365*24*3600*1000).toISOString(),
-                monthlyFee: 1999,
-                maxStaff: 10,
-                maxInvoicesPerMonth: 2500,
-                allowWebsite: true,
-                allowCustomDomain: false,
-                autoRenew: true,
-              },
-              createdAt: b.createdAt || new Date().toISOString(),
-              updatedAt: b.updatedAt || new Date().toISOString(),
-            };
-          });
-          const existing = TenantEngine.getTenants();
-          const merged = [...existing];
-          mapped.forEach(mt => {
-            if (!merged.some(e => e.id === mt.id)) {
-              merged.push(mt);
-            }
-          });
-          TenantEngine.saveTenants(merged);
-          setTenants(merged);
-        }
-      })
-      .catch(() => {});
+  const syncTenantsWithBackend = useCallback(async (): Promise<Tenant[]> => {
+    try {
+      const res = await fetch('/api/tenants');
+      if (!res.ok) {
+        return TenantEngine.getTenants();
+      }
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const existing = TenantEngine.getTenants();
+        const existingMap = new Map(existing.map(t => [t.id, t]));
+
+        const mapped: Tenant[] = data.map((b: any) => {
+          const p = b.profileSettings || {};
+          const u = b.users?.[0] || {};
+          const prev = existingMap.get(b.id);
+
+          return {
+            id: b.id,
+            businessName: p.businessName || b.name,
+            legalEntityName: p.legalName || p.businessName || b.name,
+            ownerName: p.legalName || p.businessName || b.name,
+            ownerEmail: p.email || prev?.ownerEmail || '',
+            ownerPhone: p.phone || prev?.ownerPhone || '',
+            ownerAadhaar: p.gstin || prev?.ownerAadhaar || '',
+            adminUsername: u.username || prev?.adminUsername || b.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+            adminPasswordHash: u.password || prev?.adminPasswordHash || 'admin123',
+            businessType: b.type || prev?.businessType || 'RETAIL',
+            currency: p.currencyCode || prev?.currency || 'INR',
+            currencySymbol: p.currencySymbol || prev?.currencySymbol || '₹',
+            gstin: p.gstin || prev?.gstin || '',
+            city: p.city || prev?.city || 'Chennai',
+            state: p.state || prev?.state || 'Tamil Nadu',
+            address: p.address || prev?.address || '',
+            subdomain: prev?.subdomain || b.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+            subscription: prev?.subscription || {
+              plan: 'GROWTH',
+              status: b.isActive ? 'ACTIVE' : 'SUSPENDED',
+              startDate: b.createdAt || new Date().toISOString(),
+              expiryDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+              monthlyFee: 1999,
+              maxStaff: 10,
+              maxInvoicesPerMonth: 2500,
+              allowWebsite: true,
+              allowCustomDomain: false,
+              autoRenew: true,
+            },
+            createdAt: b.createdAt || prev?.createdAt || new Date().toISOString(),
+            updatedAt: b.updatedAt || prev?.updatedAt || new Date().toISOString(),
+            totalInvoicesCount: prev?.totalInvoicesCount || 0,
+            totalRevenueGenerated: prev?.totalRevenueGenerated || 0,
+            notes: prev?.notes || '',
+          };
+        });
+
+        TenantEngine.saveTenants(mapped);
+        setTenants(mapped);
+        return mapped;
+      }
+    } catch (e) {
+      console.warn('Failed to sync tenants from Supabase API:', e);
+    }
+    return TenantEngine.getTenants();
   }, []);
+
+  const refreshTenants = useCallback(() => {
+    setTenants(TenantEngine.getTenants());
+    syncTenantsWithBackend();
+  }, [syncTenantsWithBackend]);
+
+  // Sync Tenants from backend Supabase database on mount
+  useEffect(() => {
+    syncTenantsWithBackend();
+  }, [syncTenantsWithBackend]);
 
   const activeTemplate = useMemo(() => {
     const base = TemplateResolver.getTemplate(businessType);
@@ -515,13 +448,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // If already Super Admin session or valid tenant admin session, preserve it without generic backend override
-      const isSuper = localStorage.getItem('saas_super_admin_active') === 'true' || user?.role === 'SUPER_ADMIN';
-      if (isSuper) {
-        setIsLoading(false);
-        return;
-      }
-
       const savedProfile = localStorage.getItem('user_profile');
       if (savedProfile) {
         try {
@@ -535,7 +461,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const curBizId = activeTenant?.id || impersonatingTenantId || user?.businessId || localStorage.getItem('businessId') || '';
+        const curBizId = activeTenant?.id || user?.businessId || localStorage.getItem('businessId') || '';
         const response = await fetch('/api/auth/me', {
           headers: { 
             Authorization: `Bearer ${token}`,
@@ -558,7 +484,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const fetchSettings = async () => {
       try {
-        const curBizId = activeTenant?.id || impersonatingTenantId || user?.businessId || localStorage.getItem('businessId');
+        const curBizId = activeTenant?.id || user?.businessId || localStorage.getItem('businessId');
         if (!curBizId || curBizId === DEFAULT_BUSINESS_ID) return;
 
         const res = await fetch(`/api/settings?businessId=${curBizId}`, {
@@ -596,11 +522,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (newToken: string, newUser: User) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('user_profile', JSON.stringify(newUser));
-    if (newUser.role === 'SUPER_ADMIN' || newUser.username === 'superadmin') {
-      localStorage.setItem('saas_super_admin_active', 'true');
-    } else {
-      localStorage.removeItem('saas_super_admin_active');
-    }
     setToken(newToken);
     setUser(newUser);
     if (newUser.businessId) {
@@ -613,8 +534,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token');
     localStorage.removeItem('user_profile');
     localStorage.removeItem('employee_session');
-    localStorage.removeItem('saas_super_admin_active');
-    localStorage.removeItem('saas_impersonating_tenant_id');
     setToken(null);
     setUser(null);
     window.location.href = '/login';
@@ -639,12 +558,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         isLoading,
-        isSuperAdmin,
         tenants,
         activeTenant,
-        impersonatingTenant,
-        impersonateTenant,
-        exitImpersonation,
         createTenant,
         updateTenant,
         deleteTenant,

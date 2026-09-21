@@ -2114,7 +2114,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                 >
                   <div className="flex items-center justify-between font-bold text-[11px]">
                     <span className={rep.isSuperAdmin ? 'text-[#2563EB] flex items-center gap-1' : 'text-gray-700'}>
-                      {rep.isSuperAdmin ? '🛡️ Super Admin Support' : rep.author}
+                      {rep.isSuperAdmin ? '🛡️ Platform Support' : rep.author}
                     </span>
                     <span className="text-gray-400 font-mono text-[10px]">
                       {new Date(rep.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(rep.createdAt).toLocaleDateString('en-IN')}

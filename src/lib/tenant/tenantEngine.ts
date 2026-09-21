@@ -120,7 +120,6 @@ export const SAAS_PLANS: SaaSPlanConfig[] = [
 const DEFAULT_TENANTS: Tenant[] = [];
 
 const TENANTS_STORAGE_KEY = 'saas_tenants_master_registry';
-const SUPER_ADMIN_CREDENTIALS_KEY = 'saas_super_admin_credentials';
 
 export class TenantEngine {
   /**
@@ -418,7 +417,7 @@ export class TenantEngine {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer super-admin-token-seed',
+          'Authorization': 'Bearer admin-token',
           'x-business-id': tenant.id,
         },
         body: JSON.stringify({
@@ -466,7 +465,7 @@ export class TenantEngine {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer super-admin-token-seed',
+          'Authorization': 'Bearer admin-token',
           'x-business-id': updated.id,
         },
         body: JSON.stringify(updated)
@@ -493,7 +492,7 @@ export class TenantEngine {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer super-admin-token-seed',
+          'Authorization': 'Bearer admin-token',
           'x-business-id': tenant.id,
         },
         body: JSON.stringify(tenant)
@@ -515,7 +514,7 @@ export class TenantEngine {
       fetch(`/api/tenants/${tenantId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': 'Bearer super-admin-token-seed',
+          'Authorization': 'Bearer admin-token',
         }
       }).catch(() => {});
     } catch (e) {}
@@ -614,43 +613,6 @@ export class TenantEngine {
   }
 
   /**
-   * Super Admin Master Authentication check
-   */
-  static verifySuperAdmin(username: string, password: string): boolean {
-    if (!username) return false;
-    const u = username.trim().toLowerCase();
-    const p = password.trim();
-    
-    // Check custom saved superadmin credentials
-    try {
-      const saved = localStorage.getItem(SUPER_ADMIN_CREDENTIALS_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.username?.toLowerCase() === u && parsed.password === p) {
-          return true;
-        }
-      }
-    } catch {}
-
-    // Master Super Admin Only Credentials
-    const validSuperUsers = ['superadmin', 'super_admin', 'super-admin', 'admin@saas.com', 'saasadmin', 'saas_admin'];
-    const validSuperPasses = [
-      'Super@Admin2026#',
-      'superadmin123',
-      'superadmin',
-      'password',
-      'super123',
-      'Admin@2026'
-    ];
-
-    if (validSuperUsers.includes(u) && validSuperPasses.includes(p)) {
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
    * Resets tenant admin credentials
    */
   static resetTenantPassword(tenantId: string, newPass: string): boolean {
@@ -661,34 +623,6 @@ export class TenantEngine {
     list[idx].updatedAt = new Date().toISOString();
     this.saveTenants(list);
     return true;
-  }
-
-  /**
-   * Updates master super admin password
-   */
-  static setSuperAdminPassword(newPassword: string, username = 'superadmin'): void {
-    try {
-      localStorage.setItem(SUPER_ADMIN_CREDENTIALS_KEY, JSON.stringify({
-        username,
-        password: newPassword,
-        updatedAt: new Date().toISOString()
-      }));
-    } catch (e) {
-      console.error('Failed to update Super Admin credentials', e);
-    }
-  }
-
-  /**
-   * Retrieves master super admin info
-   */
-  static getSuperAdminCredentials(): { username: string; updatedAt?: string } {
-    try {
-      const saved = localStorage.getItem(SUPER_ADMIN_CREDENTIALS_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch {}
-    return { username: 'superadmin' };
   }
 
   /**

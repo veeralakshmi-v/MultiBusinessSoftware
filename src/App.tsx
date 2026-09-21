@@ -4,7 +4,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import DashboardLayout from './layouts/DashboardLayout';
 import ErrorBoundary from './components/ErrorBoundary';
-import SuperAdminImpersonationBanner from './components/SuperAdminImpersonationBanner';
 import { Loader2 } from 'lucide-react';
 
 // Lazy Loaded Pages
@@ -23,7 +22,6 @@ const StaffAttendance = lazy(() => import('./pages/StaffAttendance'));
 const EmployeeDirectory = lazy(() => import('./pages/EmployeeDirectory'));
 const WebsiteBuilder    = lazy(() => import('./pages/WebsiteBuilder'));
 const PublicStorefront  = lazy(() => import('./pages/PublicStorefront'));
-const SuperAdmin        = lazy(() => import('./pages/SuperAdmin'));
 
 function PageLoader() {
   return (
@@ -36,12 +34,12 @@ function PageLoader() {
 export function isRouteAllowed(user: any, pathname: string): boolean {
   if (!user) return false;
   const role = user.role || 'STAFF';
-  if (role === 'ADMIN' || role === 'SUPER_ADMIN' || user.username === 'superadmin' || user.username === 'admin') return true;
+  if (role === 'ADMIN' || user.username === 'admin') return true;
   if (pathname.startsWith('/dashboard/attendance')) return true;
 
   const appAccess = user.applicationAccess;
   if (appAccess && typeof appAccess === 'string' && appAccess.trim().length > 0) {
-    if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules') || appAccess.includes('Super Admin')) {
+    if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules')) {
       return true;
     }
     if (appAccess.includes('No Access')) {
@@ -114,19 +112,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-/** Guard for the Super Admin Control Center */
-function SuperAdminRoute({ children }: { children: React.ReactNode }) {
-  const { isLoading } = useAuth();
-  if (isLoading) return <PageLoader />;
-  return <>{children}</>;
-}
-
 export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <SuperAdminImpersonationBanner />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* ── PUBLIC ROUTES ───────────────────────────────── */}
@@ -137,16 +127,6 @@ export default function App() {
               <Route path="/store/:storeSlug" element={<PublicStorefront />} />
               <Route path="/website" element={<PublicStorefront />} />
               <Route path="/website/:storeSlug" element={<PublicStorefront />} />
-
-              {/* ── SUPER ADMIN SAAS CONTROL CENTER ─────────────── */}
-              <Route
-                path="/super-admin"
-                element={
-                  <SuperAdminRoute>
-                    <SuperAdmin />
-                  </SuperAdminRoute>
-                }
-              />
 
               {/* ── EMPLOYEE ROUTES ─────────────────────────────── */}
               <Route path="/employee-login" element={<EmployeeLogin />} />

@@ -102,11 +102,8 @@ let mockSettings = {
 
 // Request Tenant Context Helper
 function getRequestContext(req: express.Request) {
-  const authHeader = req.headers.authorization || '';
-  const isSuper = authHeader.toLowerCase().includes('super') || authHeader.includes('super-admin');
   const businessId = (req.headers['x-business-id'] as string) || (req.query.businessId as string) || (req.body?.businessId as string) || DEMO_BUSINESS_ID;
   return {
-    isSuper,
     businessId: businessId.trim(),
   };
 }
@@ -155,24 +152,6 @@ app.post('/api/auth/login', async (req, res) => {
 
   if (!cleanUser || !cleanPass) {
     return res.status(400).json({ error: 'Username and password are required' });
-  }
-
-  // Check Super Admin
-  if (cleanUser.toLowerCase() === 'superadmin' || cleanUser.toLowerCase() === 'admin@saas.com') {
-    const validSuperPasses = ['Super@Admin2026#', 'superadmin123', 'superadmin', 'password'];
-    if (validSuperPasses.includes(cleanPass)) {
-      return res.json({
-        token: `super-admin-token-${Date.now()}`,
-        user: {
-          id: 'user-super-admin',
-          username: 'superadmin',
-          role: 'SUPER_ADMIN',
-          applicationAccess: 'Master Super Admin (Global Platform Access)',
-        }
-      });
-    } else {
-      return res.status(401).json({ error: 'Invalid Super Admin credentials' });
-    }
   }
 
   try {
@@ -243,7 +222,6 @@ app.get('/api/tenants', async (req, res) => {
 });
 
 app.post('/api/tenants', async (req, res) => {
-  const { isSuper } = getRequestContext(req);
   const data = req.body;
   if (!data.id || !data.businessName) {
     return res.status(400).json({ error: 'Business ID and Business Name are required' });
@@ -371,14 +349,14 @@ app.delete('/api/tenants/:id', async (req, res) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
-  const { isSuper, businessId } = getRequestContext(req);
+  const { businessId } = getRequestContext(req);
   res.json({
     user: {
-      id: isSuper ? 'user-super-admin' : 'user-admin',
-      username: isSuper ? 'superadmin' : 'admin',
-      role: isSuper ? 'SUPER_ADMIN' : 'ADMIN',
-      businessId: isSuper ? undefined : businessId,
-      businessType: isSuper ? undefined : 'RETAIL',
+      id: 'user-admin',
+      username: 'admin',
+      role: 'ADMIN',
+      businessId: businessId,
+      businessType: 'RETAIL',
     },
   });
 });
@@ -594,9 +572,9 @@ app.post('/api/settings', async (req, res) => {
 
 // 3.5 Users / Staff & Employee Management API
 app.get('/api/users', async (req, res) => {
-  const { isSuper, businessId } = getRequestContext(req);
+  const { businessId } = getRequestContext(req);
   try {
-    const whereClause = isSuper && req.query.allBusinesses === 'true' ? {} : { businessId };
+    const whereClause = { businessId };
     const users = await prisma.user.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' }
@@ -636,9 +614,9 @@ app.get('/api/users', async (req, res) => {
 });
 
 app.get('/api/employees', async (req, res) => {
-  const { isSuper, businessId } = getRequestContext(req);
+  const { businessId } = getRequestContext(req);
   try {
-    const whereClause = isSuper && req.query.allBusinesses === 'true' ? {} : { businessId };
+    const whereClause = { businessId };
     const employees = await prisma.employee.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' }
@@ -655,15 +633,8 @@ app.post('/api/users', async (req, res) => {
   const effectiveName = (name || fullName || staffName || effectiveUsername).trim();
   if (!effectiveUsername) return res.status(400).json({ error: 'Username or phone is required' });
 
-  const { isSuper, businessId } = getRequestContext(req);
+  const { businessId } = getRequestContext(req);
   const targetRole = (role || 'CASHIER').toUpperCase();
-
-  // Security Policy: Business Admin CANNOT create or assign ADMIN or SUPER_ADMIN
-  if (!isSuper && (targetRole === 'ADMIN' || targetRole === 'SUPER_ADMIN')) {
-    return res.status(403).json({
-      error: 'Forbidden: Business Admin cannot create or assign Admin or Super Admin roles. Only Super Admin can provision Admin accounts.'
-    });
-  }
 
   if (phone && !isValidPhone(phone)) {
     return res.status(400).json({ error: 'Phone number must be exactly 10 digits' });
@@ -743,15 +714,8 @@ app.post('/api/employees', async (req, res) => {
   const effectiveUsername = (phone || username || '').trim();
   const effectiveName = (name || fullName || staffName || effectiveUsername).trim();
 
-  const { isSuper, businessId } = getRequestContext(req);
+  const { businessId } = getRequestContext(req);
   const targetRole = (role || 'CASHIER').toUpperCase();
-
-  // Security Policy: Business Admin CANNOT create or assign ADMIN or SUPER_ADMIN
-  if (!isSuper && (targetRole === 'ADMIN' || targetRole === 'SUPER_ADMIN')) {
-    return res.status(403).json({
-      error: 'Forbidden: Business Admin cannot create or assign Admin or Super Admin roles.'
-    });
-  }
 
   if (phone && !isValidPhone(phone)) {
     return res.status(400).json({ error: 'Phone number must be exactly 10 digits' });

@@ -17,9 +17,9 @@ import {
 } from '../types/website';
 
 export default function WebsiteBuilder() {
-  const { businessProfile, activeTenant, impersonatingTenant, user } = useAuth();
-  const currentTenantId = impersonatingTenant?.id || activeTenant?.id || user?.businessId || 'biz-apex-supermarket';
-  const currentTenantName = impersonatingTenant?.businessName || activeTenant?.businessName || businessProfile.businessName || 'APEX ENTERPRISE';
+  const { businessProfile, activeTenant, user } = useAuth();
+  const currentTenantId = activeTenant?.id || user?.businessId || 'biz-apex-supermarket';
+  const currentTenantName = activeTenant?.businessName || businessProfile.businessName || 'APEX ENTERPRISE';
 
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<
@@ -56,16 +56,16 @@ export default function WebsiteBuilder() {
       } catch {}
     }
 
-    const bType = (impersonatingTenant?.businessType || activeTenant?.businessType || 'RETAIL') as keyof typeof INDUSTRY_PRESETS;
+    const bType = (activeTenant?.businessType || 'RETAIL') as keyof typeof INDUSTRY_PRESETS;
     const preset = INDUSTRY_PRESETS[bType]?.config || {};
     return {
       ...DEFAULT_WEBSITE_CONFIG,
       ...preset,
       brandName: currentTenantName,
       storeSlug: tSlug,
-      phone: impersonatingTenant?.ownerPhone || activeTenant?.ownerPhone || businessProfile.phone || DEFAULT_WEBSITE_CONFIG.phone,
-      whatsapp: impersonatingTenant?.ownerPhone || activeTenant?.ownerPhone || businessProfile.phone || DEFAULT_WEBSITE_CONFIG.whatsapp,
-      email: impersonatingTenant?.ownerEmail || activeTenant?.ownerEmail || businessProfile.email || DEFAULT_WEBSITE_CONFIG.email,
+      phone: activeTenant?.ownerPhone || businessProfile.phone || DEFAULT_WEBSITE_CONFIG.phone,
+      whatsapp: activeTenant?.ownerPhone || businessProfile.phone || DEFAULT_WEBSITE_CONFIG.whatsapp,
+      email: activeTenant?.ownerEmail || businessProfile.email || DEFAULT_WEBSITE_CONFIG.email,
     };
   };
 

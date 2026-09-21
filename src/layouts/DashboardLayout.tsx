@@ -13,7 +13,7 @@ import { ThemeEngine } from '../lib/theme/themeEngine';
 import { TenantEngine } from '../lib/tenant/tenantEngine';
 
 export default function DashboardLayout() {
-  const { user, logout, businessProfile, isSuperAdmin, activeTenant, impersonatingTenant } = useAuth();
+  const { user, logout, businessProfile, activeTenant } = useAuth();
   const location = useLocation();
 
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -47,7 +47,7 @@ export default function DashboardLayout() {
   }
 
   const allTenants = TenantEngine.getTenants();
-  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '') || (allTenants.length > 0 ? allTenants[0] : null);
+  const effectiveTenant = activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '') || (allTenants.length > 0 ? allTenants[0] : null);
   const brandTitle = effectiveTenant?.businessName || (businessProfile.businessName !== 'My Business' ? businessProfile.businessName : (effectiveTenant?.businessName || "My Business"));
   const brandTagline = (effectiveTenant ? `${effectiveTenant.businessType} Management POS` : null) || businessProfile.tagline || "Universal Billing System";
 
@@ -56,12 +56,12 @@ export default function DashboardLayout() {
     // Attendance is always accessible to ALL roles
     if (href === '/dashboard/attendance') return true;
 
-    if (!role || role === 'ADMIN' || role === 'SUPER_ADMIN' || user?.username === 'superadmin' || user?.username === 'admin') return true;
+    if (!role || role === 'ADMIN' || user?.username === 'admin') return true;
 
     // Check custom applicationAccess permissions if set for the employee
     const appAccess = user?.applicationAccess;
     if (appAccess && appAccess.trim().length > 0) {
-      if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules') || appAccess.includes('Super Admin')) {
+      if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules')) {
         return true;
       }
       if (appAccess.includes('No Access')) {
@@ -236,27 +236,6 @@ export default function DashboardLayout() {
                 </Link>
               );
             })}
-
-            {/* Super Admin Control Center Link (if Super Admin role) */}
-            {isSuperAdmin && (
-              <Link
-                to="/super-admin"
-                title={isCollapsed ? "Super Admin Portal" : undefined}
-                className={cn(
-                  'flex items-center px-3 py-3 text-sm font-bold rounded-xl transition-all duration-150 relative group mt-3',
-                  isCollapsed ? "justify-center" : "justify-start",
-                  'bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-900 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-300'
-                )}
-              >
-                <ShieldCheck className={cn('h-5 w-5 flex-shrink-0 text-amber-600', isCollapsed ? '' : 'mr-3')} />
-                {!isCollapsed && <span className="truncate">Super Admin</span>}
-                {isCollapsed && (
-                  <div className="absolute left-full ml-3 px-3 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                    Super Admin Portal
-                  </div>
-                )}
-              </Link>
-            )}
           </nav>
         </div>
 
@@ -418,18 +397,6 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
-            {/* Quick Super Admin Button (if Super Admin role) */}
-            {isSuperAdmin && (
-              <Link
-                to="/super-admin"
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs rounded-xl shadow-xs transition-all"
-                title="Super Admin SaaS Control Center"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span className="hidden md:inline">Super Admin</span>
-              </Link>
-            )}
-
             {/* Quick Theme Customizer Button */}
             <Link
               to="/dashboard/settings?tab=theme"
@@ -444,7 +411,6 @@ export default function DashboardLayout() {
             {/* Quick Open Website Button */}
             {(() => {
               const currentStoreSlug = (
-                impersonatingTenant?.businessName ||
                 activeTenant?.businessName ||
                 businessProfile.businessName ||
                 'apex-enterprise'
@@ -489,7 +455,7 @@ export default function DashboardLayout() {
 
             {/* User Badge */}
             {(() => {
-              const isEmp = user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.username !== 'superadmin';
+              const isEmp = user.role !== 'ADMIN' && user.username !== 'admin';
               const nameToShow = isEmp ? ((user as any).name || (user as any).fullName || user.username) : (effectiveTenant?.ownerName || (user as any).fullName || user.username);
               const subToShow = isEmp ? `${user.role} · Staff` : (effectiveTenant?.adminUsername ? `@${effectiveTenant.adminUsername} • ${user.role}` : user.role);
               const initials = (nameToShow || user.username).substring(0, 2).toUpperCase();

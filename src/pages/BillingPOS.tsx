@@ -135,10 +135,10 @@ function formatUnitQty(qty: number, unit?: string) {
 }
 
 export default function BillingPOS() {
-  const { businessProfile, activeTenant, impersonatingTenant, user, businessId } = useAuth();
+  const { businessProfile, activeTenant, user, businessId } = useAuth();
   const allTenants = TenantEngine.getTenants();
-  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '') || (allTenants.length > 0 ? allTenants[0] : null);
-  const currentBusinessId = effectiveTenant?.id || impersonatingTenant?.id || activeTenant?.id || businessId || user?.businessId || localStorage.getItem('businessId') || (allTenants.length > 0 ? allTenants[0].id : 'biz-default-business');
+  const effectiveTenant = activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '') || (allTenants.length > 0 ? allTenants[0] : null);
+  const currentBusinessId = effectiveTenant?.id || activeTenant?.id || businessId || user?.businessId || localStorage.getItem('businessId') || (allTenants.length > 0 ? allTenants[0].id : 'biz-default-business');
   const tenantPrefix = `tenant_${currentBusinessId}_`;
   const currency = effectiveTenant?.currencySymbol || businessProfile.currencySymbol || '₹';
 

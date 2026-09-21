@@ -59,7 +59,6 @@ export class TenantDatabaseManager {
    */
   static getActiveTenantId(): string {
     return (
-      localStorage.getItem('saas_impersonating_tenant_id') ||
       localStorage.getItem('businessId') ||
       'biz-default-business'
     );
@@ -188,8 +187,7 @@ export class TenantDatabaseManager {
     // Proxy getItem
     localStorage.getItem = function (key: string): string | null {
       if (isIsolatedTable(key)) {
-        const activeTenantId = originalGetItem('saas_impersonating_tenant_id') ||
-          originalGetItem('businessId') ||
+        const activeTenantId = originalGetItem('businessId') ||
           'biz-default-business';
         const tenantKey = `tenant_${activeTenantId}_${key}`;
         const tenantVal = originalGetItem(tenantKey);
@@ -204,8 +202,7 @@ export class TenantDatabaseManager {
     // Proxy setItem
     localStorage.setItem = function (key: string, value: string): void {
       if (isIsolatedTable(key)) {
-        const activeTenantId = originalGetItem('saas_impersonating_tenant_id') ||
-          originalGetItem('businessId') ||
+        const activeTenantId = originalGetItem('businessId') ||
           'biz-default-business';
         const tenantKey = `tenant_${activeTenantId}_${key}`;
         return originalSetItem(tenantKey, value);
@@ -216,8 +213,7 @@ export class TenantDatabaseManager {
     // Proxy removeItem
     localStorage.removeItem = function (key: string): void {
       if (isIsolatedTable(key)) {
-        const activeTenantId = originalGetItem('saas_impersonating_tenant_id') ||
-          originalGetItem('businessId') ||
+        const activeTenantId = originalGetItem('businessId') ||
           'biz-default-business';
         const tenantKey = `tenant_${activeTenantId}_${key}`;
         return originalRemoveItem(tenantKey);

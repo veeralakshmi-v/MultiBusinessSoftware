@@ -51,7 +51,6 @@ export default function PublicStorefront() {
   const getStoreConfig = (slug?: string): WebsiteConfig => {
     const clean = slug ? slug.toLowerCase().trim() : '';
     const tenants = TenantEngine.getTenants();
-    const impId = localStorage.getItem('saas_impersonating_tenant_id');
     const bizId = localStorage.getItem('businessId');
 
     const matchedTenant = clean
@@ -61,7 +60,7 @@ export default function PublicStorefront() {
           toSlug(t.businessName) === clean ||
           t.businessName.toLowerCase() === clean
         )
-      : (tenants.find(t => t.id === impId || t.id === bizId) || tenants[0]);
+      : (tenants.find(t => t.id === bizId) || tenants[0]);
 
     if (matchedTenant) {
       const tKey = `tenant_${matchedTenant.id}_website_config`;

@@ -40,39 +40,7 @@ export default function EmployeeLogin() {
     setLoading(true);
 
     setTimeout(async () => {
-      // 1. Super Admin Master Credentials (access to attendance for Super Admin)
-      const superUsers = ['superadmin', 'super_admin', 'super-admin', 'admin@saas.com', 'saasadmin', 'saas_admin'];
-      if (superUsers.includes(cleanUser.toLowerCase())) {
-        if (TenantEngine.verifySuperAdmin(cleanUser, cleanPin)) {
-          const superSession = {
-            id: 'user-super-admin',
-            name: 'Master Super Admin',
-            username: 'superadmin',
-            role: 'SUPER_ADMIN',
-            phone: '',
-            email: 'admin@saas.com',
-            applicationAccess: 'Master Super Admin (Global Platform Access)',
-          };
-          localStorage.setItem('employee_session', JSON.stringify(superSession));
-
-          login('demo-live-token-superadmin', {
-            id: 'user-super-admin',
-            username: 'superadmin',
-            role: 'SUPER_ADMIN',
-            applicationAccess: 'Master Super Admin (Global Platform Access)',
-          });
-
-          setLoading(false);
-          navigate('/employee');
-          return;
-        } else {
-          setLoading(false);
-          setError('Invalid Super Admin password or PIN.');
-          return;
-        }
-      }
-
-      // 2. Check in universal staff list across all businesses
+      // 1. Check in universal staff list across all businesses
       const allStaff: any[] = [];
       try {
         const staffRaw = localStorage.getItem('universal_staff_list');

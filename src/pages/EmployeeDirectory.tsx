@@ -96,15 +96,15 @@ export function getDefaultRoleForCategory(cat: string): string {
 
 export default function EmployeeDirectory() {
   const navigate = useNavigate();
-  const { user, activeTenant, impersonatingTenant, businessId } = useAuth();
+  const { user, activeTenant, businessId } = useAuth();
   const allTenants = TenantEngine.getTenants();
-  const currentBusinessId = impersonatingTenant?.id || activeTenant?.id || businessId || user?.businessId || localStorage.getItem('businessId') || (allTenants.length > 0 ? allTenants[0].id : 'biz-default-business');
+  const currentBusinessId = activeTenant?.id || businessId || user?.businessId || localStorage.getItem('businessId') || (allTenants.length > 0 ? allTenants[0].id : 'biz-default-business');
   const tenantPrefix = `tenant_${currentBusinessId}_`;
-  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId) || (allTenants.length > 0 ? allTenants[0] : null);
+  const effectiveTenant = activeTenant || TenantEngine.getTenantById(currentBusinessId) || (allTenants.length > 0 ? allTenants[0] : null);
 
   const [staffList, setStaffList] = useState<StaffUser[]>(() => {
     const all = TenantEngine.getTenants();
-    const eff = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId) || (all.length > 0 ? all[0] : null);
+    const eff = activeTenant || TenantEngine.getTenantById(currentBusinessId) || (all.length > 0 ? all[0] : null);
     const prefix = eff ? `tenant_${eff.id}_` : tenantPrefix;
     const saved = localStorage.getItem(`${prefix}universal_staff_list`) || localStorage.getItem('universal_staff_list');
     if (saved) {
@@ -190,7 +190,7 @@ export default function EmployeeDirectory() {
   // Load and reload staff list when business changes
   useEffect(() => {
     const all = TenantEngine.getTenants();
-    const eff = impersonatingTenant || activeTenant || TenantEngine.getTenantById(currentBusinessId) || (all.length > 0 ? all[0] : null);
+    const eff = activeTenant || TenantEngine.getTenantById(currentBusinessId) || (all.length > 0 ? all[0] : null);
     const prefix = eff ? `tenant_${eff.id}_` : tenantPrefix;
     const saved = localStorage.getItem(`${prefix}universal_staff_list`) || localStorage.getItem('universal_staff_list');
     let currentList: StaffUser[] = [];
@@ -268,7 +268,7 @@ export default function EmployeeDirectory() {
     });
 
     setStaffList(deduped.length > 0 ? deduped : currentList);
-  }, [currentBusinessId, tenantPrefix, activeTenant, impersonatingTenant]);
+  }, [currentBusinessId, tenantPrefix, activeTenant]);
 
   // Sync strictly to tenant isolated database namespace
   useEffect(() => {
@@ -477,10 +477,10 @@ export default function EmployeeDirectory() {
         : selectedAppAccess.join(', ');
     const computedRole = isCustomRole ? (customRoleTitle.trim() || 'CUSTOM') : staffRole;
     
-    // Security Guard: Client Business Admins cannot create ADMIN or SUPER_ADMIN roles
+    // Store Admins create non-admin staff roles (Manager, Cashier, Staff, etc.)
     const upperRole = computedRole.trim().toUpperCase();
-    if ((upperRole === 'ADMIN' || upperRole === 'SUPER_ADMIN') && (!selectedStaff || selectedStaff.role !== 'ADMIN')) {
-      alert('Security Policy: Client Business Admins can only create non-admin roles (Manager, Cashier, Staff, etc.). Only Super Admin can assign Business Admins.');
+    if (upperRole === 'ADMIN' && (!selectedStaff || selectedStaff.role !== 'ADMIN')) {
+      alert('Note: The primary Administrator account is configured for this store. You can create staff accounts with Manager, Cashier, Staff, or Custom roles.');
       return;
     }
 

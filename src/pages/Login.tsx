@@ -14,7 +14,6 @@ export default function Login() {
   const params = new URLSearchParams(location.search);
   const redirectTo = params.get('redirect') || '/dashboard';
   const forcePrompt = params.get('prompt') === 'true';
-  const isTargetingSuperAdmin = redirectTo.startsWith('/super-admin');
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -24,27 +23,18 @@ export default function Login() {
 
   // If user is already logged in:
   if (user && !forcePrompt) {
-    if (isTargetingSuperAdmin) {
-      if (user.role === 'SUPER_ADMIN') {
-        return <Navigate to="/super-admin" replace />;
-      }
-    } else {
-      if (user.role !== 'SUPER_ADMIN') {
-        return <Navigate to={redirectTo || '/dashboard'} replace />;
-      }
-    }
+    return <Navigate to={redirectTo || '/dashboard'} replace />;
   }
 
   const performLogin = (userLoginName: string, userRole: Role = 'ADMIN', extraData?: any) => {
     const token = 'demo-live-token-' + Date.now();
-    const isSuper = userRole === 'SUPER_ADMIN' || userLoginName === 'superadmin';
     const userObj = {
-      id: extraData?.id || (isSuper ? 'user-super-admin' : 'user-admin'),
-      username: userLoginName || (isSuper ? 'superadmin' : 'admin'),
-      role: isSuper ? ('SUPER_ADMIN' as Role) : userRole,
-      businessId: isSuper ? undefined : (extraData?.businessId || localStorage.getItem('businessId') || 'biz-default-business'),
-      businessType: isSuper ? undefined : (extraData?.businessType || (localStorage.getItem('businessType') as BusinessType) || 'RETAIL'),
-      applicationAccess: extraData?.applicationAccess || (isSuper ? 'Master Super Admin (Global Platform Access)' : 'Full Access (All Modules & POS)')
+      id: extraData?.id || 'user-admin',
+      username: userLoginName || 'admin',
+      role: userRole || 'ADMIN',
+      businessId: extraData?.businessId || localStorage.getItem('businessId') || 'biz-default-business',
+      businessType: extraData?.businessType || (localStorage.getItem('businessType') as BusinessType) || 'RETAIL',
+      applicationAccess: extraData?.applicationAccess || 'Full Access (All Modules & POS)'
     };
 
     if (extraData?.employeeSession) {
@@ -59,11 +49,6 @@ export default function Login() {
     }
 
     login(token, userObj as any);
-
-    if (isSuper) {
-      window.location.href = '/super-admin';
-      return;
-    }
 
     // Role-based target navigation
     const target = redirectTo && redirectTo !== '/login' ? redirectTo : '/dashboard';
@@ -109,23 +94,16 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // 1. Super Admin Login verification
-      const superUsers = ['superadmin', 'super_admin', 'super-admin', 'admin@saas.com', 'saasadmin', 'saas_admin'];
-      if (superUsers.includes(cleanUser.toLowerCase())) {
-        if (TenantEngine.verifySuperAdmin(cleanUser, cleanPass)) {
-          performLogin('superadmin', 'SUPER_ADMIN', {
-            id: 'user-super-admin',
-            applicationAccess: 'Master Super Admin (Global Platform Access)'
-          });
-          return;
-        } else {
-          setError('Invalid Super Admin credentials. Please check your master password.');
-          setLoading(false);
-          return;
-        }
+      // 1. Direct Default Admin Authentication
+      if (cleanUser.toLowerCase() === 'admin' && (cleanPass === 'admin123' || cleanPass === 'admin' || cleanPass === '1234')) {
+        performLogin('admin', 'ADMIN', {
+          id: 'user-admin',
+          applicationAccess: 'Full Access (All Modules & POS)'
+        });
+        return;
       }
 
-      // 2. Client Business Admin Authentication (Created exclusively by Super Admin)
+      // 2. Client Business Admin Authentication
       const matchedTenant = TenantEngine.findTenantByLogin(cleanUser);
       if (matchedTenant) {
         const isPasswordCorrect =
@@ -134,7 +112,7 @@ export default function Login() {
 
         if (isPasswordCorrect) {
           if (matchedTenant.subscription?.status === 'SUSPENDED') {
-            setError('This client business account is currently suspended. Please contact platform support.');
+            setError('This business account is currently suspended. Please contact platform support.');
             setLoading(false);
             return;
           }
@@ -148,7 +126,7 @@ export default function Login() {
           });
           return;
         } else {
-          setError(`Invalid password for "${matchedTenant.businessName}". Please enter the administrator password configured by Super Admin.`);
+          setError(`Invalid password for "${matchedTenant.businessName}". Please enter the correct administrator password.`);
           setLoading(false);
           return;
         }
@@ -164,7 +142,7 @@ export default function Login() {
         if (apiRes.ok) {
           const apiData = await apiRes.json();
           if (apiData && apiData.user) {
-            if (apiData.user.role === 'ADMIN' || apiData.user.role === 'SUPER_ADMIN') {
+            if (apiData.user.role === 'ADMIN') {
               performLogin(apiData.user.username, apiData.user.role || 'ADMIN', {
                 id: apiData.user.id,
                 businessId: apiData.user.businessId,
@@ -267,7 +245,7 @@ export default function Login() {
       }
 
       // 5. No valid Admin match found - Reject invalid credentials
-      setError('Invalid username or password. Business administrator accounts must be created by Super Admin.');
+      setError('Invalid username or password. Please verify your login credentials.');
     } catch (err: any) {
       setError(err.message || 'Authentication error occurred.');
     } finally {
@@ -291,7 +269,7 @@ export default function Login() {
           Store Sign In
         </h2>
         <p className="mt-2 text-center text-xs font-mono font-bold text-gray-400 uppercase tracking-wider">
-          Multi-Business SaaS & Billing Platform
+          Multi-Business Billing & POS Platform
         </p>
       </div>
 

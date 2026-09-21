@@ -65,9 +65,9 @@ function paymentBadgeClass(method: string) {
 }
 
 export default function Dashboard() {
-  const { businessProfile, activeTenant, impersonatingTenant, user } = useAuth();
+  const { businessProfile, activeTenant, user } = useAuth();
   const allTenants = TenantEngine.getTenants();
-  const effectiveTenant = impersonatingTenant || activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '') || (allTenants.length > 0 ? allTenants[0] : null);
+  const effectiveTenant = activeTenant || TenantEngine.getTenantById(user?.businessId || localStorage.getItem('businessId') || '') || (allTenants.length > 0 ? allTenants[0] : null);
   const currentBusinessName = effectiveTenant?.businessName || (businessProfile.businessName !== 'My Business' ? businessProfile.businessName : (effectiveTenant?.businessName || 'My Business'));
   const currency = effectiveTenant?.currencySymbol || businessProfile.currencySymbol || '₹';
   const navigate = useNavigate();
