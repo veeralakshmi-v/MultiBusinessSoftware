@@ -36,12 +36,15 @@ export interface ThemeConfig {
   logoUrl?: string;
   brandTitle: string;
   brandTagline: string;
-  colorPreset: string;
+  colorPreset?: string;
   primaryBgColor: string;    // Primary background color hex
   secondaryBtnColor: string; // Secondary button color hex
   textColor: string;         // Custom font / text color hex
   textAccentColor: string;   // Custom font accent color hex
+  cardBgColor?: string;      // Custom card / surface background hex
   fontFamily: string;
+  customFontName?: string;
+  fontWeight?: string;
   fontSize: FontSizeOption;
   iconStyle: IconStyle;
   invoiceTheme: InvoiceThemeId;
@@ -52,5 +55,6 @@ export interface ThemeConfig {
   showLogoOnInvoice: boolean;
   showQrCodeOnInvoice: boolean;
 }
+
 
 

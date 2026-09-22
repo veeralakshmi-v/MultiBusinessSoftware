@@ -163,12 +163,17 @@ export const COLOR_PRESETS: ColorPreset[] = [
 export const FONT_PRESETS: FontPreset[] = [
   { id: 'Outfit', name: 'Outfit (Default Modern Sans)', fontFamily: "'Outfit', sans-serif", category: 'Modern Sans' },
   { id: 'Inter', name: 'Inter UI (Clean Enterprise)', fontFamily: "'Inter', sans-serif", category: 'Clean Enterprise' },
-  { id: 'Roboto', name: 'Roboto (Standard Sans)', fontFamily: "'Roboto', sans-serif", category: 'Modern Sans' },
   { id: 'Plus Jakarta Sans', name: 'Plus Jakarta Sans (SaaS Modern)', fontFamily: "'Plus Jakarta Sans', sans-serif", category: 'Modern Sans' },
   { id: 'Poppins', name: 'Poppins (Friendly Geometric)', fontFamily: "'Poppins', sans-serif", category: 'Modern Sans' },
+  { id: 'Roboto', name: 'Roboto (Standard Sans)', fontFamily: "'Roboto', sans-serif", category: 'Modern Sans' },
+  { id: 'Montserrat', name: 'Montserrat (Bold Modern)', fontFamily: "'Montserrat', sans-serif", category: 'Modern Sans' },
+  { id: 'Open Sans', name: 'Open Sans (Neutral Clean)', fontFamily: "'Open Sans', sans-serif", category: 'Modern Sans' },
+  { id: 'Lato', name: 'Lato (Warm Corporate)', fontFamily: "'Lato', sans-serif", category: 'Modern Sans' },
   { id: 'Playfair Display', name: 'Playfair Display (Editorial Serif)', fontFamily: "'Playfair Display', serif", category: 'Luxury Serif' },
   { id: 'Cinzel', name: 'Cinzel Decorative', fontFamily: "'Cinzel', serif", category: 'Luxury Serif' },
+  { id: 'Merriweather', name: 'Merriweather (Classic Editorial)', fontFamily: "'Merriweather', serif", category: 'Luxury Serif' },
   { id: 'JetBrains Mono', name: 'JetBrains Monospace', fontFamily: "'JetBrains Mono', monospace", category: 'Technical Mono' },
+  { id: 'Fira Code', name: 'Fira Code (Developer Mono)', fontFamily: "'Fira Code', monospace", category: 'Technical Mono' },
   { id: 'System', name: 'System Default (Native OS)', fontFamily: "system-ui, -apple-system, sans-serif", category: 'Clean Enterprise' },
 ];
 
@@ -215,6 +220,25 @@ export class ThemeEngine {
   private static STORAGE_KEY = 'multi_biz_theme_config';
 
   /**
+   * Dynamically loads a Google Font by name into the document head
+   */
+  static loadGoogleFont(fontName: string): void {
+    if (typeof document === 'undefined' || !fontName) return;
+    const cleanName = fontName.replace(/['",]/g, '').trim();
+    const isSystem = ['system', 'system-ui', '-apple-system', 'sans-serif', 'serif', 'monospace', 'arial', 'helvetica'].includes(cleanName.toLowerCase());
+    if (isSystem || !cleanName) return;
+
+    const linkId = `google-font-${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+    if (!document.getElementById(linkId)) {
+      const link = document.createElement('link');
+      link.id = linkId;
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanName).replace(/%20/g, '+')}:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap`;
+      document.head.appendChild(link);
+    }
+  }
+
+  /**
    * Applies the theme configuration to the DOM root dynamically
    */
   static applyTheme(config: ThemeConfig): void {
@@ -222,39 +246,26 @@ export class ThemeEngine {
     const root = document.documentElement;
 
     // 1. Color Palette Resolution
-    const preset = COLOR_PRESETS.find(c => c.id === config.colorPreset) || COLOR_PRESETS[0];
-
-    const primaryBg = config.primaryBgColor || preset.primaryBg;
-    const secondaryBtn = config.secondaryBtnColor || preset.secondaryBtn;
+    const primaryBg = config.primaryBgColor || '#F8FAFC';
+    const secondaryBtn = config.secondaryBtnColor || '#2563EB';
     
     // Check if background is light color
     const isLightBg = getContrastTextColor(primaryBg) === '#0A0A0B';
 
-    const textColor = config.textColor || preset.textColor || (isLightBg ? '#1A1A1C' : '#FFFFFF');
-    const textAccentColor = config.textAccentColor || preset.textAccentColor || secondaryBtn;
+    const textColor = config.textColor || (isLightBg ? '#0F172A' : '#FFFFFF');
+    const textAccentColor = config.textAccentColor || secondaryBtn;
 
-    const secondaryHover = config.secondaryBtnColor
-      ? adjustColorBrightness(secondaryBtn, -20)
-      : preset.secondaryHover;
+    const secondaryHover = adjustColorBrightness(secondaryBtn, -20);
+    const textOnSecondary = getContrastTextColor(secondaryBtn);
 
-    const textOnSecondary = config.secondaryBtnColor
-      ? getContrastTextColor(secondaryBtn)
-      : preset.textOnSecondary;
-
-    const surfaceBg = config.primaryBgColor
-      ? (isLightBg ? '#FFFFFF' : adjustColorBrightness(primaryBg, 14))
-      : preset.surfaceBg;
-
-    const cardBg = config.primaryBgColor
-      ? (isLightBg ? '#EDF2F7' : adjustColorBrightness(primaryBg, 22))
-      : preset.cardBg;
+    const surfaceBg = config.cardBgColor || (isLightBg ? '#FFFFFF' : adjustColorBrightness(primaryBg, 14));
+    const cardBg = config.cardBgColor || (isLightBg ? '#F1F5F9' : adjustColorBrightness(primaryBg, 22));
 
     const rgbSecondary = hexToRgb(secondaryBtn);
-    const rgbText = hexToRgb(textColor);
-    const borderTint = isLightBg ? 'rgba(0, 0, 0, 0.15)' : `rgba(${rgbSecondary}, 0.35)`;
-    const glow = `0 0 20px rgba(${rgbSecondary}, 0.25)`;
+    const borderTint = isLightBg ? 'rgba(0, 0, 0, 0.12)' : `rgba(${rgbSecondary}, 0.35)`;
+    const glow = `0 4px 20px rgba(${rgbSecondary}, 0.20)`;
 
-    // Inject Primary & Secondary & Font Color & Button CSS Root Variables for website
+    // Inject Primary & Secondary & Font Color & Button CSS Root Variables
     root.style.setProperty('--theme-bg-primary', primaryBg);
     root.style.setProperty('--theme-bg-surface', surfaceBg);
     root.style.setProperty('--theme-bg-card', cardBg);
@@ -271,22 +282,32 @@ export class ThemeEngine {
     root.style.setProperty('--theme-border-tint', borderTint);
     root.style.setProperty('--theme-glow', glow);
 
+    // Font Weight
+    if (config.fontWeight) {
+      root.style.setProperty('--theme-font-weight', config.fontWeight);
+    }
+
     // Legacy variables fallback
     root.style.setProperty('--theme-primary', secondaryBtn);
     root.style.setProperty('--theme-primary-hover', secondaryHover);
     root.style.setProperty('--theme-primary-bg', `rgba(${rgbSecondary}, 0.12)`);
     root.style.setProperty('--theme-primary-border', borderTint);
 
-    // Ensure document body maintains software default background
-    document.body.style.backgroundColor = '#0A0A0B';
-    document.body.style.color = '#E0E0E0';
+    // Ensure document body background
+    document.body.style.backgroundColor = primaryBg;
+    document.body.style.color = textColor;
 
     // 2. Typography / Font
-    const font = FONT_PRESETS.find(f => f.id === config.fontFamily) || FONT_PRESETS[0];
-    root.style.setProperty('--theme-font', font.fontFamily);
+    const selectedFont = FONT_PRESETS.find(f => f.id === config.fontFamily);
+    const fontToApply = selectedFont ? selectedFont.fontFamily : `'${config.fontFamily}', sans-serif`;
+    
+    // Dynamically load Google font if needed
+    const fontNameForGoogle = selectedFont ? selectedFont.id : config.fontFamily;
+    this.loadGoogleFont(fontNameForGoogle);
 
+    root.style.setProperty('--theme-font', fontToApply);
 
-    // 4. Update Document Title
+    // 3. Update Document Title
     if (config.brandTitle) {
       document.title = `${config.brandTitle} | Multi-Business POS`;
     }
@@ -300,31 +321,33 @@ export class ThemeEngine {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        const preset = COLOR_PRESETS.find(c => c.id === parsed.colorPreset) || COLOR_PRESETS[0];
         return {
           ...parsed,
-          primaryBgColor: parsed.primaryBgColor || preset.primaryBg,
-          secondaryBtnColor: parsed.secondaryBtnColor || preset.secondaryBtn,
-          textColor: parsed.textColor || preset.textColor || '#0F172A',
-          textAccentColor: parsed.textAccentColor || preset.textAccentColor || preset.secondaryBtn,
+          primaryBgColor: parsed.primaryBgColor || '#F8FAFC',
+          secondaryBtnColor: parsed.secondaryBtnColor || '#2563EB',
+          textColor: parsed.textColor || '#0F172A',
+          textAccentColor: parsed.textAccentColor || '#2563EB',
+          cardBgColor: parsed.cardBgColor || '#FFFFFF',
+          fontFamily: parsed.fontFamily || 'Outfit',
+          fontWeight: parsed.fontWeight || '400',
+          fontSize: parsed.fontSize || 'MEDIUM',
         };
       }
     } catch {}
-
-    const defaultPreset = COLOR_PRESETS[0];
 
     // Fallback defaults from active template
     return {
       logoUrl: '',
       brandTitle: template?.invoiceLayout?.headerTitle || 'Apex Multi-Business Billing',
       brandTagline: template?.invoiceLayout?.tagline || 'Enterprise Cloud Point of Sale & Billing System',
-      colorPreset: 'LIGHT_SAPPHIRE',
-      primaryBgColor: defaultPreset.primaryBg,
-      secondaryBtnColor: defaultPreset.secondaryBtn,
-      textColor: defaultPreset.textColor,
-      textAccentColor: defaultPreset.textAccentColor,
+      colorPreset: 'CUSTOM',
+      primaryBgColor: '#F8FAFC',
+      secondaryBtnColor: '#2563EB',
+      textColor: '#0F172A',
+      textAccentColor: '#2563EB',
+      cardBgColor: '#FFFFFF',
       fontFamily: 'Outfit',
-
+      fontWeight: '400',
       fontSize: 'MEDIUM',
       iconStyle: 'ROUNDED_ORGANIC',
       invoiceTheme: 'MODERN_BLUE',
@@ -349,4 +372,5 @@ export class ThemeEngine {
     }
   }
 }
+
 
