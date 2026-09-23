@@ -875,51 +875,71 @@ export default function EmployeePortal() {
 
         {/* ── APPLY LEAVE TAB ── */}
         {activeTab === 'apply' && (
-          <div className="flex-1 flex items-start justify-center">
-            <div className="w-full max-w-lg bg-white border border-gray-200 rounded-2xl overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-pink-400" />
-                <h3 className="text-sm font-bold text-gray-900">Apply for Leave</h3>
+          <div className="flex-1 flex items-start justify-center overflow-y-auto p-2">
+            <div className="w-full max-w-lg bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#2563EB]">
+                    <CalendarDays className="w-4 h-4 text-current" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">Apply for Leave</h3>
+                    <p className="text-[11px] text-gray-500">Submit a leave request for administrative review</p>
+                  </div>
+                </div>
               </div>
 
               {leaveSuccess && (
-                <div className="mx-6 mt-5 flex items-center gap-2 px-4 py-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 font-semibold">
-                  <CheckCircle2 className="w-4 h-4" /> Leave request submitted successfully!
+                <div className="mx-6 mt-5 flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-semibold animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" /> Leave request submitted successfully!
                 </div>
               )}
 
               <form onSubmit={handleApplyLeave} className="p-6 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Leave Type</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Leave Type</label>
                   <div className="relative">
-                    <select value={leaveType} onChange={e => setLeaveType(e.target.value)}
-                      className="w-full bg-gray-50 border border-[#2A2A2D] focus:border-pink-500/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none appearance-none cursor-pointer">
-                      <option>Casual Leave</option>
-                      <option>Sick Leave</option>
-                      <option>Earned Leave</option>
-                      <option>Emergency Leave</option>
+                    <select
+                      value={leaveType}
+                      onChange={e => setLeaveType(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] rounded-xl px-4 py-2.5 text-sm text-gray-900 outline-none appearance-none cursor-pointer transition-all"
+                    >
+                      <option value="Casual Leave" className="bg-white text-gray-900">Casual Leave</option>
+                      <option value="Sick Leave" className="bg-white text-gray-900">Sick Leave</option>
+                      <option value="Earned Leave" className="bg-white text-gray-900">Earned Leave</option>
+                      <option value="Emergency Leave" className="bg-white text-gray-900">Emergency Leave</option>
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Leave Date</label>
-                  <input type="date" value={leaveDate}
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Leave Date</label>
+                  <input
+                    type="date"
+                    value={leaveDate}
                     min={new Date().toISOString().split('T')[0]}
                     onChange={e => setLeaveDate(e.target.value)}
-                    className="w-full bg-gray-50 border border-[#2A2A2D] focus:border-pink-500/50 rounded-xl px-4 py-2.5 text-sm text-white outline-none [color-scheme:dark]" />
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] rounded-xl px-4 py-2.5 text-sm text-gray-900 outline-none transition-all [color-scheme:light]"
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-300 mb-1.5">Reason</label>
-                  <textarea rows={3} value={leaveReason} onChange={e => setLeaveReason(e.target.value)}
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Reason</label>
+                  <textarea
+                    rows={3}
+                    value={leaveReason}
+                    onChange={e => setLeaveReason(e.target.value)}
                     placeholder="Brief reason for your leave request..."
-                    className="w-full bg-gray-50 border border-[#2A2A2D] focus:border-pink-500/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 outline-none resize-none" />
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none resize-none transition-all"
+                  />
                 </div>
 
-                <button type="submit" disabled={leaveLoading || !leaveDate || !leaveReason.trim()}
-                  className="w-full py-3 bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 hover:border-pink-500/70 text-pink-300 font-bold text-sm uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <button
+                  type="submit"
+                  disabled={leaveLoading || !leaveDate || !leaveReason.trim()}
+                  className="w-full py-3 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-sm uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
                   {leaveLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   {leaveLoading ? 'Submitting...' : 'Submit Leave Request'}
                 </button>
@@ -930,46 +950,49 @@ export default function EmployeePortal() {
 
         {/* ── LEAVE HISTORY TAB ── */}
         {activeTab === 'history' && (
-          <div className="flex-1 bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col">
-            <div className="px-5 py-4 border-b border-gray-200 flex items-center gap-2 flex-shrink-0">
-              <FileCheck className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-sm font-bold text-gray-900">Leave History</h3>
+          <div className="flex-1 bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col shadow-sm">
+            <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <FileCheck className="w-4 h-4 text-[#2563EB]" />
+                <h3 className="text-sm font-bold text-gray-900">Leave History</h3>
+              </div>
+              <span className="text-[10px] text-gray-500 font-mono">{myLeaves.length} record(s)</span>
             </div>
 
-            {leaves.length === 0 ? (
+            {myLeaves.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center px-6 flex-1">
-                <CalendarDays className="w-8 h-8 text-gray-700 mb-3" />
-                <p className="text-sm font-semibold text-gray-400">No leave requests yet</p>
-                <p className="text-xs text-gray-600 mt-1">Your leave applications will appear here</p>
+                <CalendarDays className="w-8 h-8 text-gray-300 mb-3" />
+                <p className="text-sm font-semibold text-gray-600">No leave requests yet</p>
+                <p className="text-xs text-gray-400 mt-1">Your leave applications will appear here</p>
               </div>
             ) : (
               <div className="overflow-auto flex-1">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="border-b border-white/[0.05]">
-                      <th className="text-left px-5 py-3 text-gray-500 font-semibold">Leave Date</th>
-                      <th className="text-left px-5 py-3 text-gray-500 font-semibold">Type</th>
-                      <th className="text-left px-5 py-3 text-gray-500 font-semibold">Reason</th>
-                      <th className="text-left px-5 py-3 text-gray-500 font-semibold">Applied On</th>
-                      <th className="text-left px-5 py-3 text-gray-500 font-semibold">Status</th>
+                    <tr className="border-b border-gray-100 bg-gray-50/50">
+                      <th className="text-left px-5 py-3 text-gray-600 font-semibold">Leave Date</th>
+                      <th className="text-left px-5 py-3 text-gray-600 font-semibold">Type</th>
+                      <th className="text-left px-5 py-3 text-gray-600 font-semibold">Reason</th>
+                      <th className="text-left px-5 py-3 text-gray-600 font-semibold">Applied On</th>
+                      <th className="text-left px-5 py-3 text-gray-600 font-semibold">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {leaves.map(leave => (
-                      <tr key={leave.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
-                        <td className="px-5 py-3 font-mono text-gray-300">{leave.date}</td>
-                        <td className="px-5 py-3 text-white font-semibold">{leave.type}</td>
-                        <td className="px-5 py-3 text-gray-400 max-w-[200px] truncate">{leave.reason}</td>
+                    {myLeaves.map(leave => (
+                      <tr key={leave.id} className="border-b border-gray-100 hover:bg-blue-50/30 transition-colors">
+                        <td className="px-5 py-3 font-mono text-gray-700 font-medium">{leave.date}</td>
+                        <td className="px-5 py-3 text-gray-900 font-semibold">{leave.type}</td>
+                        <td className="px-5 py-3 text-gray-600 max-w-[200px] truncate" title={leave.reason}>{leave.reason}</td>
                         <td className="px-5 py-3 font-mono text-gray-500">{leave.appliedOn}</td>
                         <td className="px-5 py-3">
                           {leave.status === 'APPROVED' && (
-                            <span className="flex items-center gap-1 text-emerald-400"><CheckCircle2 className="w-3 h-3" /> Approved</span>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 font-semibold text-[11px]"><CheckCircle2 className="w-3 h-3" /> Approved</span>
                           )}
                           {leave.status === 'REJECTED' && (
-                            <span className="flex items-center gap-1 text-red-400"><XCircle className="w-3 h-3" /> Rejected</span>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-600 font-semibold text-[11px]"><XCircle className="w-3 h-3" /> Rejected</span>
                           )}
                           {leave.status === 'PENDING' && (
-                            <span className="flex items-center gap-1 text-yellow-400"><AlertCircle className="w-3 h-3" /> Pending</span>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-600 font-semibold text-[11px]"><AlertCircle className="w-3 h-3" /> Pending</span>
                           )}
                         </td>
                       </tr>
