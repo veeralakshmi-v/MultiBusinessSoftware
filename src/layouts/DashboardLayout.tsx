@@ -412,16 +412,16 @@ export default function DashboardLayout() {
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         {/* Top Navbar */}
         <header 
-          className="h-16 border-b flex items-center justify-between px-3 sm:px-5 lg:px-8 z-10 flex-shrink-0"
+          className="h-16 border-b flex items-center justify-between px-3 sm:px-5 lg:px-8 z-10 flex-shrink-0 gap-3 overflow-x-auto no-scrollbar"
           style={{
             backgroundColor: 'var(--theme-bg-surface)',
             borderColor: 'var(--theme-border-tint)',
             color: 'var(--theme-text-primary)'
           }}
         >
-          <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             {/* Mobile Hamburger & Logo */}
-            <div className="flex items-center md:hidden min-w-0">
+            <div className="flex items-center md:hidden flex-shrink-0">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="p-2 rounded-xl opacity-80 hover:opacity-100 bg-black/5 border mr-2 flex-shrink-0"
@@ -445,27 +445,27 @@ export default function DashboardLayout() {
             {/* Desktop Sidebar Toggle in Top Bar */}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden md:flex items-center gap-2 p-2 rounded-xl opacity-80 hover:opacity-100 hover:bg-black/5 border transition-all cursor-pointer"
+              className="hidden md:flex items-center gap-2 p-2 rounded-xl opacity-80 hover:opacity-100 hover:bg-black/5 border transition-all cursor-pointer flex-shrink-0"
               style={{ borderColor: 'var(--theme-border-tint)' }}
               title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
               {isCollapsed ? <PanelLeftOpen className="w-4 h-4" style={{ color: 'var(--theme-text-accent)' }} /> : <PanelLeftClose className="w-4 h-4" />}
-              <span className="text-xs font-bold uppercase tracking-wider">{isCollapsed ? "Expand" : "Collapse"}</span>
+              <span className="text-xs font-bold uppercase tracking-wider whitespace-nowrap">{isCollapsed ? "Expand" : "Collapse"}</span>
             </button>
 
-            <div className="hidden lg:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
               <span className="text-xs font-medium opacity-70 truncate max-w-xs">
                 {brandTitle}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 ml-auto">
             {/* Quick Theme Customizer Button */}
             <Link
               to="/dashboard/settings?tab=theme"
               state={{ tab: 'theme' }}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 border text-xs font-bold rounded-xl transition-all shadow-xs"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 border text-xs font-bold rounded-xl transition-all shadow-xs flex-shrink-0 whitespace-nowrap"
               style={{
                 backgroundColor: 'var(--theme-bg-primary)',
                 borderColor: 'var(--theme-border-tint)',

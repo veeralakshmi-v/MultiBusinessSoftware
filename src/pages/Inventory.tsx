@@ -112,7 +112,7 @@ function getCombinedMaterials(): Promise<any[]> {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed)) return resolve(parsed);
           }
-        } catch {}
+        } catch { }
         resolve([]);
       });
   });
@@ -214,7 +214,7 @@ function DashboardTab({ businessType, stockNoun }: { businessType: string; stock
           <Package className="w-4 h-4 text-[#2563EB]" />
           <span>Category-Wise Valuation & Asset Distribution</span>
         </h3>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-gray-700">
             <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-[10px] border-y border-gray-100">
@@ -297,14 +297,14 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         const parsed = JSON.parse(savedCats);
         if (Array.isArray(parsed) && parsed.length > 0) setCategories(parsed);
       }
-    } catch {}
+    } catch { }
     try {
       const savedSups = localStorage.getItem('universal_suppliers');
       if (savedSups) {
         const parsed = JSON.parse(savedSups);
         if (Array.isArray(parsed) && parsed.length > 0) setSuppliers(parsed);
       }
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -318,10 +318,10 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
           localStorage.setItem('universal_suppliers', JSON.stringify(data));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
     fetch('/api/categories').then(r => r.json()).then(data => {
       if (Array.isArray(data) && data.length > 0) setCategories(data);
-    }).catch(() => {});
+    }).catch(() => { });
     return () => window.removeEventListener('storage', fetchMats);
   }, []);
 
@@ -393,7 +393,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentStock: newStock })
       });
-    } catch {}
+    } catch { }
     fetchMats();
   };
 
@@ -405,7 +405,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentStock: targetStock })
       });
-    } catch {}
+    } catch { }
     fetchMats();
   };
 
@@ -417,7 +417,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isAvailable: target })
       });
-    } catch {}
+    } catch { }
     fetchMats();
   };
 
@@ -429,7 +429,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ showInWebsite: target })
       });
-    } catch {}
+    } catch { }
     fetchMats();
   };
 
@@ -528,7 +528,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         setMaterials(prev => prev.filter(m => m.id !== itemId));
         window.dispatchEvent(new Event('storage'));
       }
-    } catch (err) {}
+    } catch (err) { }
 
     fetchMats();
   };
@@ -639,26 +639,26 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
           <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div className="col-span-1 sm:col-span-2">
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Product Name</label>
-              <input required value={form.name} onChange={e=>setForm({...form, name: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" placeholder="e.g. Garam Masala 100g" />
+              <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" placeholder="e.g. Garam Masala 100g" />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Category</label>
-              <select value={form.categoryId} onChange={e=>setForm({...form, categoryId: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1">
+              <select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1">
                 <option value="">Default Category</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Selling Price (₹)</label>
-              <input type="number" required value={form.pricePerUnit} onChange={e=>setForm({...form, pricePerUnit: e.target.value as any})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
+              <input type="number" required value={form.pricePerUnit} onChange={e => setForm({ ...form, pricePerUnit: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Cost Price (₹)</label>
-              <input type="number" value={form.costPrice} onChange={e=>setForm({...form, costPrice: e.target.value as any})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
+              <input type="number" value={form.costPrice} onChange={e => setForm({ ...form, costPrice: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">GST Tax (%)</label>
-              <select value={String(form.gst)} onChange={e=>setForm({...form, gst: parseFloat(e.target.value) || 0})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1 font-medium">
+              <select value={String(form.gst)} onChange={e => setForm({ ...form, gst: parseFloat(e.target.value) || 0 })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1 font-medium">
                 <option value="0">0% (Exempt)</option>
                 <option value="3">3% GST</option>
                 <option value="5">5% GST</option>
@@ -669,14 +669,14 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">HSN Code</label>
-              <input value={form.hsnCode} onChange={e=>setForm({...form, hsnCode: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" placeholder="e.g. 0910" />
+              <input value={form.hsnCode} onChange={e => setForm({ ...form, hsnCode: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" placeholder="e.g. 0910" />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Unit</label>
               <select
                 required
                 value={form.unit}
-                onChange={e=>setForm({...form, unit: e.target.value})}
+                onChange={e => setForm({ ...form, unit: e.target.value })}
                 className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1 font-medium"
               >
                 <option value="">Select Unit</option>
@@ -694,19 +694,19 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Min Stock Warning</label>
-              <input type="number" required value={form.minStockLevel} onChange={e=>setForm({...form, minStockLevel: e.target.value as any})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
+              <input type="number" required value={form.minStockLevel} onChange={e => setForm({ ...form, minStockLevel: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">SKU / Code</label>
-              <input value={form.sku} onChange={e=>setForm({...form, sku: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
+              <input value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Barcode</label>
-              <input value={form.barcode} onChange={e=>setForm({...form, barcode: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
+              <input value={form.barcode} onChange={e => setForm({ ...form, barcode: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">Supplier</label>
-              <select value={form.supplierId} onChange={e=>setForm({...form, supplierId: e.target.value})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1">
+              <select value={form.supplierId} onChange={e => setForm({ ...form, supplierId: e.target.value })} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1">
                 <option value="">No Supplier</option>
                 {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
@@ -1104,19 +1104,19 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       </div>
 
       {/* Comprehensive Products Table (>=sm) */}
-      <div className="hidden sm:block bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xl">
-        <table className="w-full text-left text-sm text-gray-900">
+      <div className="hidden sm:block bg-white border border-gray-100 rounded-2xl overflow-x-auto shadow-xl">
+        <table className="w-full text-left text-sm text-gray-900 min-w-[850px]">
           <thead className="bg-gray-50 text-gray-900 font-bold uppercase text-xs border-b border-gray-100">
             <tr>
-              <th className="px-4 py-3">Product / Item</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3 text-right">Selling Price</th>
-              <th className="px-4 py-3 text-right">Cost Price</th>
-              <th className="px-4 py-3 text-center">Tax / GST</th>
-              <th className="px-4 py-3 text-center">Stock Level</th>
-              <th className="px-4 py-3 text-center">POS Status</th>
-              <th className="px-4 py-3 text-center">Website</th>
-              <th className="px-4 py-3 text-right">Actions</th>
+              <th className="px-4 py-3 whitespace-nowrap">Product / Item</th>
+              <th className="px-4 py-3 whitespace-nowrap">Category</th>
+              <th className="px-4 py-3 text-right whitespace-nowrap">Selling Price</th>
+              <th className="px-4 py-3 text-right whitespace-nowrap">Cost Price</th>
+              <th className="px-4 py-3 text-center whitespace-nowrap">Tax / GST</th>
+              <th className="px-4 py-3 text-center whitespace-nowrap">Stock Level</th>
+              <th className="px-4 py-3 text-center whitespace-nowrap">POS Status</th>
+              <th className="px-4 py-3 text-center whitespace-nowrap">Website</th>
+              <th className="px-4 py-3 text-right whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-theme-secondary/20">
@@ -1148,7 +1148,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 <td className="px-4 py-3 text-right font-mono text-gray-900 opacity-70">{m.costPrice ? `₹${Number(m.costPrice).toFixed(2)}` : '—'}</td>
                 <td className="px-4 py-3 text-center">
                   <span className="px-2 py-0.5 rounded bg-theme-secondary/15 text-[#2563EB] border border-gray-100 font-mono text-[10px] font-bold">
-                    {typeof m.gst === 'number' ? m.gst : 5}% GST
+                    {typeof m.gst === 'number' ? m.gst : 0}% GST
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center">
@@ -1252,7 +1252,7 @@ function CategoriesTab() {
       if (savedCats) setCategories(JSON.parse(savedCats));
       const savedItems = localStorage.getItem('universal_items');
       if (savedItems) setItems(JSON.parse(savedItems));
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => {
@@ -1360,7 +1360,7 @@ function SuppliersTab() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) return parsed;
       }
-    } catch {}
+    } catch { }
     return [];
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1377,7 +1377,7 @@ function SuppliersTab() {
           localStorage.setItem('universal_suppliers', JSON.stringify(data));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   useEffect(() => {
@@ -1588,9 +1588,8 @@ function SuppliersTab() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className={`w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition-all cursor-pointer ${
-              isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
-            }`}
+            className={`w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition-all cursor-pointer ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+              }`}
           >
             {isSubmitting ? 'Saving Supplier...' : 'Add Supplier'}
           </button>
@@ -1608,11 +1607,11 @@ function TransactionsTab() {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    } catch {}
+    } catch { }
     return [];
   });
   const [materials, setMaterials] = useState<any[]>([]);
-  
+
   const fetchTxs = () => {
     fetch('/api/inventory/transactions')
       .then(r => r.json())
@@ -1627,7 +1626,7 @@ function TransactionsTab() {
           });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const loadMaterials = () => {
@@ -1758,7 +1757,7 @@ function TransactionsTab() {
           }
         });
       }
-    } catch {}
+    } catch { }
 
     // Post to API asynchronously
     try {
@@ -1773,7 +1772,7 @@ function TransactionsTab() {
           notes: form.notes
         })
       });
-    } catch {}
+    } catch { }
 
     setForm({ rawMaterialId: '', type: 'STOCK_IN', quantity: '', unitPrice: '', notes: '' });
   };
@@ -1805,7 +1804,7 @@ function TransactionsTab() {
           window.dispatchEvent(new Event('storage'));
           loadMaterials();
         }
-      } catch {}
+      } catch { }
 
       const updated = transactions.filter(t => t.id !== tx.id);
       setTransactions(updated);
@@ -1858,23 +1857,23 @@ function TransactionsTab() {
                       <span className={cn(
                         "px-2.5 py-1 rounded-md text-[10px] font-bold uppercase border inline-flex items-center gap-1",
                         isPositive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                        tx.type === 'WASTE' ? 'bg-red-50 text-red-700 border-red-200' :
-                        isAdjust ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                        'bg-blue-50 text-blue-700 border-blue-200'
+                          tx.type === 'WASTE' ? 'bg-red-50 text-red-700 border-red-200' :
+                            isAdjust ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                              'bg-blue-50 text-blue-700 border-blue-200'
                       )}>
                         {tx.type === 'STOCK_IN' ? 'Stock In (+)' :
-                         tx.type === 'STOCK_OUT' ? 'Stock Out (-)' :
-                         tx.type === 'WASTE' ? 'Waste / Spoil' :
-                         tx.type === 'PURCHASE' ? 'Purchase (+)' :
-                         'Adjustment'}
+                          tx.type === 'STOCK_OUT' ? 'Stock Out (-)' :
+                            tx.type === 'WASTE' ? 'Waste / Spoil' :
+                              tx.type === 'PURCHASE' ? 'Purchase (+)' :
+                                'Adjustment'}
                       </span>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap font-mono font-bold">
                       <span className={cn(
                         "inline-block px-2 py-0.5 rounded text-xs",
                         isPositive ? "bg-emerald-50 text-emerald-700 font-bold" :
-                        isNegative ? "bg-rose-50 text-rose-700 font-bold" :
-                        "bg-amber-50 text-amber-700 font-bold"
+                          isNegative ? "bg-rose-50 text-rose-700 font-bold" :
+                            "bg-amber-50 text-amber-700 font-bold"
                       )}>
                         {isPositive ? `+${tx.quantity}` : isNegative ? `-${tx.quantity}` : `=${tx.quantity}`} {tx.rawMaterial?.unit || 'Pcs'}
                       </span>
@@ -2000,21 +1999,21 @@ function TransactionsTab() {
                     <span className={cn(
                       "font-mono font-bold px-1.5 py-0.5 rounded text-[11px]",
                       (form.type === 'STOCK_IN' || form.type === 'PURCHASE') ? "bg-emerald-100 text-emerald-800" :
-                      (form.type === 'STOCK_OUT' || form.type === 'WASTE') ? "bg-rose-100 text-rose-800" :
-                      "bg-amber-100 text-amber-800"
+                        (form.type === 'STOCK_OUT' || form.type === 'WASTE') ? "bg-rose-100 text-rose-800" :
+                          "bg-amber-100 text-amber-800"
                     )}>
                       {projectedStock} {selectedProductInfo.unit || 'Pcs'}
                       {' '}
                       ({(form.type === 'STOCK_IN' || form.type === 'PURCHASE') ? `+${parsedQty}` :
                         (form.type === 'STOCK_OUT' || form.type === 'WASTE') ? `-${parsedQty}` :
-                        `=${parsedQty}`})
+                          `=${parsedQty}`})
                     </span>
                   </div>
                   <div className="flex items-center justify-between pt-1 border-t border-blue-200/60">
                     <span className="font-medium text-gray-700">Movement Value:</span>
                     <span className="font-mono font-bold text-[#2563EB]">
                       {(form.type === 'STOCK_IN' || form.type === 'PURCHASE') ? '+₹' :
-                       (form.type === 'STOCK_OUT' || form.type === 'WASTE') ? '-₹' : '₹'}
+                        (form.type === 'STOCK_OUT' || form.type === 'WASTE') ? '-₹' : '₹'}
                       {(parsedQty * parsedPrice).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
@@ -2052,12 +2051,12 @@ function RecipesTab() {
   const [recipes, setRecipes] = useState<any[]>([]);
 
   useEffect(() => {
-    fetch('/api/categories').then(r => r.json()).then(setCategories).catch(() => {});
+    fetch('/api/categories').then(r => r.json()).then(setCategories).catch(() => { });
     getCombinedMaterials().then(setMaterials);
   }, []);
 
   const fetchRecipes = (menuItemId: string) => {
-    fetch(`/api/inventory/recipes/${menuItemId}`).then(r => r.json()).then(setRecipes).catch(() => {});
+    fetch(`/api/inventory/recipes/${menuItemId}`).then(r => r.json()).then(setRecipes).catch(() => { });
   };
 
   const [form, setForm] = useState({ rawMaterialId: '', quantityUsed: 0 });
@@ -2066,15 +2065,15 @@ function RecipesTab() {
     e.preventDefault();
     if (!selectedMenuItem) return;
     await fetch('/api/inventory/recipes', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ menuItemId: selectedMenuItem.id, rawMaterialId: form.rawMaterialId, quantityUsed: Number(form.quantityUsed) })
-    }).catch(() => {});
+    }).catch(() => { });
     fetchRecipes(selectedMenuItem.id);
     setForm({ rawMaterialId: '', quantityUsed: 0 });
   };
 
   const handleDelete = async (id: string) => {
-    await fetch(`/api/inventory/recipes/${id}`, { method: 'DELETE' }).catch(() => {});
+    await fetch(`/api/inventory/recipes/${id}`, { method: 'DELETE' }).catch(() => { });
     fetchRecipes(selectedMenuItem.id);
   };
 
@@ -2115,7 +2114,7 @@ function RecipesTab() {
                 <Link className="w-5 h-5 text-[#2563EB]" /> {selectedMenuItem.name} Bill of Materials (BOM)
               </h3>
               <p className="text-xs text-gray-500 mt-1">These materials will be automatically deducted from stock when this item is billed.</p>
-              
+
               <div className="mt-6 space-y-3">
                 {recipes.length === 0 ? (
                   <div className="text-gray-400 text-xs py-4 text-center">No recipe defined yet.</div>
@@ -2125,7 +2124,7 @@ function RecipesTab() {
                       <div className="font-bold text-gray-900 text-xs">{r.rawMaterial?.name}</div>
                       <div className="text-xs text-gray-500">Uses {r.quantityUsed} {r.rawMaterial?.unit}</div>
                     </div>
-                    <button onClick={() => handleDelete(r.id)} className="text-gray-400 hover:text-red-500 transition-colors p-1.5"><Trash2 className="w-4 h-4"/></button>
+                    <button onClick={() => handleDelete(r.id)} className="text-gray-400 hover:text-red-500 transition-colors p-1.5"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 ))}
               </div>
@@ -2139,7 +2138,7 @@ function RecipesTab() {
                   <select
                     required
                     value={form.rawMaterialId}
-                    onChange={e=>setForm({...form, rawMaterialId: e.target.value})}
+                    onChange={e => setForm({ ...form, rawMaterialId: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] outline-none mt-1 font-medium"
                   >
                     <option value="">Select Material...</option>
@@ -2153,7 +2152,7 @@ function RecipesTab() {
                     step="any"
                     required
                     value={form.quantityUsed}
-                    onChange={e=>setForm({...form, quantityUsed: e.target.value as any})}
+                    onChange={e => setForm({ ...form, quantityUsed: e.target.value as any })}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] outline-none mt-1 font-mono font-medium"
                   />
                 </div>
@@ -2183,15 +2182,15 @@ function BatchExpiryTab() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    fetch('/api/inventory/batches').then(r => r.json()).then(setBatches).catch(() => {});
+    fetch('/api/inventory/batches').then(r => r.json()).then(setBatches).catch(() => { });
   }, []);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     await fetch('/api/inventory/batches', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, quantity: Number(form.quantity), mrp: Number(form.mrp) })
-    }).catch(() => {});
+    }).catch(() => { });
     setForm({ productName: '', batchNo: '', mfgDate: '', expiryDate: '', quantity: 0, mrp: 0 });
     setShowForm(false);
   };
@@ -2218,12 +2217,12 @@ function BatchExpiryTab() {
         <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-md">
           <h3 className="text-sm font-bold text-gray-900 mb-4">Add New Batch</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="col-span-2"><label className="text-[10px] font-bold text-gray-500 uppercase">Product Name</label><input required value={form.productName} onChange={e => setForm({...form, productName: e.target.value})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Batch No.</label><input required value={form.batchNo} onChange={e => setForm({...form, batchNo: e.target.value})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Mfg. Date</label><input type="date" required value={form.mfgDate} onChange={e => setForm({...form, mfgDate: e.target.value})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Expiry Date</label><input type="date" required value={form.expiryDate} onChange={e => setForm({...form, expiryDate: e.target.value})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Quantity</label><input type="number" required value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value as any})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
-            <div><label className="text-[10px] font-bold text-gray-500 uppercase">MRP (₹)</label><input type="number" required value={form.mrp} onChange={e => setForm({...form, mrp: e.target.value as any})} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div className="col-span-2"><label className="text-[10px] font-bold text-gray-500 uppercase">Product Name</label><input required value={form.productName} onChange={e => setForm({ ...form, productName: e.target.value })} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Batch No.</label><input required value={form.batchNo} onChange={e => setForm({ ...form, batchNo: e.target.value })} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Mfg. Date</label><input type="date" required value={form.mfgDate} onChange={e => setForm({ ...form, mfgDate: e.target.value })} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Expiry Date</label><input type="date" required value={form.expiryDate} onChange={e => setForm({ ...form, expiryDate: e.target.value })} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">Quantity</label><input type="number" required value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value as any })} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
+            <div><label className="text-[10px] font-bold text-gray-500 uppercase">MRP (₹)</label><input type="number" required value={form.mrp} onChange={e => setForm({ ...form, mrp: e.target.value as any })} className="w-full bg-gray-50 border border-gray-200 focus:border-[#2563EB] rounded-lg p-2 text-gray-900 text-sm outline-none mt-1" /></div>
             <div className="col-span-3 flex gap-3 mt-2">
               <button type="submit" className="px-6 py-2 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl uppercase shadow-md shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all cursor-pointer">Save Batch</button>
               <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 bg-white hover:bg-slate-50 border border-gray-200 text-gray-700 font-bold text-xs rounded-xl uppercase transition-all cursor-pointer shadow-xs">Cancel</button>
