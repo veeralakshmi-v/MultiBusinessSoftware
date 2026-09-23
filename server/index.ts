@@ -34,11 +34,17 @@ async function checkAndReconnectDb() {
 }
 
 // Validation Utilities for API endpoints
-function isValidPhone(val: string | null | undefined): boolean {
-  if (!val) return false;
+function cleanPhone(val: string | null | undefined): string {
+  if (!val) return '';
   let digits = val.replace(/\D/g, '');
   if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
   if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+  return digits.slice(0, 10);
+}
+
+function isValidPhone(val: string | null | undefined): boolean {
+  if (!val) return false;
+  const digits = cleanPhone(val);
   return digits.length === 10 && /^\d{10}$/.test(digits);
 }
 
@@ -826,15 +832,117 @@ app.post('/api/employees', async (req, res) => {
   }
 });
 
-app.delete('/api/users/:id', async (req, res) => {
+const updateUserHandler = async (req: express.Request, res: express.Response) => {
+  const { id } = req.params;
+  const { name, fullName, staffName, username, phone, password, pinCode, role, aadharNumber, address, email, status } = req.body;
+  const { businessId } = getRequestContext(req);
+
+  const effectivePhone = phone ? cleanPhone(phone) : undefined;
+  const effectiveName = (name || fullName || staffName || '').trim();
+  const targetRole = role ? String(role).toUpperCase() : undefined;
+
+  try {
+    // 1. Try to find user or employee by id, phone, or username
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id },
+          { username: id },
+          ...(effectivePhone ? [{ username: effectivePhone }] : [])
+        ]
+      }
+    });
+
+    if (user) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          role: targetRole || user.role,
+          password: password || pinCode || user.password,
+          username: (username || effectivePhone || user.username).trim(),
+        }
+      });
+    }
+
+    // 2. Update Employee record
+    const emp = await prisma.employee.findFirst({
+      where: {
+        OR: [
+          { id },
+          { employeeCode: `EMP-${id}` },
+          ...(effectivePhone ? [{ phone: effectivePhone }, { employeeCode: `EMP-${effectivePhone}` }] : [])
+        ]
+      }
+    });
+
+    let updatedEmp: any = null;
+    if (emp) {
+      const parts = (effectiveName || emp.fullName).split(' ');
+      const firstName = parts[0] || emp.firstName;
+      const lastName = parts.slice(1).join(' ') || emp.lastName;
+
+      updatedEmp = await prisma.employee.update({
+        where: { id: emp.id },
+        data: {
+          fullName: effectiveName || undefined,
+          firstName,
+          lastName,
+          phone: effectivePhone || undefined,
+          email: email !== undefined ? (email || null) : undefined,
+          aadharNumber: aadharNumber !== undefined ? (aadharNumber || null) : undefined,
+          address: address !== undefined ? (address || null) : undefined,
+          role: targetRole || undefined,
+          status: status || undefined,
+        }
+      });
+    }
+
+    console.log(`✅ Updated User/Employee [${id}] in DB`);
+    return res.json({
+      success: true,
+      id: user?.id || emp?.id || id,
+      name: effectiveName || updatedEmp?.fullName || user?.username,
+      fullName: effectiveName || updatedEmp?.fullName || user?.username,
+      username: user?.username || effectivePhone || id,
+      phone: effectivePhone || updatedEmp?.phone,
+      role: targetRole || user?.role || updatedEmp?.role,
+      status: updatedEmp?.status || 'ACTIVE'
+    });
+  } catch (err: any) {
+    console.error(`❌ Error updating user [${id}]:`, err);
+    return res.status(500).json({ error: 'Failed to update user', details: err.message });
+  }
+};
+
+app.put('/api/users/:id', updateUserHandler);
+app.put('/api/employees/:id', updateUserHandler);
+
+const deleteUserHandler = async (req: express.Request, res: express.Response) => {
   const { id } = req.params;
   try {
-    await prisma.user.delete({ where: { id } });
+    // Delete user if exists
+    try {
+      await prisma.user.deleteMany({
+        where: { OR: [{ id }, { username: id }] }
+      });
+    } catch {}
+
+    // Delete employee if exists
+    try {
+      await prisma.employee.deleteMany({
+        where: { OR: [{ id }, { employeeCode: `EMP-${id}` }, { phone: id }] }
+      });
+    } catch {}
+
+    console.log(`🗑️ Deleted User/Employee [${id}] from DB`);
     return res.json({ success: true, id });
   } catch (err) {
     return res.json({ success: true, id });
   }
-});
+};
+
+app.delete('/api/users/:id', deleteUserHandler);
+app.delete('/api/employees/:id', deleteUserHandler);
 
 // 4. Dynamic Categories API
 app.get('/api/categories', async (req, res) => {
@@ -1507,11 +1615,43 @@ const deleteSupplierHandler = async (req: express.Request, res: express.Response
   }
 };
 
+const updateSupplierHandler = async (req: express.Request, res: express.Response) => {
+  const { id } = req.params;
+  const { name, contact, phone, email, address } = req.body;
+  const cleanName = (name || '').trim();
+  const rawPhone = (contact || phone || '').trim();
+
+  if (rawPhone && !isValidSupplierPhone(rawPhone)) {
+    return res.status(400).json({ error: 'Phone number must contain only numeric digits and be exactly 10 digits' });
+  }
+
+  try {
+    const updated = await prisma.supplier.update({
+      where: { id },
+      data: {
+        name: cleanName || undefined,
+        contact: rawPhone || undefined,
+        phone: rawPhone || undefined,
+        email: email !== undefined ? (email || '').trim() : undefined,
+        address: address !== undefined ? (address || '').trim() : undefined,
+      }
+    });
+    console.log(`✅ Updated supplier [${id}] in DB: ${updated.name}`);
+    return res.json(updated);
+  } catch (err: any) {
+    console.error(`❌ Failed to update supplier [${id}]:`, err);
+    return res.status(500).json({ error: 'Failed to update supplier in database', details: err.message });
+  }
+};
+
 app.get('/api/inventory/suppliers', getSuppliersHandler);
 app.get('/api/suppliers', getSuppliersHandler);
 
 app.post('/api/inventory/suppliers', createSupplierHandler);
 app.post('/api/suppliers', createSupplierHandler);
+
+app.put('/api/inventory/suppliers/:id', updateSupplierHandler);
+app.put('/api/suppliers/:id', updateSupplierHandler);
 
 app.delete('/api/inventory/suppliers/:id', deleteSupplierHandler);
 app.delete('/api/suppliers/:id', deleteSupplierHandler);
