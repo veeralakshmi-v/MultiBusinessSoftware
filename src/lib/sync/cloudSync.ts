@@ -250,6 +250,56 @@ export class CloudSync {
   }
 
   /**
+   * Synchronizes leave and attendance requests for a business
+   */
+  static async syncLeaves(businessId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`/api/leaves?businessId=${businessId}`, {
+        headers: { 'x-business-id': businessId }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          localStorage.setItem('emp_leaves', JSON.stringify(data));
+          localStorage.setItem(`tenant_${businessId}_emp_leaves`, JSON.stringify(data));
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('leaves_updated'));
+          }
+          return data;
+        }
+      }
+    } catch (e) {
+      console.warn('[CloudSync] Failed to sync leaves', e);
+    }
+    return [];
+  }
+
+  /**
+   * Synchronizes attendance records for a business
+   */
+  static async syncAttendance(businessId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`/api/attendance?businessId=${businessId}`, {
+        headers: { 'x-business-id': businessId }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          localStorage.setItem('emp_attendance', JSON.stringify(data));
+          localStorage.setItem(`tenant_${businessId}_emp_attendance`, JSON.stringify(data));
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('attendance_updated'));
+          }
+          return data;
+        }
+      }
+    } catch (e) {
+      console.warn('[CloudSync] Failed to sync attendance', e);
+    }
+    return [];
+  }
+
+  /**
    * Main method to sync ALL data across all modules from PostgreSQL database
    */
   static async syncAllData(targetBusinessId?: string, force = false): Promise<void> {
@@ -273,6 +323,8 @@ export class CloudSync {
         this.syncStaff(activeBizId),
         this.syncSettings(activeBizId),
         this.syncSuppliers(activeBizId),
+        this.syncLeaves(activeBizId),
+        this.syncAttendance(activeBizId),
       ]);
 
       if (typeof window !== 'undefined') {

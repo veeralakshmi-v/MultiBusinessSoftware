@@ -156,13 +156,29 @@ export default function StaffAttendance() {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [punchMsg, setPunchMsg] = useState('');
 
-  // Load data
-  useEffect(() => {
+  // Load data & sync with backend database
+  const loadData = async () => {
+    const bizId = user?.businessId || localStorage.getItem('businessId') || 'biz-default-business';
     const staff: StaffMember[] = JSON.parse(localStorage.getItem('universal_staff_list') || '[]');
     const att: RawAttendanceRecord[] = JSON.parse(localStorage.getItem('emp_attendance') || '[]');
-    const lv: LeaveRecord[] = JSON.parse(localStorage.getItem('emp_leaves') || '[]');
+    let lv: LeaveRecord[] = JSON.parse(localStorage.getItem('emp_leaves') || '[]');
+
     setStaffList(staff.filter(s => s.status === 'ACTIVE'));
     setAllAttendance(att);
+
+    try {
+      const res = await fetch(`/api/leaves?businessId=${bizId}`, {
+        headers: { 'x-business-id': bizId }
+      });
+      if (res.ok) {
+        const dbLeaves = await res.json();
+        if (Array.isArray(dbLeaves) && dbLeaves.length > 0) {
+          lv = dbLeaves;
+          localStorage.setItem('emp_leaves', JSON.stringify(dbLeaves));
+        }
+      }
+    } catch (err) {}
+
     // Enrich leaves with employee names
     const enriched = lv.map(l => {
       const emp = staff.find(s => s.id === l.employeeId);
@@ -170,6 +186,18 @@ export default function StaffAttendance() {
       return { ...l, employeeName: resolvedName };
     });
     setAllLeaves(enriched);
+  };
+
+  useEffect(() => {
+    loadData();
+    window.addEventListener('leaves_updated', loadData);
+    window.addEventListener('attendance_updated', loadData);
+    window.addEventListener('storage', loadData);
+    return () => {
+      window.removeEventListener('leaves_updated', loadData);
+      window.removeEventListener('attendance_updated', loadData);
+      window.removeEventListener('storage', loadData);
+    };
   }, []);
 
   const saveLeaves = (updated: LeaveRecord[]) => {
@@ -177,9 +205,25 @@ export default function StaffAttendance() {
     localStorage.setItem('emp_leaves', JSON.stringify(updated));
   };
 
-  const approveLeave = (id: string) => {
+  const approveLeave = async (id: string) => {
     const target = allLeaves.find(l => l.id === id);
-    saveLeaves(allLeaves.map(l => l.id === id ? { ...l, status: 'APPROVED' as LeaveStatus } : l));
+    const updatedLeaves = allLeaves.map(l => l.id === id ? { ...l, status: 'APPROVED' as LeaveStatus } : l);
+    saveLeaves(updatedLeaves);
+
+    const bizId = user?.businessId || localStorage.getItem('businessId') || 'biz-default-business';
+    try {
+      await fetch(`/api/leaves/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-business-id': bizId,
+        },
+        body: JSON.stringify({ status: 'APPROVED' }),
+      });
+    } catch (err) {
+      console.warn('Failed to update leave in backend database:', err);
+    }
+
     if (target) {
       try {
         const { NotificationEngine } = require('../lib/notifications/notificationEngine');
@@ -195,9 +239,26 @@ export default function StaffAttendance() {
       } catch {}
     }
   };
-  const rejectLeave = (id: string) => {
+
+  const rejectLeave = async (id: string) => {
     const target = allLeaves.find(l => l.id === id);
-    saveLeaves(allLeaves.map(l => l.id === id ? { ...l, status: 'REJECTED' as LeaveStatus } : l));
+    const updatedLeaves = allLeaves.map(l => l.id === id ? { ...l, status: 'REJECTED' as LeaveStatus } : l);
+    saveLeaves(updatedLeaves);
+
+    const bizId = user?.businessId || localStorage.getItem('businessId') || 'biz-default-business';
+    try {
+      await fetch(`/api/leaves/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-business-id': bizId,
+        },
+        body: JSON.stringify({ status: 'REJECTED' }),
+      });
+    } catch (err) {
+      console.warn('Failed to update leave in backend database:', err);
+    }
+
     if (target) {
       try {
         const { NotificationEngine } = require('../lib/notifications/notificationEngine');

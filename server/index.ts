@@ -2762,6 +2762,314 @@ app.delete('/api/inquiries/:id', (req, res) => {
   return res.json({ success: true, message: 'Inquiry deleted successfully.' });
 });
 
+// ── 15. ATTENDANCE & LEAVE REQUESTS API ──────────────────────────────────────
+
+let memLeaves: any[] = [];
+let memAttendance: any[] = [];
+
+// GET /api/leaves - Retrieve all leave requests (for Admin or Employee)
+app.get('/api/leaves', async (req, res) => {
+  const { businessId } = getRequestContext(req);
+  const employeeId = req.query.employeeId as string | undefined;
+  const statusFilter = req.query.status as string | undefined;
+
+  try {
+    const whereClause: any = {};
+    if (businessId) whereClause.businessId = businessId;
+    if (employeeId) whereClause.employeeId = employeeId;
+    if (statusFilter && statusFilter !== 'ALL') whereClause.status = statusFilter.toUpperCase();
+
+    const dbLeaves = await prisma.leaveRequest.findMany({
+      where: whereClause,
+      include: {
+        employee: true,
+        leaveType: true,
+      },
+      orderBy: { appliedAt: 'desc' }
+    });
+
+    if (dbLeaves.length > 0) {
+      const formatted = dbLeaves.map(l => ({
+        id: l.id,
+        employeeId: l.employeeId,
+        employeeName: l.employee?.fullName || `${l.employee?.firstName || ''} ${l.employee?.lastName || ''}`.trim() || 'Staff Member',
+        date: l.startDate.toISOString().split('T')[0],
+        appliedOn: l.appliedAt.toISOString().split('T')[0],
+        type: l.leaveType?.name || 'Casual Leave',
+        reason: l.reason || '',
+        status: (l.status || 'PENDING').toUpperCase(),
+        adminNote: l.rejectionReason || '',
+      }));
+      return res.json(formatted);
+    }
+  } catch (err) {
+    console.warn('DB Leave fetch error, using in-memory/fallback:', err);
+  }
+
+  // Fallback to in-memory store
+  let filtered = memLeaves;
+  if (businessId) filtered = filtered.filter(l => !l.businessId || l.businessId === businessId);
+  if (employeeId) filtered = filtered.filter(l => l.employeeId === employeeId);
+  if (statusFilter && statusFilter !== 'ALL') filtered = filtered.filter(l => l.status === statusFilter.toUpperCase());
+
+  return res.json(filtered);
+});
+
+// POST /api/leaves - Employee submits an attendance / leave request
+app.post('/api/leaves', async (req, res) => {
+  const { businessId } = getRequestContext(req);
+  const {
+    id,
+    employeeId,
+    employeeName,
+    date,
+    appliedOn,
+    type = 'Casual Leave',
+    reason = '',
+    status = 'PENDING',
+  } = req.body;
+
+  if (!date || !reason) {
+    return res.status(400).json({ error: 'Date and reason are required for leave request.' });
+  }
+
+  const effectiveId = id || `leave-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+  const effectiveEmpId = employeeId || `emp-${Date.now()}`;
+  const effectiveStatus = (status || 'PENDING').toUpperCase();
+  const parsedDate = new Date(date);
+  const parsedAppliedOn = appliedOn ? new Date(appliedOn) : new Date();
+
+  const newLeaveRecord = {
+    id: effectiveId,
+    businessId,
+    employeeId: effectiveEmpId,
+    employeeName: employeeName || 'Staff Member',
+    date: parsedDate.toISOString().split('T')[0],
+    appliedOn: parsedAppliedOn.toISOString().split('T')[0],
+    type,
+    reason: String(reason).trim(),
+    status: effectiveStatus,
+    adminNote: '',
+  };
+
+  // 1. Update in-memory mirror
+  const existingIdx = memLeaves.findIndex(l => l.id === effectiveId);
+  if (existingIdx >= 0) {
+    memLeaves[existingIdx] = newLeaveRecord;
+  } else {
+    memLeaves.unshift(newLeaveRecord);
+  }
+
+  // 2. Persist to PostgreSQL Prisma Database
+  try {
+    await ensureBusinessExists(businessId);
+
+    // Ensure employee exists in DB
+    let emp = await prisma.employee.findUnique({ where: { id: effectiveEmpId } });
+    if (!emp) {
+      const parts = (employeeName || 'Staff Member').trim().split(' ');
+      const firstName = parts[0] || 'Staff';
+      const lastName = parts.slice(1).join(' ') || 'Member';
+      emp = await prisma.employee.create({
+        data: {
+          id: effectiveEmpId,
+          business: { connect: { id: businessId } },
+          firstName,
+          lastName,
+          fullName: employeeName || 'Staff Member',
+          role: 'STAFF',
+          phone: effectiveEmpId.replace(/\D/g, '') || '9876543210',
+          employeeCode: `EMP-${effectiveEmpId.slice(-6)}`,
+        } as any
+      });
+    }
+
+    // Ensure leaveType exists in DB
+    let lt = await prisma.leaveType.findFirst({
+      where: { businessId, name: type }
+    });
+    if (!lt) {
+      lt = await prisma.leaveType.create({
+        data: {
+          id: `lt-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+          businessId,
+          name: type,
+          code: type.substring(0, 3).toUpperCase(),
+        }
+      });
+    }
+
+    await prisma.leaveRequest.upsert({
+      where: { id: effectiveId },
+      update: {
+        reason: String(reason).trim(),
+        status: effectiveStatus,
+        startDate: parsedDate,
+        endDate: parsedDate,
+      },
+      create: {
+        id: effectiveId,
+        businessId,
+        employeeId: effectiveEmpId,
+        leaveTypeId: lt.id,
+        startDate: parsedDate,
+        endDate: parsedDate,
+        totalDays: 1.0,
+        reason: String(reason).trim(),
+        status: effectiveStatus,
+        appliedAt: parsedAppliedOn,
+      }
+    });
+  } catch (dbErr) {
+    console.warn('DB Leave insert warning (in-memory cached):', dbErr);
+  }
+
+  return res.status(201).json({ success: true, data: newLeaveRecord });
+});
+
+// PATCH /api/leaves/:id - Admin Approves or Rejects Attendance Request
+app.patch('/api/leaves/:id', async (req, res) => {
+  const { id } = req.params;
+  const { status, adminNote, rejectionReason } = req.body;
+
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required (APPROVED, REJECTED, PENDING)' });
+  }
+
+  const updatedStatus = String(status).toUpperCase();
+
+  // 1. Update in-memory mirror
+  const memIdx = memLeaves.findIndex(l => l.id === id);
+  if (memIdx >= 0) {
+    memLeaves[memIdx] = {
+      ...memLeaves[memIdx],
+      status: updatedStatus,
+      adminNote: adminNote || rejectionReason || memLeaves[memIdx].adminNote || '',
+    };
+  }
+
+  // 2. Persist update in Database
+  try {
+    const updated = await prisma.leaveRequest.update({
+      where: { id },
+      data: {
+        status: updatedStatus,
+        approvedAt: updatedStatus === 'APPROVED' ? new Date() : null,
+        rejectionReason: rejectionReason || adminNote || null,
+      },
+      include: {
+        employee: true,
+        leaveType: true,
+      }
+    });
+
+    // If approved, update attendance table record as LEAVE
+    if (updatedStatus === 'APPROVED') {
+      try {
+        await prisma.attendance.upsert({
+          where: { id: `att-${updated.employeeId}-${updated.startDate.toISOString().split('T')[0]}` },
+          update: { status: 'LEAVE', notes: `Approved Leave: ${updated.leaveType?.name || 'Leave'}` },
+          create: {
+            id: `att-${updated.employeeId}-${updated.startDate.toISOString().split('T')[0]}`,
+            businessId: updated.businessId,
+            employeeId: updated.employeeId,
+            attendanceDate: updated.startDate,
+            status: 'LEAVE',
+            notes: `Approved Leave: ${updated.leaveType?.name || 'Leave'}`,
+          }
+        });
+      } catch (attErr) {}
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        id: updated.id,
+        employeeId: updated.employeeId,
+        employeeName: updated.employee?.fullName || 'Staff Member',
+        date: updated.startDate.toISOString().split('T')[0],
+        appliedOn: updated.appliedAt.toISOString().split('T')[0],
+        type: updated.leaveType?.name || 'Casual Leave',
+        reason: updated.reason || '',
+        status: updated.status.toUpperCase(),
+        adminNote: updated.rejectionReason || '',
+      }
+    });
+  } catch (dbErr) {
+    console.warn('DB Leave update warning:', dbErr);
+  }
+
+  if (memIdx >= 0) {
+    return res.json({ success: true, data: memLeaves[memIdx] });
+  }
+
+  return res.status(404).json({ error: 'Leave request not found.' });
+});
+
+// GET /api/attendance - Retrieve attendance records
+app.get('/api/attendance', async (req, res) => {
+  const { businessId } = getRequestContext(req);
+  const employeeId = req.query.employeeId as string | undefined;
+  const date = req.query.date as string | undefined;
+
+  try {
+    const whereClause: any = {};
+    if (businessId) whereClause.businessId = businessId;
+    if (employeeId) whereClause.employeeId = employeeId;
+    if (date) {
+      const d = new Date(date);
+      const nextDay = new Date(d.getTime() + 24 * 3600 * 1000);
+      whereClause.attendanceDate = { gte: d, lt: nextDay };
+    }
+
+    const dbAtt = await prisma.attendance.findMany({
+      where: whereClause,
+      include: {
+        employee: true,
+        attendanceLocation: true,
+      },
+      orderBy: { attendanceDate: 'desc' }
+    });
+
+    if (dbAtt.length > 0) {
+      const formatted = dbAtt.map(a => ({
+        id: a.id,
+        employeeId: a.employeeId,
+        employeeName: a.employee?.fullName || 'Staff Member',
+        date: a.attendanceDate.toISOString().split('T')[0],
+        punchIn: a.punchInTime ? a.punchInTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '',
+        punchInSelfie: '',
+        punchInLocation: a.attendanceLocation?.punchInAddress || '',
+        punchOut: a.punchOutTime ? a.punchOutTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : null,
+        punchOutSelfie: null,
+        punchOutLocation: a.attendanceLocation?.punchOutAddress || null,
+        status: a.status,
+      }));
+      return res.json(formatted);
+    }
+  } catch (err) {}
+
+  return res.json(memAttendance);
+});
+
+// POST /api/attendance - Save or update punch session
+app.post('/api/attendance', async (req, res) => {
+  const { businessId } = getRequestContext(req);
+  const record = req.body;
+  if (!record || !record.id) {
+    return res.status(400).json({ error: 'Attendance record data is required.' });
+  }
+
+  const idx = memAttendance.findIndex(a => a.id === record.id);
+  if (idx >= 0) {
+    memAttendance[idx] = { ...memAttendance[idx], ...record, businessId };
+  } else {
+    memAttendance.unshift({ ...record, businessId });
+  }
+
+  return res.status(201).json({ success: true, data: record });
+});
+
 if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
 

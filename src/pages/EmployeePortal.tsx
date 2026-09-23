@@ -307,6 +307,33 @@ export default function EmployeePortal() {
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveSuccess, setLeaveSuccess] = useState(false);
 
+  // Sync leaves from database API
+  useEffect(() => {
+    const fetchLeaves = async () => {
+      const bizId = (session as any)?.businessId || localStorage.getItem('businessId') || 'biz-default-business';
+      try {
+        const res = await fetch(`/api/leaves?businessId=${bizId}`, {
+          headers: { 'x-business-id': bizId }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            setLeaves(data);
+            localStorage.setItem('emp_leaves', JSON.stringify(data));
+          }
+        }
+      } catch (err) {}
+    };
+
+    fetchLeaves();
+    window.addEventListener('leaves_updated', fetchLeaves);
+    window.addEventListener('storage', fetchLeaves);
+    return () => {
+      window.removeEventListener('leaves_updated', fetchLeaves);
+      window.removeEventListener('storage', fetchLeaves);
+    };
+  }, [session?.id]);
+
   useEffect(() => {
     const applyCurrentTheme = () => {
       ThemeEngine.applyTheme(ThemeEngine.getThemeConfig());
@@ -489,45 +516,64 @@ export default function EmployeePortal() {
     setTimeout(() => setPunchSuccess(''), 4000);
   };
 
-  const handleApplyLeave = (e: React.FormEvent) => {
+  const handleApplyLeave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!leaveDate || !leaveReason.trim()) return;
     setLeaveLoading(true);
-    setTimeout(() => {
-      const newLeave: LeaveRecord = {
-        id: `leave-${Date.now()}`,
-        employeeId: session.id,
-        employeeName: session.name,
-        date: leaveDate,
-        appliedOn: today,
-        type: leaveType,
-        reason: leaveReason.trim(),
-        status: 'PENDING',
-      };
-      const updated = [newLeave, ...leaves];
-      setLeaves(updated);
-      localStorage.setItem('emp_leaves', JSON.stringify(updated));
 
-      // Trigger Notification
-      try {
-        const { NotificationEngine } = require('../lib/notifications/notificationEngine');
-        NotificationEngine.dispatch({
-          event: 'LEAVE_REQUESTED',
-          recipient: { name: session.name },
-          data: {
-            staffName: session.name,
-            type: leaveType,
-            date: leaveDate,
-            reason: leaveReason.trim(),
-          },
-        });
-      } catch {}
+    const newLeave: LeaveRecord = {
+      id: `leave-${Date.now()}`,
+      employeeId: session.id,
+      employeeName: session.name,
+      date: leaveDate,
+      appliedOn: today,
+      type: leaveType,
+      reason: leaveReason.trim(),
+      status: 'PENDING',
+    };
 
-      setLeaveDate(''); setLeaveReason(''); setLeaveLoading(false);
-      setLeaveSuccess(true);
-      setTimeout(() => setLeaveSuccess(false), 3000);
-      setActiveTab('history');
-    }, 800);
+    const updated = [newLeave, ...leaves];
+    setLeaves(updated);
+    localStorage.setItem('emp_leaves', JSON.stringify(updated));
+
+    const bizId = (session as any)?.businessId || localStorage.getItem('businessId') || 'biz-default-business';
+    try {
+      await fetch('/api/leaves', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-business-id': bizId,
+        },
+        body: JSON.stringify({
+          ...newLeave,
+          businessId: bizId,
+        }),
+      });
+    } catch (err) {
+      console.warn('Failed to post leave to database API:', err);
+    }
+
+    // Trigger Notification
+    try {
+      const { NotificationEngine } = require('../lib/notifications/notificationEngine');
+      NotificationEngine.dispatch({
+        event: 'LEAVE_REQUESTED',
+        recipient: { name: session.name },
+        data: {
+          staffName: session.name,
+          type: leaveType,
+          date: leaveDate,
+          reason: leaveReason.trim(),
+        },
+      });
+    } catch {}
+
+    setLeaveDate('');
+    setLeaveReason('');
+    setLeaveLoading(false);
+    setLeaveSuccess(true);
+    setTimeout(() => setLeaveSuccess(false), 3000);
+    setActiveTab('history');
   };
 
   const handleLogout = () => {
