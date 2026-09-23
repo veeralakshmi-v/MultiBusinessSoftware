@@ -916,6 +916,16 @@ const getMenuItemsHandler = async (req: any, res: any) => {
       const attrs = typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : (item.attributes || {});
       return {
         ...item,
+        costPrice: attrs.costPrice ?? 0,
+        unit: attrs.unit || 'Pcs',
+        currentStock: attrs.currentStock ?? 50,
+        minStockLevel: attrs.minStockLevel ?? attrs.minStock ?? 10,
+        minStock: attrs.minStock ?? attrs.minStockLevel ?? 10,
+        sku: attrs.sku || '',
+        barcode: attrs.barcode || '',
+        supplierId: attrs.supplierId || '',
+        supplierName: attrs.supplierName || '',
+        description: attrs.description || '',
         showInWebsite: attrs.showInWebsite === true,
         attributes: attrs,
       };
@@ -931,7 +941,11 @@ app.get('/api/menu-items', getMenuItemsHandler);
 
 const createMenuItemHandler = async (req: any, res: any) => {
   const { businessId } = getRequestContext(req);
-  const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, showInWebsite, attributes } = req.body;
+  const {
+    name, categoryId, price, pricePerUnit, costPrice, gst, hsnCode, kitchenSection, dietary,
+    imageUrl, showInWebsite, attributes, unit, currentStock, minStock, minStockLevel,
+    sku, barcode, supplierId, supplierName, description
+  } = req.body;
   if (!name) return res.status(400).json({ error: 'Item name is required' });
 
   try {
@@ -961,18 +975,33 @@ const createMenuItemHandler = async (req: any, res: any) => {
       targetCatId = defaultCat.id;
     }
 
-    const combinedAttrs = typeof attributes === 'object'
-      ? { ...attributes, showInWebsite: showInWebsite === true }
-      : { showInWebsite: showInWebsite === true };
+    const combinedAttrs = {
+      ...(typeof attributes === 'object' ? attributes : {}),
+      costPrice: costPrice !== undefined ? (parseFloat(costPrice) || 0) : 0,
+      unit: (unit || 'Pcs').trim(),
+      currentStock: currentStock !== undefined ? (parseFloat(currentStock) || 0) : 50,
+      minStockLevel: minStockLevel !== undefined ? (parseFloat(minStockLevel) || 10) : (minStock !== undefined ? (parseFloat(minStock) || 10) : 10),
+      minStock: minStock !== undefined ? (parseFloat(minStock) || 10) : (minStockLevel !== undefined ? (parseFloat(minStockLevel) || 10) : 10),
+      sku: (sku || '').trim(),
+      barcode: (barcode || '').trim(),
+      supplierId: (supplierId || '').trim(),
+      supplierName: (supplierName || '').trim(),
+      description: (description || '').trim(),
+      showInWebsite: showInWebsite === true,
+    };
+
+    const effectivePrice = price !== undefined ? parseFloat(price) : (pricePerUnit !== undefined ? parseFloat(pricePerUnit) : 0);
+    const parsedGst = (gst !== undefined && gst !== null && gst !== '') ? parseFloat(gst) : 5;
+    const effectiveGst = isNaN(parsedGst) ? 5 : parsedGst;
 
     const item = await prisma.menuItem.create({
       data: {
         businessId,
         name: name.trim(),
         categoryId: targetCatId,
-        price: parseFloat(price || 0),
-        gst: parseFloat(gst || 5),
-        hsnCode: hsnCode || '2106',
+        price: isNaN(effectivePrice) ? 0 : effectivePrice,
+        gst: effectiveGst,
+        hsnCode: hsnCode ? String(hsnCode).trim() : '2106',
         kitchenSection: kitchenSection || 'Main Kitchen',
         dietary: dietary || 'VEG',
         imageUrl: imageUrl || '',
@@ -981,13 +1010,23 @@ const createMenuItemHandler = async (req: any, res: any) => {
       },
       include: { category: true }
     });
-    console.log(`✅ MenuItem stored in DB for [${businessId}]: ${item.name} (${item.id})`);
+    console.log(`✅ MenuItem stored in DB for [${businessId}]: [${item.id}] ${item.name} (Price: ${item.price}, GST: ${item.gst}%)`);
     return res.status(201).json({
       ...item,
+      costPrice: combinedAttrs.costPrice,
+      unit: combinedAttrs.unit,
+      currentStock: combinedAttrs.currentStock,
+      minStockLevel: combinedAttrs.minStockLevel,
+      minStock: combinedAttrs.minStock,
+      sku: combinedAttrs.sku,
+      barcode: combinedAttrs.barcode,
+      supplierId: combinedAttrs.supplierId,
+      supplierName: combinedAttrs.supplierName,
+      description: combinedAttrs.description,
       showInWebsite: showInWebsite === true,
       attributes: combinedAttrs
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error('❌ Error creating menu item:', err);
     return res.status(500).json({ error: 'Failed to create menu item', details: String(err) });
   }
@@ -999,7 +1038,12 @@ app.post('/api/menu-items', createMenuItemHandler);
 app.put('/api/menu-items/:id', async (req, res) => {
   const { id } = req.params;
   const { businessId } = getRequestContext(req);
-  const { name, categoryId, price, gst, hsnCode, kitchenSection, dietary, imageUrl, isAvailable, showInWebsite, attributes } = req.body;
+  const {
+    name, categoryId, price, pricePerUnit, costPrice, gst, hsnCode, kitchenSection, dietary,
+    imageUrl, isAvailable, showInWebsite, attributes, unit, currentStock, minStock, minStockLevel,
+    sku, barcode, supplierId, supplierName, description
+  } = req.body;
+
   try {
     let targetCatId = categoryId;
     if (targetCatId) {
@@ -1013,9 +1057,13 @@ app.put('/api/menu-items/:id', async (req, res) => {
 
     // Fetch existing item to merge attributes
     const existing = await prisma.menuItem.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
     let existingAttrs: any = {};
     try {
-      if (existing?.attributes) {
+      if (existing.attributes) {
         existingAttrs = typeof existing.attributes === 'string' ? JSON.parse(existing.attributes) : existing.attributes;
       }
     } catch (e) {}
@@ -1023,34 +1071,57 @@ app.put('/api/menu-items/:id', async (req, res) => {
     const newAttrs = {
       ...existingAttrs,
       ...(typeof attributes === 'object' ? attributes : {}),
+      ...(costPrice !== undefined ? { costPrice: parseFloat(costPrice) || 0 } : {}),
+      ...(unit !== undefined ? { unit: String(unit).trim() } : {}),
+      ...(currentStock !== undefined ? { currentStock: parseFloat(currentStock) || 0 } : {}),
+      ...(minStock !== undefined ? { minStock: parseFloat(minStock) || 10 } : {}),
+      ...(minStockLevel !== undefined ? { minStockLevel: parseFloat(minStockLevel) || 10 } : {}),
+      ...(sku !== undefined ? { sku: String(sku).trim() } : {}),
+      ...(barcode !== undefined ? { barcode: String(barcode).trim() } : {}),
+      ...(supplierId !== undefined ? { supplierId: String(supplierId).trim() } : {}),
+      ...(supplierName !== undefined ? { supplierName: String(supplierName).trim() } : {}),
+      ...(description !== undefined ? { description: String(description).trim() } : {}),
       ...(showInWebsite !== undefined ? { showInWebsite: showInWebsite === true } : {}),
     };
+
+    const parsedPrice = price !== undefined ? parseFloat(price) : (pricePerUnit !== undefined ? parseFloat(pricePerUnit) : undefined);
+    const parsedGst = (gst !== undefined && gst !== null && gst !== '') ? parseFloat(gst) : undefined;
 
     const updated = await prisma.menuItem.update({
       where: { id },
       data: {
-        name: name?.trim(),
+        name: name ? name.trim() : undefined,
         categoryId: targetCatId,
-        price: price !== undefined ? parseFloat(price) : undefined,
-        gst: gst !== undefined ? parseFloat(gst) : undefined,
-        hsnCode,
+        price: (parsedPrice !== undefined && !isNaN(parsedPrice)) ? parsedPrice : undefined,
+        gst: (parsedGst !== undefined && !isNaN(parsedGst)) ? parsedGst : undefined,
+        hsnCode: hsnCode !== undefined ? String(hsnCode).trim() : undefined,
         kitchenSection,
         dietary,
-        imageUrl,
-        isAvailable,
+        imageUrl: imageUrl !== undefined ? imageUrl : undefined,
+        isAvailable: isAvailable !== undefined ? Boolean(isAvailable) : undefined,
         attributes: JSON.stringify(newAttrs),
       },
       include: { category: true }
     });
-    console.log(`✅ MenuItem updated in DB: ${updated.name} (${updated.id})`);
+    console.log(`✅ MenuItem updated in DB: [${updated.id}] ${updated.name} (Price: ${updated.price}, GST: ${updated.gst}%)`);
     return res.json({
       ...updated,
+      costPrice: newAttrs.costPrice ?? 0,
+      unit: newAttrs.unit || 'Pcs',
+      currentStock: newAttrs.currentStock ?? 50,
+      minStockLevel: newAttrs.minStockLevel ?? newAttrs.minStock ?? 10,
+      minStock: newAttrs.minStock ?? newAttrs.minStockLevel ?? 10,
+      sku: newAttrs.sku || '',
+      barcode: newAttrs.barcode || '',
+      supplierId: newAttrs.supplierId || '',
+      supplierName: newAttrs.supplierName || '',
+      description: newAttrs.description || '',
       showInWebsite: newAttrs.showInWebsite === true,
       attributes: newAttrs
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error('❌ Error updating menu item:', err);
-    return res.status(500).json({ error: 'Failed to update menu item' });
+    return res.status(500).json({ error: 'Failed to update menu item', details: err.message });
   }
 });
 

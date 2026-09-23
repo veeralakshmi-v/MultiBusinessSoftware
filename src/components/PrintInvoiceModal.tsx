@@ -439,7 +439,7 @@ export default function PrintInvoiceModal({
                       <td className="p-2.5 border-r text-center font-mono text-gray-600">{item.menuItem.hsnCode || '2106'}</td>
                       <td className="p-2.5 border-r text-center font-bold">{item.quantity}</td>
                       <td className="p-2.5 border-r text-right font-mono">₹{item.price.toFixed(2)}</td>
-                      <td className="p-2.5 border-r text-center font-mono">{item.menuItem.gst || 5}%</td>
+                      <td className="p-2.5 border-r text-center font-mono">{(typeof item.menuItem?.gst === 'number' ? item.menuItem.gst : 5)}%</td>
                       <td className="p-2.5 text-right font-bold font-mono">₹{((item.price - (item.discount || 0)) * item.quantity).toFixed(2)}</td>
                     </tr>
                   ))}

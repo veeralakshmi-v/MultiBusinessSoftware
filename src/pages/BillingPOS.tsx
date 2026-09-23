@@ -615,7 +615,7 @@ export default function BillingPOS() {
     if (billType === 'NON_GST') return 0;
     return cart.reduce((sum, item) => {
       const itemNet = (item.price * item.quantity) - ((item.discount || 0) * item.quantity);
-      const rate = item.menuItem.gst || businessProfile.defaultTaxRate || 5;
+      const rate = (typeof item.menuItem?.gst === 'number' && !isNaN(item.menuItem.gst)) ? item.menuItem.gst : (businessProfile.defaultTaxRate ?? 5);
       return sum + (itemNet * rate) / 100;
     }, 0);
   }, [cart, billType, businessProfile.defaultTaxRate]);
@@ -830,7 +830,7 @@ export default function BillingPOS() {
         quantity: c.quantity,
         price: c.price,
         discount: c.discount,
-        gst: billType === 'GST' ? (c.menuItem.gst || 5) : 0,
+        gst: billType === 'GST' ? (typeof c.menuItem?.gst === 'number' ? c.menuItem.gst : 5) : 0,
       })),
     };
 

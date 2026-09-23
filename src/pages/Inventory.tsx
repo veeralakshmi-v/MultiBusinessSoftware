@@ -69,67 +69,52 @@ export default function Inventory() {
 
 function getCombinedMaterials(): Promise<any[]> {
   return new Promise(resolve => {
-    let list: any[] = [];
-    try {
-      const saved = localStorage.getItem('universal_items');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          list = parsed.map((it: any) => ({
-            id: it.id,
-            name: it.name,
-            categoryId: it.categoryId || '',
-            categoryName: it.categoryName || 'General',
-            currentStock: it.currentStock ?? 50,
-            minStockLevel: it.minStockLevel ?? it.minStock ?? 10,
-            pricePerUnit: it.price || it.pricePerUnit || 0,
-            costPrice: it.costPrice || 0,
-            unit: it.unit || 'Pcs',
-            sku: it.sku || '',
-            barcode: it.barcode || '',
-            hsnCode: it.hsnCode || '',
-            gst: it.gst ?? 5,
-            isAvailable: it.isAvailable !== false,
-            showInWebsite: it.showInWebsite === true,
-            description: it.description || '',
-            imageUrl: it.imageUrl || '',
-          }));
-        }
-      }
-    } catch {}
-
     fetch('/api/menu-items')
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const ids = new Set(list.map(l => l.id));
-          data.forEach((d: any) => {
-            if (!ids.has(d.id)) {
-              list.push({
-                id: d.id,
-                name: d.name,
-                categoryId: d.categoryId || d.category?.id || '',
-                categoryName: d.categoryName || d.category?.name || 'General',
-                currentStock: d.currentStock ?? 50,
-                minStockLevel: d.minStockLevel ?? d.minStock ?? 10,
-                pricePerUnit: d.price || d.pricePerUnit || 0,
-                costPrice: d.costPrice || 0,
-                unit: d.unit || 'Pcs',
-                sku: d.sku || '',
-                barcode: d.barcode || '',
-                hsnCode: d.hsnCode || '',
-                gst: d.gst ?? 5,
-                isAvailable: d.isAvailable !== false,
-                showInWebsite: d.showInWebsite === true,
-                description: d.description || '',
-                imageUrl: d.imageUrl || '',
-              });
-            }
+        if (Array.isArray(data)) {
+          const list = data.map((d: any) => {
+            const attrs = typeof d.attributes === 'string' ? JSON.parse(d.attributes || '{}') : (d.attributes || {});
+            return {
+              id: d.id,
+              name: d.name,
+              categoryId: d.categoryId || d.category?.id || '',
+              categoryName: d.category?.name || attrs.categoryName || 'General',
+              currentStock: (typeof d.currentStock === 'number' && !isNaN(d.currentStock)) ? d.currentStock : (attrs.currentStock ?? 50),
+              minStockLevel: (typeof d.minStockLevel === 'number' && !isNaN(d.minStockLevel)) ? d.minStockLevel : (attrs.minStockLevel ?? attrs.minStock ?? 10),
+              minStock: (typeof d.minStock === 'number' && !isNaN(d.minStock)) ? d.minStock : (attrs.minStock ?? attrs.minStockLevel ?? 10),
+              pricePerUnit: (typeof d.price === 'number' && !isNaN(d.price)) ? d.price : (d.pricePerUnit || 0),
+              price: (typeof d.price === 'number' && !isNaN(d.price)) ? d.price : (d.pricePerUnit || 0),
+              costPrice: (typeof d.costPrice === 'number' && !isNaN(d.costPrice)) ? d.costPrice : (attrs.costPrice || 0),
+              unit: d.unit || attrs.unit || 'Pcs',
+              sku: d.sku || attrs.sku || '',
+              barcode: d.barcode || attrs.barcode || '',
+              hsnCode: d.hsnCode || '',
+              gst: (typeof d.gst === 'number' && !isNaN(d.gst)) ? d.gst : 5,
+              isAvailable: d.isAvailable !== false,
+              showInWebsite: d.showInWebsite === true || attrs.showInWebsite === true,
+              description: d.description || attrs.description || '',
+              imageUrl: d.imageUrl || '',
+              supplierId: d.supplierId || attrs.supplierId || '',
+              supplierName: d.supplierName || attrs.supplierName || '',
+            };
           });
+          localStorage.setItem('universal_items', JSON.stringify(list));
+          resolve(list);
+          return;
         }
-        resolve(list);
+        resolve([]);
       })
-      .catch(() => resolve(list));
+      .catch(() => {
+        try {
+          const saved = localStorage.getItem('universal_items');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) return resolve(parsed);
+          }
+        } catch {}
+        resolve([]);
+      });
   });
 }
 
@@ -347,126 +332,104 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+    if (!form.name.trim()) return;
 
-    const selectedCat = categories.find(c => c.id === form.categoryId) || categories[0] || { id: 'cat-1', name: 'Grocery' };
+    const selectedCat = categories.find(c => c.id === form.categoryId) || categories[0] || { id: 'cat-1', name: 'General' };
     const selectedSup = suppliers.find(s => s.id === form.supplierId);
 
-    const newItem = {
-      id: `item-${Date.now()}`,
+    const parsedPrice = parseFloat(String(form.pricePerUnit)) || 0;
+    const parsedCost = parseFloat(String(form.costPrice)) || 0;
+    const parsedGst = (form.gst !== undefined && form.gst !== null && !isNaN(Number(form.gst))) ? Number(form.gst) : 5;
+    const parsedMinStock = parseFloat(String(form.minStockLevel)) || 10;
+
+    const payload = {
       name: form.name.trim(),
       categoryId: selectedCat.id,
-      categoryName: selectedCat.name,
       supplierId: form.supplierId || '',
       supplierName: selectedSup?.name || '',
-      price: Number(form.pricePerUnit),
-      costPrice: Number(form.costPrice),
+      price: parsedPrice,
+      pricePerUnit: parsedPrice,
+      costPrice: parsedCost,
       unit: form.unit.trim() || 'Pcs',
-      currentStock: Number(form.minStockLevel) * 2 || 50,
-      minStock: Number(form.minStockLevel) || 10,
+      currentStock: parsedMinStock * 2 || 50,
+      minStock: parsedMinStock,
+      minStockLevel: parsedMinStock,
       sku: form.sku.trim() || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
       barcode: form.barcode.trim(),
       hsnCode: form.hsnCode.trim(),
-      gst: Number(form.gst) || 5,
+      gst: isNaN(parsedGst) ? 5 : parsedGst,
       isAvailable: true,
       showInWebsite: form.showInWebsite === true,
       imageUrl: form.imageUrl || '',
     };
 
-    let existing: any[] = [];
     try {
-      const saved = localStorage.getItem('universal_items');
-      if (saved) existing = JSON.parse(saved);
-    } catch {}
+      const res = await fetch('/api/menu-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-    const updated = [newItem, ...existing].map(item => {
-      if (item.name.toLowerCase() === newItem.name.toLowerCase()) {
-        return { ...item, categoryId: selectedCat.id, categoryName: selectedCat.name };
+      if (res.ok) {
+        const created = await res.json();
+        setMaterials(prev => [created, ...prev.filter(p => p.id !== created.id)]);
       }
-      return item;
-    });
+    } catch (err) {
+      console.error('Failed to create product in DB:', err);
+    }
 
-    localStorage.setItem('universal_items', JSON.stringify(updated));
-    window.dispatchEvent(new Event('storage'));
-
-    await fetch('/api/inventory/materials', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({...form, minStockLevel: Number(form.minStockLevel), pricePerUnit: Number(form.pricePerUnit)})
-    });
     fetchMats();
     setForm({ name: '', unit: 'Pcs', minStockLevel: 10, pricePerUnit: 0, costPrice: 0, supplierId: '', categoryId: '', sku: '', barcode: '', hsnCode: '', gst: 5, showInWebsite: false, imageUrl: '' });
     setShowForm(false);
   };
 
-  const handleAdjustStock = (itemId: string, delta: number) => {
-    let existing: any[] = [];
+  const handleAdjustStock = async (itemId: string, delta: number) => {
+    const item = materials.find(m => m.id === itemId);
+    if (!item) return;
+    const newStock = Math.max(0, (item.currentStock ?? 50) + delta);
     try {
-      const saved = localStorage.getItem('universal_items');
-      if (saved) existing = JSON.parse(saved);
+      await fetch(`/api/menu-items/${itemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentStock: newStock })
+      });
     } catch {}
-    const updated = existing.map(i => {
-      if (i.id === itemId) {
-        const cur = i.currentStock ?? 50;
-        return { ...i, currentStock: Math.max(0, cur + delta) };
-      }
-      return i;
-    });
-    localStorage.setItem('universal_items', JSON.stringify(updated));
-    window.dispatchEvent(new Event('storage'));
     fetchMats();
   };
 
-  const handleSetStock = (itemId: string, newStock: number) => {
-    let existing: any[] = [];
+  const handleSetStock = async (itemId: string, newStock: number) => {
+    const targetStock = Math.max(0, newStock);
     try {
-      const saved = localStorage.getItem('universal_items');
-      if (saved) existing = JSON.parse(saved);
+      await fetch(`/api/menu-items/${itemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentStock: targetStock })
+      });
     } catch {}
-    const updated = existing.map(i => {
-      if (i.id === itemId) {
-        return { ...i, currentStock: Math.max(0, newStock) };
-      }
-      return i;
-    });
-    localStorage.setItem('universal_items', JSON.stringify(updated));
-    window.dispatchEvent(new Event('storage'));
     fetchMats();
   };
 
-  const handleToggleAvailability = (item: any) => {
-    let existing: any[] = [];
+  const handleToggleAvailability = async (item: any) => {
+    const target = !(item.isAvailable !== false);
     try {
-      const saved = localStorage.getItem('universal_items');
-      if (saved) existing = JSON.parse(saved);
+      await fetch(`/api/menu-items/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAvailable: target })
+      });
     } catch {}
-
-    const updated = existing.map(i => {
-      if (i.id === item.id || i.name.toLowerCase() === item.name.toLowerCase()) {
-        return { ...i, isAvailable: !i.isAvailable };
-      }
-      return i;
-    });
-
-    localStorage.setItem('universal_items', JSON.stringify(updated));
-    window.dispatchEvent(new Event('storage'));
     fetchMats();
   };
 
-  const handleToggleWebsiteVisibility = (item: any) => {
-    let existing: any[] = [];
+  const handleToggleWebsiteVisibility = async (item: any) => {
+    const target = !(item.showInWebsite === true);
     try {
-      const saved = localStorage.getItem('universal_items');
-      if (saved) existing = JSON.parse(saved);
+      await fetch(`/api/menu-items/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ showInWebsite: target })
+      });
     } catch {}
-
-    const updated = existing.map(i => {
-      if (i.id === item.id || i.name.toLowerCase() === item.name.toLowerCase()) {
-        return { ...i, showInWebsite: !i.showInWebsite };
-      }
-      return i;
-    });
-
-    localStorage.setItem('universal_items', JSON.stringify(updated));
-    window.dispatchEvent(new Event('storage'));
     fetchMats();
   };
 
@@ -477,7 +440,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       name: item.name,
       categoryId: item.categoryId || '',
       supplierId: item.supplierId || '',
-      price: item.pricePerUnit || item.price || 0,
+      price: (typeof item.price === 'number' && !isNaN(item.price)) ? item.price : (item.pricePerUnit || 0),
       costPrice: item.costPrice || 0,
       currentStock: item.currentStock ?? 50,
       minStock: item.minStockLevel || item.minStock || 10,
@@ -485,7 +448,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
       sku: item.sku || '',
       barcode: item.barcode || '',
       hsnCode: item.hsnCode || '',
-      gst: item.gst ?? 5,
+      gst: (typeof item.gst === 'number' && !isNaN(item.gst)) ? item.gst : 5,
       isAvailable: item.isAvailable !== false,
       showInWebsite: item.showInWebsite === true,
       description: item.description || '',
@@ -493,64 +456,80 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
     });
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editForm.name.trim()) return;
+    if (!editForm.id || !editForm.name.trim()) return;
 
-    const selectedCat = categories.find(c => c.id === editForm.categoryId) || categories[0] || { id: 'cat-1', name: 'Grocery' };
+    const selectedCat = categories.find(c => c.id === editForm.categoryId) || categories[0] || { id: 'cat-1', name: 'General' };
     const selectedSup = suppliers.find(s => s.id === editForm.supplierId);
 
-    let existing: any[] = [];
+    const parsedPrice = parseFloat(String(editForm.price)) || 0;
+    const parsedCost = parseFloat(String(editForm.costPrice)) || 0;
+    const parsedGst = (editForm.gst !== undefined && editForm.gst !== null && !isNaN(Number(editForm.gst))) ? Number(editForm.gst) : 5;
+    const parsedStock = parseFloat(String(editForm.currentStock)) || 0;
+    const parsedMinStock = parseFloat(String(editForm.minStock)) || 10;
+
+    if (isNaN(parsedGst) || parsedGst < 0) {
+      alert('Please enter a valid non-negative GST percentage');
+      return;
+    }
+
+    const payload = {
+      name: editForm.name.trim(),
+      categoryId: selectedCat.id,
+      supplierId: editForm.supplierId || '',
+      supplierName: selectedSup?.name || '',
+      price: parsedPrice,
+      pricePerUnit: parsedPrice,
+      costPrice: parsedCost,
+      currentStock: parsedStock,
+      minStock: parsedMinStock,
+      minStockLevel: parsedMinStock,
+      unit: editForm.unit.trim() || 'Pcs',
+      sku: editForm.sku.trim(),
+      barcode: editForm.barcode.trim(),
+      hsnCode: editForm.hsnCode.trim(),
+      gst: parsedGst,
+      isAvailable: editForm.isAvailable,
+      showInWebsite: editForm.showInWebsite === true,
+      description: editForm.description.trim(),
+      imageUrl: editForm.imageUrl || '',
+    };
+
     try {
-      const saved = localStorage.getItem('universal_items');
-      if (saved) existing = JSON.parse(saved);
-    } catch {}
+      const res = await fetch(`/api/menu-items/${editForm.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-    const updated = existing.map(item => {
-      if (item.id === editForm.id || item.name.toLowerCase() === editForm.name.toLowerCase()) {
-        return {
-          ...item,
-          name: editForm.name.trim(),
-          categoryId: selectedCat.id,
-          categoryName: selectedCat.name,
-          supplierId: editForm.supplierId || '',
-          supplierName: selectedSup?.name || '',
-          price: Number(editForm.price),
-          costPrice: Number(editForm.costPrice),
-          currentStock: Number(editForm.currentStock),
-          minStock: Number(editForm.minStock),
-          unit: editForm.unit.trim() || 'Pcs',
-          sku: editForm.sku.trim(),
-          barcode: editForm.barcode.trim(),
-          hsnCode: editForm.hsnCode.trim(),
-          gst: Number(editForm.gst),
-          isAvailable: editForm.isAvailable,
-          showInWebsite: editForm.showInWebsite === true,
-          description: editForm.description.trim(),
-          imageUrl: editForm.imageUrl || '',
-        };
+      if (res.ok) {
+        const updated = await res.json();
+        setMaterials(prev => prev.map(m => (m.id === editForm.id ? { ...m, ...updated } : m)));
+        setEditingItem(null);
+        window.dispatchEvent(new Event('storage'));
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Failed to update product in database');
       }
-      return item;
-    });
+    } catch (err: any) {
+      alert('Network error while updating product');
+    }
 
-    localStorage.setItem('universal_items', JSON.stringify(updated));
-    window.dispatchEvent(new Event('storage'));
     fetchMats();
-    setEditingItem(null);
   };
 
-  const handleDeleteItem = (itemId: string, name: string) => {
+  const handleDeleteItem = async (itemId: string, name: string) => {
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
-    let existing: any[] = [];
     try {
-      const saved = localStorage.getItem('universal_items');
-      if (saved) existing = JSON.parse(saved);
-    } catch {}
+      const res = await fetch(`/api/menu-items/${itemId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setMaterials(prev => prev.filter(m => m.id !== itemId));
+        window.dispatchEvent(new Event('storage'));
+      }
+    } catch (err) {}
 
-    const updated = existing.filter(item => item.id !== itemId && item.name !== name);
-    localStorage.setItem('universal_items', JSON.stringify(updated));
-    window.dispatchEvent(new Event('storage'));
     fetchMats();
   };
 
@@ -679,8 +658,9 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-900 opacity-70 uppercase">GST Tax (%)</label>
-              <select value={form.gst} onChange={e=>setForm({...form, gst: e.target.value as any})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1">
+              <select value={String(form.gst)} onChange={e=>setForm({...form, gst: parseFloat(e.target.value) || 0})} className="w-full bg-gray-50 border border-gray-100 rounded-lg p-2 text-gray-900 text-sm outline-none mt-1 font-medium">
                 <option value="0">0% (Exempt)</option>
+                <option value="3">3% GST</option>
                 <option value="5">5% GST</option>
                 <option value="12">12% GST</option>
                 <option value="18">18% GST</option>
@@ -860,12 +840,20 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-600 uppercase">GST Tax (%)</label>
-                <select value={editForm.gst} onChange={e => setEditForm({ ...editForm, gst: e.target.value as any })} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1">
-                  <option value="0">0% (Exempt)</option>
+                <select
+                  value={String(editForm.gst)}
+                  onChange={e => setEditForm({ ...editForm, gst: parseFloat(e.target.value) || 0 })}
+                  className="w-full bg-gray-50 border border-gray-100 rounded-xl p-2.5 text-xs text-gray-900 outline-none mt-1 font-medium"
+                >
+                  <option value="0">0% (Exempt / Nil-Rated)</option>
+                  <option value="3">3% GST</option>
                   <option value="5">5% GST</option>
                   <option value="12">12% GST</option>
                   <option value="18">18% GST</option>
                   <option value="28">28% GST</option>
+                  {![0, 3, 5, 12, 18, 28].includes(Number(editForm.gst)) && (
+                    <option value={editForm.gst}>{editForm.gst}% (Custom)</option>
+                  )}
                 </select>
               </div>
               <div>
@@ -1160,7 +1148,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                 <td className="px-4 py-3 text-right font-mono text-gray-900 opacity-70">{m.costPrice ? `₹${Number(m.costPrice).toFixed(2)}` : '—'}</td>
                 <td className="px-4 py-3 text-center">
                   <span className="px-2 py-0.5 rounded bg-theme-secondary/15 text-[#2563EB] border border-gray-100 font-mono text-[10px] font-bold">
-                    {m.gst || 5}% GST
+                    {typeof m.gst === 'number' ? m.gst : 5}% GST
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center">
