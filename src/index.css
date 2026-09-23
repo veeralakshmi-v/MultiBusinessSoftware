@@ -153,29 +153,122 @@ p, span, div, a, label, table, th, td,
   box-shadow: 0 0 20px rgba(197, 160, 89, 0.15);
 }
 
-/* Print Invoice Styling */
+/* ── Thermal & Standard Invoice Print Styles ────────────────────── */
 @media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Prevent browser UI headers/footers and background artifacts */
   body * {
     visibility: hidden;
   }
+
   .print-invoice-modal,
   .print-invoice-modal * {
     visibility: visible;
   }
+
   .print-invoice-modal {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
+    position: static !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
     box-shadow: none !important;
     border: none !important;
+    display: block !important;
+    overflow: visible !important;
   }
-  .no-print {
+
+  .no-print,
+  .print-hide {
     display: none !important;
+  }
+
+  /* 58mm Thermal Receipt Printable Specifications (48mm printable area) */
+  .thermal-receipt-58mm {
+    width: 48mm !important;
+    max-width: 48mm !important;
+    min-width: 48mm !important;
+    margin: 0 auto !important;
+    padding: 1mm 1.5mm !important;
+    box-sizing: border-box !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    page-break-inside: auto !important;
+  }
+
+  /* 80mm Thermal Receipt Printable Specifications (72mm printable area) */
+  .thermal-receipt-80mm {
+    width: 72mm !important;
+    max-width: 72mm !important;
+    min-width: 72mm !important;
+    margin: 0 auto !important;
+    padding: 2mm 2.5mm !important;
+    box-sizing: border-box !important;
+    font-size: 10.5px !important;
+    line-height: 1.25 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    page-break-inside: auto !important;
+  }
+
+  /* Thermal Tables: Fixed proportional layout prevents long names from expanding table */
+  .thermal-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    box-sizing: border-box !important;
+  }
+
+  .thermal-table th,
+  .thermal-table td {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* QR Code scaling */
+  .thermal-qr-58mm {
+    width: 60px !important;
+    height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    object-contain: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+  }
+
+  .thermal-qr-80mm {
+    width: 84px !important;
+    height: 84px !important;
+    max-width: 84px !important;
+    max-height: 84px !important;
+    object-contain: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
   }
 }
 

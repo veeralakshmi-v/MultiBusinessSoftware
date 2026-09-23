@@ -141,8 +141,8 @@ export default function PrintInvoiceModal({
   const upiQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`upi://pay?pa=${settings.upiId}&pn=${encodeURIComponent(layout.headerTitle)}&am=${order.total.toFixed(2)}&cu=INR`)}`;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto print:p-0 print:bg-white print:static">
-      <div className="bg-white border border-gray-200 rounded-2xl max-w-4xl w-full flex flex-col max-h-[90vh] shadow-2xl overflow-hidden print:border-none print:shadow-none print:max-w-none print:max-h-none print:bg-white text-gray-200">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto print:p-0 print:m-0 print:bg-transparent print:static print:block print:overflow-visible print:inset-auto print:w-full print:h-auto print-invoice-modal">
+      <div className="bg-white border border-gray-200 rounded-2xl max-w-4xl w-full flex flex-col max-h-[90vh] shadow-2xl overflow-hidden print:border-none print:shadow-none print:max-w-none print:max-h-none print:h-auto print:bg-transparent print:overflow-visible print:static print:w-full print:p-0 print:m-0 text-gray-200">
         
         {/* Header Controls Bar */}
         <div className="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4 bg-gray-50 print:hidden">
@@ -168,25 +168,25 @@ export default function PrintInvoiceModal({
             <div className="flex items-center bg-[#F8FAFC] border border-gray-200 rounded-xl p-1 text-xs">
               <button
                 onClick={() => setPrintFormat('80MM')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === '80MM' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
+                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${printFormat === '80MM' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
               >
                 80mm
               </button>
               <button
                 onClick={() => setPrintFormat('58MM')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === '58MM' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
+                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${printFormat === '58MM' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
               >
                 58mm
               </button>
               <button
                 onClick={() => setPrintFormat('A4')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === 'A4' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
+                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${printFormat === 'A4' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
               >
                 A4 Tax
               </button>
               <button
                 onClick={() => setPrintFormat('KOT')}
-                className={`px-3 py-1 rounded-lg font-bold transition-all ${printFormat === 'KOT' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
+                className={`px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${printFormat === 'KOT' ? 'bg-[#2563EB] text-[#0A0A0B]' : 'text-gray-400 hover:text-gray-900'}`}
               >
                 KOT Slip
               </button>
@@ -196,7 +196,7 @@ export default function PrintInvoiceModal({
             <button
               onClick={() => setShowQrScanner(!showQrScanner)}
               className={cn(
-                "px-2.5 py-1 rounded-xl text-xs font-bold transition-all border flex items-center gap-1",
+                "px-2.5 py-1 rounded-xl text-xs font-bold transition-all border flex items-center gap-1 cursor-pointer",
                 showQrScanner
                   ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
                   : "bg-gray-50 text-gray-400 border-gray-200 hover:text-gray-900"
@@ -208,7 +208,7 @@ export default function PrintInvoiceModal({
 
             <button
               onClick={handleCopySummary}
-              className="px-3 py-1.5 bg-gray-50 border border-gray-200 hover:border-gray-500 text-gray-300 hover:text-gray-900 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 bg-gray-50 border border-gray-200 hover:border-gray-500 text-gray-300 hover:text-gray-900 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? 'Copied' : 'Copy'}
@@ -216,66 +216,217 @@ export default function PrintInvoiceModal({
 
             <button
               onClick={handlePrint}
-              className="px-4 py-1.5 bg-[#2563EB] hover:bg-[#b08d4a] text-[#0A0A0B] font-bold text-xs rounded-xl uppercase tracking-wider shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all"
+              className="px-4 py-1.5 bg-[#2563EB] hover:bg-[#b08d4a] text-[#0A0A0B] font-bold text-xs rounded-xl uppercase tracking-wider shadow-md shadow-blue-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               Print Receipt
             </button>
 
-            <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-900 rounded-lg">
+            <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-900 rounded-lg cursor-pointer">
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {/* Invoice View Area */}
-        <div className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC] print:bg-white print:p-0 flex justify-center">
+        <div className="flex-1 overflow-y-auto p-6 bg-[#F8FAFC] print:bg-transparent print:p-0 print:m-0 print:overflow-visible print:block flex justify-center">
           
-          {/* FORMAT 1: 80MM / 58MM THERMAL RECEIPT */}
-          {(printFormat === '80MM' || printFormat === '58MM') && (
-            <div className={`${printFormat === '58MM' ? 'w-[240px] text-[10px]' : 'w-[320px] text-xs'} bg-white text-black p-4 font-mono rounded-lg shadow-2xl print:shadow-none print:w-full print:p-0`}>
+          {/* FORMAT 1A: 58MM COMPACT THERMAL RECEIPT */}
+          {printFormat === '58MM' && (
+            <div className="w-[200px] max-w-[200px] thermal-receipt-58mm bg-white text-black p-2 font-mono text-[9px] leading-tight rounded-lg shadow-2xl print:shadow-none print:border-none print:rounded-none">
               
               {/* Header */}
-              <div className="text-center border-b border-dashed border-gray-400 pb-3 mb-3">
-                <h2 className="font-extrabold text-sm sm:text-base uppercase tracking-tight">{layout.headerTitle}</h2>
-                {layout.tagline && <p className="text-[9px] text-gray-600 italic">{layout.tagline}</p>}
-                <p className="text-[10px] text-gray-600 mt-0.5">{settings.address}</p>
-                <p className="text-[10px] text-gray-600">Ph: {settings.phone}</p>
+              <div className="text-center border-b border-dashed border-gray-400 pb-1.5 mb-1.5">
+                <h2 className="font-extrabold text-xs uppercase tracking-tight break-words">{layout.headerTitle}</h2>
+                {layout.tagline && <p className="text-[8px] text-gray-600 italic break-words">{layout.tagline}</p>}
+                <p className="text-[8.5px] text-gray-600 mt-0.5 break-words">{settings.address}</p>
+                <p className="text-[8.5px] text-gray-600">Ph: {settings.phone}</p>
                 
                 {/* Dynamic Regulatory License Header */}
                 {settings.gstin && (
-                  <p className="text-[10px] font-bold mt-1 uppercase">
+                  <p className="text-[8.5px] font-bold mt-0.5 uppercase break-words">
                     GSTIN: {settings.gstin}
                   </p>
                 )}
               </div>
 
               {/* Order Metadata */}
-              <div className="border-b border-dashed border-gray-400 pb-2 mb-2 text-[10px] space-y-0.5">
-                <div className="flex justify-between">
-                  <span>Bill #: <strong>{order.orderNumber}</strong></span>
-                  <span>{orderDate}</span>
+              <div className="border-b border-dashed border-gray-400 pb-1.5 mb-1.5 text-[8.5px] space-y-0.5">
+                <div className="flex justify-between gap-1">
+                  <span className="truncate">Bill: <strong>{order.orderNumber}</strong></span>
+                  <span className="shrink-0">{orderDate}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-1">
                   <span>Type: <strong>{order.orderType}</strong></span>
                   <span>Pay: <strong>{order.paymentMethod || 'CASH'}</strong></span>
                 </div>
                 {order.table && (
-                  <div>Table / Station: <strong>{order.table.name}</strong></div>
+                  <div className="break-words">Table: <strong>{order.table.name}</strong></div>
                 )}
                 {order.customer?.name && (
-                  <div>Customer: <strong>{order.customer.name}</strong> {order.customer.mobile ? `(${order.customer.mobile})` : ''}</div>
+                  <div className="break-words">Cust: <strong>{order.customer.name}</strong> {order.customer.mobile ? `(${order.customer.mobile})` : ''}</div>
                 )}
                 {order.doctorName && (
-                  <div>Prescribing Doctor: <strong>Dr. {order.doctorName}</strong></div>
+                  <div className="break-words">Dr: <strong>{order.doctorName}</strong></div>
                 )}
               </div>
 
-              {/* Items Table */}
-              <table className="w-full text-left mb-3 border-b border-dashed border-gray-400">
+              {/* Items Table - Proportional fixed layout prevents horizontal overflow */}
+              <table className="w-full text-left mb-2 border-b border-dashed border-gray-400 table-fixed thermal-table">
+                <colgroup>
+                  <col style={{ width: '56%' }} />
+                  <col style={{ width: '18%' }} />
+                  <col style={{ width: '26%' }} />
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-black font-bold uppercase text-[8px]">
+                    <th className="py-0.5 text-left">Item</th>
+                    <th className="py-0.5 text-center">Qty</th>
+                    <th className="py-0.5 text-right">Amt</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {order.items.map((item, idx) => {
+                    const parsedAttrs = (item.menuItem as any).attributes || {};
+                    const batch = item.menuItem.batchNumber || parsedAttrs.batchNumber;
+                    const exp = item.menuItem.expiryDate || parsedAttrs.expiryDate;
+                    const serial = item.menuItem.serialNumber || parsedAttrs.serialNumber;
+
+                    return (
+                      <tr key={idx} className="align-top">
+                        <td className="py-0.5 leading-tight break-words pr-0.5">
+                          <div className="font-semibold text-[8.5px]">{item.menuItem.name}</div>
+                          {(batch || exp) && (
+                            <div className="text-[7px] text-gray-500 font-mono">B:{batch || '-'} E:{exp || '-'}</div>
+                          )}
+                          {serial && (
+                            <div className="text-[7px] text-gray-500 font-mono">S/N: {serial}</div>
+                          )}
+                        </td>
+                        <td className="py-0.5 text-center font-mono text-[8px] whitespace-nowrap align-top">
+                          {formatQuantityWithSubunit(item.quantity, item.menuItem.unit)}
+                        </td>
+                        <td className="py-0.5 text-right font-bold font-mono text-[8.5px] whitespace-nowrap align-top">
+                          ₹{((item.price - (item.discount || 0)) * item.quantity).toFixed(2)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              {/* Totals Summary */}
+              <div className="space-y-0.5 text-[9px] text-right font-bold border-b border-dashed border-gray-400 pb-1.5 mb-2">
+                <div className="flex justify-between font-normal">
+                  <span>Subtotal:</span>
+                  <span>₹{order.subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-normal">
+                  <span>GST Tax:</span>
+                  <span>₹{order.tax.toFixed(2)}</span>
+                </div>
+                {order.discount ? (
+                  <div className="flex justify-between text-emerald-700">
+                    <span>Discount:</span>
+                    <span>-₹{order.discount.toFixed(2)}</span>
+                  </div>
+                ) : null}
+                {order.packingCharge ? (
+                  <div className="flex justify-between font-normal">
+                    <span>Packing:</span>
+                    <span>+₹{order.packingCharge.toFixed(2)}</span>
+                  </div>
+                ) : null}
+                {order.deliveryCharge ? (
+                  <div className="flex justify-between font-normal">
+                    <span>Delivery:</span>
+                    <span>+₹{order.deliveryCharge.toFixed(2)}</span>
+                  </div>
+                ) : null}
+                <div className="flex justify-between text-[11px] font-black border-t border-black pt-1">
+                  <span>TOTAL:</span>
+                  <span>₹{order.total.toFixed(2)}</span>
+                </div>
+                {order.paidAmount !== undefined && order.paidAmount < order.total && (
+                  <>
+                    <div className="flex justify-between font-normal text-[#2563EB] pt-0.5 text-[8px]">
+                      <span>Paid ({order.splitPaidMethod || order.paymentMethod}):</span>
+                      <span>₹{order.paidAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-red-600 text-[8px]">
+                      <span>Due:</span>
+                      <span>₹{(order.balanceAmount ?? (order.total - order.paidAmount)).toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* UPI QR Code Preview - Centered & sized specifically for 58mm */}
+              {showQrScanner && (
+                <div className="flex flex-col items-center justify-center border-b border-dashed border-gray-400 pb-2 mb-2 w-full text-center">
+                  <img src={upiQrUrl} alt="UPI QR" className="w-15 h-15 thermal-qr-58mm mx-auto block object-contain" />
+                  <span className="text-[7.5px] text-gray-600 mt-0.5 font-bold block">Scan & Pay ₹{order.total.toFixed(2)}</span>
+                </div>
+              )}
+
+              {/* Dynamic Footer Terms & Note */}
+              <div className="text-center text-[7.5px] text-gray-600 italic break-words space-y-0.5">
+                <p>{layout.termsText}</p>
+                <p className="font-bold text-black text-[8px]">{layout.thankYouNote}</p>
+              </div>
+            </div>
+          )}
+
+          {/* FORMAT 1B: 80MM STANDARD THERMAL RECEIPT */}
+          {printFormat === '80MM' && (
+            <div className="w-[290px] max-w-[290px] thermal-receipt-80mm bg-white text-black p-3.5 font-mono text-[10.5px] leading-tight rounded-lg shadow-2xl print:shadow-none print:border-none print:rounded-none">
+              
+              {/* Header */}
+              <div className="text-center border-b border-dashed border-gray-400 pb-2.5 mb-2.5">
+                <h2 className="font-extrabold text-sm uppercase tracking-tight break-words">{layout.headerTitle}</h2>
+                {layout.tagline && <p className="text-[9px] text-gray-600 italic break-words">{layout.tagline}</p>}
+                <p className="text-[9.5px] text-gray-600 mt-0.5 break-words">{settings.address}</p>
+                <p className="text-[9.5px] text-gray-600">Ph: {settings.phone}</p>
+                
+                {/* Dynamic Regulatory License Header */}
+                {settings.gstin && (
+                  <p className="text-[9.5px] font-bold mt-0.5 uppercase break-words">
+                    GSTIN: {settings.gstin}
+                  </p>
+                )}
+              </div>
+
+              {/* Order Metadata */}
+              <div className="border-b border-dashed border-gray-400 pb-2 mb-2 text-[9.5px] space-y-0.5">
+                <div className="flex justify-between gap-1">
+                  <span className="truncate">Bill #: <strong>{order.orderNumber}</strong></span>
+                  <span className="shrink-0">{orderDate}</span>
+                </div>
+                <div className="flex justify-between gap-1">
+                  <span>Type: <strong>{order.orderType}</strong></span>
+                  <span>Pay: <strong>{order.paymentMethod || 'CASH'}</strong></span>
+                </div>
+                {order.table && (
+                  <div className="break-words">Table / Station: <strong>{order.table.name}</strong></div>
+                )}
+                {order.customer?.name && (
+                  <div className="break-words">Customer: <strong>{order.customer.name}</strong> {order.customer.mobile ? `(${order.customer.mobile})` : ''}</div>
+                )}
+                {order.doctorName && (
+                  <div className="break-words">Prescribing Doctor: <strong>Dr. {order.doctorName}</strong></div>
+                )}
+              </div>
+
+              {/* Items Table - Proportional fixed layout prevents horizontal overflow */}
+              <table className="w-full text-left mb-2.5 border-b border-dashed border-gray-400 table-fixed thermal-table">
+                <colgroup>
+                  <col style={{ width: '54%' }} />
+                  <col style={{ width: '20%' }} />
+                  <col style={{ width: '26%' }} />
+                </colgroup>
                 <thead>
                   <tr className="border-b border-black font-bold uppercase text-[9px]">
-                    <th className="py-1">Item</th>
+                    <th className="py-1 text-left">Item</th>
                     <th className="py-1 text-center">Qty</th>
                     <th className="py-1 text-right">Amt</th>
                   </tr>
@@ -288,9 +439,9 @@ export default function PrintInvoiceModal({
                     const serial = item.menuItem.serialNumber || parsedAttrs.serialNumber;
 
                     return (
-                      <tr key={idx}>
-                        <td className="py-1 leading-tight">
-                          <div>{item.menuItem.name}</div>
+                      <tr key={idx} className="align-top">
+                        <td className="py-1 leading-tight break-words pr-1">
+                          <div className="font-semibold text-[10px]">{item.menuItem.name}</div>
                           {(batch || exp) && (
                             <div className="text-[8px] text-gray-500 font-mono">B:{batch || '-'} E:{exp || '-'}</div>
                           )}
@@ -298,8 +449,10 @@ export default function PrintInvoiceModal({
                             <div className="text-[8px] text-gray-500 font-mono">S/N: {serial}</div>
                           )}
                         </td>
-                        <td className="py-1 text-center font-mono">{formatQuantityWithSubunit(item.quantity, item.menuItem.unit)}</td>
-                        <td className="py-1 text-right font-bold">
+                        <td className="py-1 text-center font-mono text-[9.5px] whitespace-nowrap align-top">
+                          {formatQuantityWithSubunit(item.quantity, item.menuItem.unit)}
+                        </td>
+                        <td className="py-1 text-right font-bold font-mono text-[10px] whitespace-nowrap align-top">
                           ₹{((item.price - (item.discount || 0)) * item.quantity).toFixed(2)}
                         </td>
                       </tr>
@@ -309,7 +462,7 @@ export default function PrintInvoiceModal({
               </table>
 
               {/* Totals Summary */}
-              <div className="space-y-1 text-[11px] text-right font-bold border-b border-dashed border-gray-400 pb-2 mb-3">
+              <div className="space-y-1 text-[10.5px] text-right font-bold border-b border-dashed border-gray-400 pb-2 mb-2.5">
                 <div className="flex justify-between font-normal">
                   <span>Subtotal:</span>
                   <span>₹{order.subtotal.toFixed(2)}</span>
@@ -336,36 +489,36 @@ export default function PrintInvoiceModal({
                     <span>+₹{order.deliveryCharge.toFixed(2)}</span>
                   </div>
                 ) : null}
-                <div className="flex justify-between text-sm border-t border-black pt-1">
+                <div className="flex justify-between text-sm font-black border-t border-black pt-1">
                   <span>GRAND TOTAL:</span>
                   <span>₹{order.total.toFixed(2)}</span>
                 </div>
                 {order.paidAmount !== undefined && order.paidAmount < order.total && (
                   <>
-                    <div className="flex justify-between font-normal text-[#2563EB] pt-0.5">
+                    <div className="flex justify-between font-normal text-[#2563EB] pt-0.5 text-[9.5px]">
                       <span>Paid Amount ({order.splitPaidMethod || order.paymentMethod}):</span>
                       <span>₹{order.paidAmount.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between font-bold text-red-600">
-                      <span>Balance Amount Due:</span>
+                    <div className="flex justify-between font-bold text-red-600 text-[9.5px]">
+                      <span>Balance Due:</span>
                       <span>₹{(order.balanceAmount ?? (order.total - order.paidAmount)).toFixed(2)}</span>
                     </div>
                   </>
                 )}
               </div>
 
-              {/* UPI QR Code Preview - Hidden by default */}
+              {/* UPI QR Code Preview - Centered & sized specifically for 80mm */}
               {showQrScanner && (
-                <div className="flex flex-col items-center justify-center border-b border-dashed border-gray-400 pb-3 mb-3">
-                  <img src={upiQrUrl} alt="UPI QR" className="w-24 h-24" />
-                  <span className="text-[9px] text-gray-600 mt-1 font-bold">Scan & Pay ₹{order.total.toFixed(2)}</span>
+                <div className="flex flex-col items-center justify-center border-b border-dashed border-gray-400 pb-2.5 mb-2.5 w-full text-center">
+                  <img src={upiQrUrl} alt="UPI QR" className="w-20 h-20 thermal-qr-80mm mx-auto block object-contain" />
+                  <span className="text-[8.5px] text-gray-600 mt-1 font-bold block">Scan & Pay ₹{order.total.toFixed(2)}</span>
                 </div>
               )}
 
               {/* Dynamic Footer Terms & Note */}
-              <div className="text-center text-[9px] text-gray-600 italic">
+              <div className="text-center text-[8.5px] text-gray-600 italic break-words space-y-0.5">
                 <p>{layout.termsText}</p>
-                <p className="font-bold text-black mt-1 text-[10px]">{layout.thankYouNote}</p>
+                <p className="font-bold text-black text-[9.5px]">{layout.thankYouNote}</p>
               </div>
             </div>
           )}
