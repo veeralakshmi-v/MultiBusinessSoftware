@@ -1342,50 +1342,108 @@ app.post('/api/inventory/materials', async (req, res) => {
   }
 });
 
-app.get('/api/inventory/suppliers', async (req, res) => {
+function isValidSupplierPhone(val: string | null | undefined): boolean {
+  if (!val) return true;
+  const trimmed = String(val).trim();
+  if (!trimmed) return true;
+  if (!/^\d+$/.test(trimmed)) return false;
+  if (trimmed.length !== 10) return false;
+  return true;
+}
+
+const getSuppliersHandler = async (req: express.Request, res: express.Response) => {
   const { businessId } = getRequestContext(req);
   try {
     await ensureBusinessExists(businessId);
     const suppliers = await prisma.supplier.findMany({
       where: { businessId },
-      orderBy: { name: 'asc' }
+      orderBy: { createdAt: 'desc' }
     });
     return res.json(suppliers);
   } catch (err) {
+    console.error('❌ Error fetching suppliers:', err);
     return res.json([]);
   }
-});
+};
 
-app.post('/api/inventory/suppliers', async (req, res) => {
+const createSupplierHandler = async (req: express.Request, res: express.Response) => {
   const { businessId } = getRequestContext(req);
   const { name, contact, phone, email, address } = req.body;
-  if (!name) return res.status(400).json({ error: 'Supplier name is required' });
+  const cleanName = (name || '').trim();
+  if (!cleanName) return res.status(400).json({ error: 'Supplier name is required' });
 
-  const effectivePhone = phone || contact;
-  if (effectivePhone && !isValidPhone(effectivePhone)) {
-    return res.status(400).json({ error: 'Phone number must be exactly 10 digits' });
+  const rawPhone = (contact || phone || '').trim();
+  if (rawPhone && !isValidSupplierPhone(rawPhone)) {
+    return res.status(400).json({ error: 'Phone number must contain only numeric digits and be exactly 10 digits' });
   }
 
   try {
     await ensureBusinessExists(businessId);
 
+    // Backend duplicate prevention: check if identical supplier was created within 10 seconds
+    const recentDuplicate = await prisma.supplier.findFirst({
+      where: {
+        businessId,
+        name: { equals: cleanName, mode: 'insensitive' },
+        createdAt: { gte: new Date(Date.now() - 10000) }
+      }
+    });
+
+    if (recentDuplicate) {
+      console.log(`ℹ️ Duplicate supplier creation prevented for [${businessId}]: ${cleanName}`);
+      return res.status(200).json(recentDuplicate);
+    }
+
     const supplier = await prisma.supplier.create({
       data: {
         businessId,
-        name: name.trim(),
-        contact: contact || phone || '',
-        phone: phone || '',
-        email: email || '',
-        address: address || '',
+        name: cleanName,
+        contact: rawPhone || '',
+        phone: rawPhone || '',
+        email: (email || '').trim(),
+        address: (address || '').trim(),
       }
     });
-    console.log(`✅ Supplier stored in DB for [${businessId}]: ${supplier.name}`);
+    console.log(`✅ Supplier stored in DB for [${businessId}]: ${supplier.name} (${supplier.id})`);
     return res.status(201).json(supplier);
-  } catch (err) {
+  } catch (err: any) {
     console.error('❌ Failed to store supplier:', err);
-    return res.status(500).json({ error: 'Failed to create supplier' });
+    return res.status(500).json({ error: 'Failed to create supplier', details: err.message });
   }
-});
+};
+
+const deleteSupplierHandler = async (req: express.Request, res: express.Response) => {
+  const { id } = req.params;
+  try {
+    // Detach relations first to prevent foreign key errors
+    await prisma.rawMaterial.updateMany({
+      where: { supplierId: id },
+      data: { supplierId: null }
+    });
+    await prisma.inventoryItem.updateMany({
+      where: { supplierId: id },
+      data: { supplierId: null }
+    });
+
+    await prisma.supplier.delete({
+      where: { id }
+    });
+    console.log(`🗑️ Deleted supplier [${id}] from database`);
+    return res.json({ success: true, id, message: 'Supplier deleted successfully from database' });
+  } catch (err: any) {
+    console.error(`❌ Failed to delete supplier [${id}]:`, err);
+    return res.status(500).json({ error: 'Failed to delete supplier from database', details: err.message });
+  }
+};
+
+app.get('/api/inventory/suppliers', getSuppliersHandler);
+app.get('/api/suppliers', getSuppliersHandler);
+
+app.post('/api/inventory/suppliers', createSupplierHandler);
+app.post('/api/suppliers', createSupplierHandler);
+
+app.delete('/api/inventory/suppliers/:id', deleteSupplierHandler);
+app.delete('/api/suppliers/:id', deleteSupplierHandler);
 
 app.get('/api/inventory/transactions', async (req, res) => {
   const { businessId } = getRequestContext(req);

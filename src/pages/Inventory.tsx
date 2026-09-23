@@ -328,14 +328,9 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
     fetch('/api/inventory/suppliers')
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setSuppliers(prev => {
-            const ids = new Set(prev.map(p => p.id));
-            const merged = [...prev];
-            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
-            localStorage.setItem('universal_suppliers', JSON.stringify(merged));
-            return merged;
-          });
+        if (Array.isArray(data)) {
+          setSuppliers(data);
+          localStorage.setItem('universal_suppliers', JSON.stringify(data));
         }
       })
       .catch(() => {});
@@ -1370,58 +1365,136 @@ function CategoriesTab() {
 }
 
 function SuppliersTab() {
-  const [suppliers, setSuppliers] = useState<any[]>([]);
-  const fetchSups = () => {
+  const [suppliers, setSuppliers] = useState<any[]>(() => {
     try {
       const saved = localStorage.getItem('universal_suppliers');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) setSuppliers(parsed);
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch {}
+    return [];
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [form, setForm] = useState({ name: '', contact: '', email: '' });
 
+  const fetchSups = () => {
     fetch('/api/inventory/suppliers')
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setSuppliers(prev => {
-            const ids = new Set(prev.map(p => p.id));
-            const merged = [...prev];
-            data.forEach((d: any) => { if (!ids.has(d.id)) merged.push(d); });
-            localStorage.setItem('universal_suppliers', JSON.stringify(merged));
-            return merged;
-          });
+        if (Array.isArray(data)) {
+          setSuppliers(data);
+          localStorage.setItem('universal_suppliers', JSON.stringify(data));
         }
       })
       .catch(() => {});
   };
 
-  useEffect(() => { fetchSups(); }, []);
-  
-  const [form, setForm] = useState({ name: '', contact: '', email: '' });
+  useEffect(() => {
+    fetchSups();
+  }, []);
 
-  const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    if (!form.name.trim()) return;
-
-    const newSup = { id: `sup-${Date.now()}`, name: form.name.trim(), contact: form.contact.trim(), email: form.email.trim() };
-    const updated = [newSup, ...suppliers];
-    setSuppliers(updated);
-    localStorage.setItem('universal_suppliers', JSON.stringify(updated));
-    window.dispatchEvent(new Event('storage'));
-
-    try {
-      await fetch('/api/inventory/suppliers', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(newSup) });
-    } catch {}
-    setForm({ name: '', contact: '', email: '' });
+  const validatePhone = (val: string): string => {
+    if (!val.trim()) return '';
+    if (/[^\d]/.test(val)) {
+      return 'Phone number must contain only numeric digits (no alphabets or symbols)';
+    }
+    if (val.length > 10) {
+      return 'Phone number cannot exceed 10 digits';
+    }
+    if (val.length < 10) {
+      return 'Phone number must be exactly 10 numeric digits';
+    }
+    return '';
   };
 
-  const handleDeleteSupplier = (id: string) => {
-    if (confirm('Are you sure you want to delete this supplier?')) {
-      const updated = suppliers.filter(s => s.id !== id);
-      setSuppliers(updated);
-      localStorage.setItem('universal_suppliers', JSON.stringify(updated));
-      window.dispatchEvent(new Event('storage'));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    const trimmedName = form.name.trim();
+    if (!trimmedName) {
+      setErrorMessage('Supplier name is required');
+      return;
+    }
+
+    const trimmedContact = form.contact.trim();
+    if (trimmedContact) {
+      const phoneValidationMsg = validatePhone(trimmedContact);
+      if (phoneValidationMsg) {
+        setPhoneError(phoneValidationMsg);
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage('');
+    setPhoneError('');
+
+    try {
+      const payload = {
+        name: trimmedName,
+        contact: trimmedContact,
+        phone: trimmedContact,
+        email: form.email.trim(),
+      };
+
+      const res = await fetch('/api/inventory/suppliers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const created = await res.json();
+        setSuppliers(prev => {
+          const filtered = prev.filter(s => s.id !== created.id);
+          const updated = [created, ...filtered];
+          localStorage.setItem('universal_suppliers', JSON.stringify(updated));
+          return updated;
+        });
+        setForm({ name: '', contact: '', email: '' });
+        setPhoneError('');
+        setErrorMessage('');
+        window.dispatchEvent(new Event('storage'));
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        const msg = errData.error || 'Failed to create supplier';
+        setErrorMessage(msg);
+        if (msg.toLowerCase().includes('phone')) {
+          setPhoneError(msg);
+        }
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Network error while adding supplier');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteSupplier = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this supplier?')) return;
+
+    try {
+      const res = await fetch(`/api/inventory/suppliers/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setSuppliers(prev => {
+          const updated = prev.filter(s => s.id !== id);
+          localStorage.setItem('universal_suppliers', JSON.stringify(updated));
+          return updated;
+        });
+        window.dispatchEvent(new Event('storage'));
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || 'Failed to delete supplier from database');
+      }
+    } catch (e) {
+      alert('Network error while deleting supplier from database');
     }
   };
 
@@ -1440,7 +1513,7 @@ function SuppliersTab() {
                 </div>
                 <button
                   onClick={() => handleDeleteSupplier(s.id)}
-                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                   title="Delete Supplier"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -1469,41 +1542,69 @@ function SuppliersTab() {
           <Truck className="w-4 h-4 text-[#2563EB]" />
           <span>Add New Supplier</span>
         </h3>
+
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs font-bold text-gray-700">Supplier Name *</label>
             <input
               required
+              disabled={isSubmitting}
               value={form.name}
-              onChange={e=>setForm({...form, name: e.target.value})}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium"
+              onChange={e => {
+                setForm({ ...form, name: e.target.value });
+                if (errorMessage) setErrorMessage('');
+              }}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium disabled:opacity-50"
               placeholder="e.g. Metro Traders"
             />
           </div>
           <div>
-            <label className="text-xs font-bold text-gray-700">Phone / Contact</label>
+            <label className="text-xs font-bold text-gray-700">Phone / Contact (10 digits max)</label>
             <input
+              disabled={isSubmitting}
               value={form.contact}
-              onChange={e=>setForm({...form, contact: e.target.value})}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium"
-              placeholder="+91 98765 43210"
+              onChange={e => {
+                const val = e.target.value;
+                setForm({ ...form, contact: val });
+                setPhoneError(validatePhone(val));
+                if (errorMessage) setErrorMessage('');
+              }}
+              className={`w-full bg-gray-50 border ${phoneError ? 'border-red-400 bg-red-50/30' : 'border-gray-200'} rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium disabled:opacity-50`}
+              placeholder="9876543210"
             />
+            {phoneError && (
+              <p className="text-[11px] text-red-600 mt-1 font-medium">{phoneError}</p>
+            )}
           </div>
           <div>
             <label className="text-xs font-bold text-gray-700">Email Address</label>
             <input
               type="email"
+              disabled={isSubmitting}
               value={form.email}
-              onChange={e=>setForm({...form, email: e.target.value})}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium"
+              onChange={e => {
+                setForm({ ...form, email: e.target.value });
+                if (errorMessage) setErrorMessage('');
+              }}
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-blue-500/20 outline-none mt-1 font-medium disabled:opacity-50"
               placeholder="supplier@email.com"
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition-all cursor-pointer"
+            disabled={isSubmitting}
+            className={`w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition-all cursor-pointer ${
+              isSubmitting ? 'opacity-60 cursor-not-allowed' : ''
+            }`}
           >
-            Add Supplier
+            {isSubmitting ? 'Saving Supplier...' : 'Add Supplier'}
           </button>
         </form>
       </div>

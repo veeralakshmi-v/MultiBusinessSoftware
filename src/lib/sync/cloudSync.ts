@@ -228,6 +228,28 @@ export class CloudSync {
   }
 
   /**
+   * Synchronizes suppliers for a business
+   */
+  static async syncSuppliers(businessId: string): Promise<any[]> {
+    try {
+      const res = await fetch(`/api/inventory/suppliers?businessId=${businessId}`, {
+        headers: { 'x-business-id': businessId }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          localStorage.setItem('universal_suppliers', JSON.stringify(data));
+          localStorage.setItem(`tenant_${businessId}_universal_suppliers`, JSON.stringify(data));
+          return data;
+        }
+      }
+    } catch (e) {
+      console.warn('[CloudSync] Failed to sync suppliers', e);
+    }
+    return [];
+  }
+
+  /**
    * Main method to sync ALL data across all modules from PostgreSQL database
    */
   static async syncAllData(targetBusinessId?: string, force = false): Promise<void> {
@@ -250,6 +272,7 @@ export class CloudSync {
         this.syncCustomers(activeBizId),
         this.syncStaff(activeBizId),
         this.syncSettings(activeBizId),
+        this.syncSuppliers(activeBizId),
       ]);
 
       if (typeof window !== 'undefined') {
