@@ -31,7 +31,7 @@ export default function DashboardLayout() {
           applicationAccess: emp.applicationAccess || 'Full Access (All Modules & POS)',
         };
       }
-    } catch {}
+    } catch { }
     return { id: '', username: '', role: 'STAFF' };
   })();
 
@@ -72,11 +72,7 @@ export default function DashboardLayout() {
 
   // Streamlined, universal navigation for all businesses
   const allNavigation = [
-    {
-      name: 'Employee Portal',
-      href: '/employee',
-      icon: UserCircle,
-    },
+
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -128,7 +124,7 @@ export default function DashboardLayout() {
   const isCurrentRouteAllowed = isRouteAllowed(user, location.pathname);
 
   return (
-    <div 
+    <div
       className="flex h-screen overflow-hidden transition-colors duration-200"
       style={{
         backgroundColor: 'var(--theme-bg-primary)',
@@ -148,7 +144,7 @@ export default function DashboardLayout() {
         }}
       >
         {/* Brand Header */}
-        <div 
+        <div
           className={cn("h-20 flex items-center border-b transition-all px-4 justify-between")}
           style={{
             backgroundColor: 'var(--theme-bg-surface)',
@@ -156,7 +152,7 @@ export default function DashboardLayout() {
           }}
         >
           <div className="flex items-center truncate">
-            <div 
+            <div
               className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-md"
               style={{
                 backgroundColor: 'var(--theme-btn-secondary)',
@@ -167,13 +163,13 @@ export default function DashboardLayout() {
             </div>
             {!isCollapsed && (
               <div className="ml-3 truncate">
-                <h1 
+                <h1
                   className="font-bold text-sm tracking-tight truncate"
                   style={{ color: 'var(--theme-text-primary)' }}
                 >
                   {brandTitle}
                 </h1>
-                <span 
+                <span
                   className="text-[10px] font-bold tracking-wider uppercase truncate block"
                   style={{ color: 'var(--theme-text-accent)' }}
                 >
@@ -237,7 +233,7 @@ export default function DashboardLayout() {
 
                   {/* Tooltip for Collapsed State */}
                   {isCollapsed && (
-                    <div 
+                    <div
                       className="absolute left-full ml-3 px-3 py-1.5 text-xs font-bold rounded-lg shadow-xl border whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50"
                       style={{
                         backgroundColor: 'var(--theme-bg-surface)',
@@ -255,7 +251,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Sidebar Footer & Collapse Toggle */}
-        <div 
+        <div
           className="p-3 border-t space-y-1"
           style={{ borderColor: 'var(--theme-border-tint)' }}
         >
@@ -288,7 +284,7 @@ export default function DashboardLayout() {
       {/* Mobile Hamburger Slide-Over Navigation Drawer */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden bg-black/40 backdrop-blur-xs animate-in fade-in">
-          <div 
+          <div
             className="w-72 h-full border-r p-5 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left"
             style={{
               backgroundColor: 'var(--theme-bg-surface)',
@@ -298,12 +294,12 @@ export default function DashboardLayout() {
           >
             {/* Drawer Header */}
             <div>
-              <div 
+              <div
                 className="flex items-center justify-between border-b pb-4 mb-4"
                 style={{ borderColor: 'var(--theme-border-tint)' }}
               >
                 <div className="flex items-center">
-                  <div 
+                  <div
                     className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg mr-3 shadow-sm"
                     style={{
                       backgroundColor: 'var(--theme-btn-secondary)',
@@ -314,7 +310,7 @@ export default function DashboardLayout() {
                   </div>
                   <div>
                     <h2 className="font-bold text-sm tracking-tight">{brandTitle}</h2>
-                    <span 
+                    <span
                       className="text-[10px] font-bold block uppercase"
                       style={{ color: 'var(--theme-text-accent)' }}
                     >
@@ -365,11 +361,11 @@ export default function DashboardLayout() {
             </div>
 
             {/* Mobile Drawer Footer */}
-            <div 
+            <div
               className="border-t pt-4 space-y-3"
               style={{ borderColor: 'var(--theme-border-tint)' }}
             >
-              <div 
+              <div
                 className="flex items-center justify-between p-2.5 rounded-xl border"
                 style={{
                   backgroundColor: 'var(--theme-bg-primary)',
@@ -377,7 +373,7 @@ export default function DashboardLayout() {
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <div 
+                  <div
                     className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-xs"
                     style={{
                       backgroundColor: 'var(--theme-btn-secondary)',
@@ -411,7 +407,7 @@ export default function DashboardLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         {/* Top Navbar */}
-        <header 
+        <header
           className="h-16 border-b flex items-center justify-between px-3 sm:px-5 lg:px-8 z-10 flex-shrink-0 gap-3 overflow-x-auto no-scrollbar"
           style={{
             backgroundColor: 'var(--theme-bg-surface)',
@@ -430,7 +426,7 @@ export default function DashboardLayout() {
               >
                 <Menu className="w-5 h-5" style={{ color: 'var(--theme-text-accent)' }} />
               </button>
-              <div 
+              <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg mr-2 flex-shrink-0"
                 style={{
                   backgroundColor: 'var(--theme-btn-secondary)',
@@ -504,20 +500,6 @@ export default function DashboardLayout() {
               );
             })()}
 
-            {/* Quick Employee Portal Shortcut */}
-            <Link
-              to="/employee"
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 border text-xs font-bold rounded-xl transition-all shadow-xs"
-              style={{
-                backgroundColor: 'var(--theme-bg-primary)',
-                borderColor: 'var(--theme-border-tint)',
-                color: 'var(--theme-text-primary)'
-              }}
-              title="Return to Employee Portal & Attendance"
-            >
-              <UserCircle className="w-4 h-4" style={{ color: 'var(--theme-text-accent)' }} />
-              <span className="hidden sm:inline">Employee Portal</span>
-            </Link>
 
             {/* Quick POS Shortcut */}
             {isRouteAllowed(user, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
@@ -545,14 +527,14 @@ export default function DashboardLayout() {
               const initials = (nameToShow || user.username).substring(0, 2).toUpperCase();
 
               return (
-                <div 
+                <div
                   className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 rounded-xl border"
                   style={{
                     backgroundColor: 'var(--theme-bg-primary)',
                     borderColor: 'var(--theme-border-tint)'
                   }}
                 >
-                  <div 
+                  <div
                     className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-xs flex-shrink-0"
                     style={{
                       backgroundColor: 'var(--theme-btn-secondary)',
@@ -575,7 +557,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main 
+        <main
           className={cn("flex-1 transition-colors", location.pathname === '/billing' ? "p-1.5 sm:p-3 overflow-hidden flex flex-col h-[calc(100vh-64px)]" : "p-2.5 sm:p-5 lg:p-8 overflow-y-auto")}
           style={{
             backgroundColor: 'var(--theme-bg-primary)',
@@ -586,7 +568,7 @@ export default function DashboardLayout() {
             {isCurrentRouteAllowed ? (
               <Outlet />
             ) : (
-              <div 
+              <div
                 className="flex flex-col items-center justify-center py-20 px-4 text-center border rounded-2xl shadow-xl space-y-4 my-auto"
                 style={{
                   backgroundColor: 'var(--theme-bg-surface)',
