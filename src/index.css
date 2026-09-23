@@ -146,6 +146,7 @@ p, span, div, a, label, table, th, td,
 .gold-gradient-text {
   background: linear-gradient(135deg, #F3E5AB 0%, #C5A059 50%, #9B783E 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -256,7 +257,7 @@ p, span, div, a, label, table, th, td,
     height: 60px !important;
     max-width: 60px !important;
     max-height: 60px !important;
-    object-contain: contain !important;
+    object-fit: contain !important;
     display: block !important;
     margin: 0 auto !important;
   }
@@ -266,7 +267,7 @@ p, span, div, a, label, table, th, td,
     height: 84px !important;
     max-width: 84px !important;
     max-height: 84px !important;
-    object-contain: contain !important;
+    object-fit: contain !important;
     display: block !important;
     margin: 0 auto !important;
   }
