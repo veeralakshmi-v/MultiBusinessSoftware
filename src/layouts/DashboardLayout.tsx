@@ -4,17 +4,36 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Settings, LogOut, Receipt, Package,
   Boxes, BarChart3, ChevronLeft, ChevronRight, Menu, X, Globe,
-  PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList, ShieldAlert, Palette, ShieldCheck, Crown
+  PanelLeftClose, PanelLeftOpen, Store, Layers, Sparkles, ClipboardList, ShieldAlert, Palette, ShieldCheck, Crown, UserCircle
 } from 'lucide-react';
 
 import { cn } from '../lib/utils';
 import NotificationCenter from '../components/notifications/NotificationCenter';
 import { ThemeEngine } from '../lib/theme/themeEngine';
 import { TenantEngine } from '../lib/tenant/tenantEngine';
+import { isRouteAllowed } from '../App';
 
 export default function DashboardLayout() {
-  const { user, logout, businessProfile, activeTenant } = useAuth();
+  const { user: authUser, logout, businessProfile, activeTenant } = useAuth();
   const location = useLocation();
+
+  const user = authUser || (() => {
+    try {
+      const emp = JSON.parse(localStorage.getItem('employee_session') || '{}');
+      if (emp && emp.id) {
+        return {
+          id: emp.id,
+          name: emp.name,
+          fullName: emp.name,
+          username: emp.username || emp.phone,
+          role: emp.role || 'STAFF',
+          businessId: emp.businessId || localStorage.getItem('businessId') || '',
+          applicationAccess: emp.applicationAccess || 'Full Access (All Modules & POS)',
+        };
+      }
+    } catch {}
+    return { id: '', username: '', role: 'STAFF' };
+  })();
 
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('sidebar_collapsed') === 'true';
@@ -42,7 +61,7 @@ export default function DashboardLayout() {
     };
   }, []);
 
-  if (!user) {
+  if (!user || (!user.id && !user.username)) {
     return <Navigate to="/login" replace />;
   }
 
@@ -51,63 +70,13 @@ export default function DashboardLayout() {
   const brandTitle = effectiveTenant?.businessName || (businessProfile.businessName !== 'My Business' ? businessProfile.businessName : (effectiveTenant?.businessName || "My Business"));
   const brandTagline = (effectiveTenant ? `${effectiveTenant.businessType} Management POS` : null) || businessProfile.tagline || "Universal Billing System";
 
-  // Role-Based Access Helper
-  const isRouteAllowedForRole = (role: string, href: string): boolean => {
-    // Attendance is always accessible to ALL roles
-    if (href === '/dashboard/attendance') return true;
-
-    if (!role || role === 'ADMIN' || user?.username === 'admin') return true;
-
-    // Check custom applicationAccess permissions if set for the employee
-    const appAccess = user?.applicationAccess;
-    if (appAccess && appAccess.trim().length > 0) {
-      if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules')) {
-        return true;
-      }
-      if (appAccess.includes('No Access')) {
-        return href === '/dashboard' || href === '/dashboard/attendance';
-      }
-
-      const routeMenuMap: Record<string, string[]> = {
-        '/dashboard': ['Dashboard'],
-        '/dashboard/billing': ['Billing POS', 'POS'],
-        '/dashboard/items': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
-        '/dashboard/menu': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
-        '/dashboard/inventory': ['Inventory', 'Products & Inventory', 'Categories & Items'],
-        '/dashboard/reports': ['Sales Reports', 'Reports'],
-        '/dashboard/employees': ['Employee Details', 'Staff'],
-        '/dashboard/attendance': ['Staff Attendance', 'Attendance'],
-        '/dashboard/customers': ['Customers', 'CRM'],
-        '/dashboard/settings': ['Settings'],
-        '/dashboard/website': ['My Website'],
-      };
-
-      const allowedItems = appAccess.split(',').map(s => s.trim().toLowerCase());
-      const mappedNames = routeMenuMap[href] || [];
-      const isAllowed = mappedNames.some(name => allowedItems.includes(name.toLowerCase()));
-
-      // STRICT: When custom applicationAccess permissions are configured, ONLY allow explicitly selected modules.
-      return isAllowed;
-    }
-
-    if (role === 'MANAGER') {
-      return href !== '/dashboard/settings' && href !== '/dashboard/employees';
-    }
-
-    if (role === 'CASHIER') {
-      return href === '/dashboard/billing' || href === '/dashboard/customers' || href === '/dashboard/attendance' || href === '/dashboard';
-    }
-
-    if (role === 'STAFF' || role === 'EMPLOYEE') {
-      return href === '/dashboard/attendance' || href === '/dashboard';
-    }
-
-    return href === '/dashboard' || href === '/dashboard/attendance';
-  };
-
-
   // Streamlined, universal navigation for all businesses
   const allNavigation = [
+    {
+      name: 'Employee Portal',
+      href: '/employee',
+      icon: UserCircle,
+    },
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -155,8 +124,8 @@ export default function DashboardLayout() {
     },
   ];
 
-  const navigation = allNavigation.filter(item => isRouteAllowedForRole(user.role, item.href));
-  const isCurrentRouteAllowed = isRouteAllowedForRole(user.role, location.pathname);
+  const navigation = allNavigation.filter(item => isRouteAllowed(user, item.href));
+  const isCurrentRouteAllowed = isRouteAllowed(user, location.pathname);
 
   return (
     <div 
@@ -535,8 +504,23 @@ export default function DashboardLayout() {
               );
             })()}
 
+            {/* Quick Employee Portal Shortcut */}
+            <Link
+              to="/employee"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 border text-xs font-bold rounded-xl transition-all shadow-xs"
+              style={{
+                backgroundColor: 'var(--theme-bg-primary)',
+                borderColor: 'var(--theme-border-tint)',
+                color: 'var(--theme-text-primary)'
+              }}
+              title="Return to Employee Portal & Attendance"
+            >
+              <UserCircle className="w-4 h-4" style={{ color: 'var(--theme-text-accent)' }} />
+              <span className="hidden sm:inline">Employee Portal</span>
+            </Link>
+
             {/* Quick POS Shortcut */}
-            {isRouteAllowedForRole(user.role, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
+            {isRouteAllowed(user, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
               <Link
                 to="/dashboard/billing"
                 className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 font-bold text-xs rounded-xl shadow-md transition-all hover:brightness-110"

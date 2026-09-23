@@ -33,51 +33,100 @@ function PageLoader() {
 
 export function isRouteAllowed(user: any, pathname: string): boolean {
   if (!user) return false;
-  const role = user.role || 'STAFF';
-  if (role === 'ADMIN' || user.username === 'admin') return true;
-  if (pathname.startsWith('/dashboard/attendance')) return true;
+  const role = ((user.role || 'STAFF') as string).toUpperCase();
+  const username = ((user.username || '') as string).toLowerCase();
+
+  // Admin or admin username has access to all routes
+  if (role === 'ADMIN' || username === 'admin') return true;
+
+  // Attendance and Employee Portal are always accessible to all authenticated users
+  if (
+    pathname === '/employee' ||
+    pathname.startsWith('/dashboard/attendance') ||
+    pathname === '/dashboard/attendance' ||
+    pathname === '/attendance'
+  ) {
+    return true;
+  }
 
   const appAccess = user.applicationAccess;
   if (appAccess && typeof appAccess === 'string' && appAccess.trim().length > 0) {
-    if (appAccess.includes('Full Access') || appAccess.includes('ALL_MODULES') || appAccess.includes('All Modules')) {
+    if (
+      appAccess.includes('Full Access') ||
+      appAccess.includes('ALL_MODULES') ||
+      appAccess.includes('All Modules') ||
+      appAccess.includes('Full Business Admin Access') ||
+      appAccess.includes('Full Business Access')
+    ) {
       return true;
     }
+
     if (appAccess.includes('No Access')) {
       return pathname === '/dashboard' || pathname.startsWith('/dashboard/attendance');
     }
 
     const routeMenuMap: Record<string, string[]> = {
       '/dashboard': ['Dashboard'],
-      '/dashboard/billing': ['Billing POS', 'POS'],
+      '/dashboard/billing': ['Billing POS', 'POS', 'Billing'],
+      '/billing': ['Billing POS', 'POS', 'Billing'],
       '/dashboard/items': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
+      '/items': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
       '/dashboard/menu': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
+      '/menu': ['Categories & Items', 'Products & Inventory', 'Catalog', 'Menu'],
       '/dashboard/inventory': ['Inventory', 'Products & Inventory', 'Categories & Items'],
+      '/inventory': ['Inventory', 'Products & Inventory', 'Categories & Items'],
       '/dashboard/reports': ['Sales Reports', 'Reports'],
+      '/reports': ['Sales Reports', 'Reports'],
       '/dashboard/employees': ['Employee Details', 'Staff'],
+      '/employees': ['Employee Details', 'Staff'],
       '/dashboard/attendance': ['Staff Attendance', 'Attendance'],
+      '/attendance': ['Staff Attendance', 'Attendance'],
       '/dashboard/customers': ['Customers', 'CRM'],
+      '/customers': ['Customers', 'CRM'],
       '/dashboard/settings': ['Settings'],
+      '/settings': ['Settings'],
       '/dashboard/website': ['My Website'],
+      '/website': ['My Website'],
     };
 
     const allowedItems = appAccess.split(',').map(s => s.trim().toLowerCase());
     for (const [route, names] of Object.entries(routeMenuMap)) {
       if (pathname === route || pathname.startsWith(route + '/')) {
-        return names.some(name => allowedItems.includes(name.toLowerCase()));
+        if (names.some(name => allowedItems.includes(name.toLowerCase()))) {
+          return true;
+        }
       }
     }
-    return false;
   }
 
+  // Role-based defaults when not explicitly restricted by custom applicationAccess
   if (role === 'MANAGER') {
     return !pathname.startsWith('/dashboard/settings') && !pathname.startsWith('/dashboard/employees');
   }
 
   if (role === 'CASHIER') {
-    return pathname.startsWith('/dashboard/billing') || pathname.startsWith('/dashboard/customers') || pathname.startsWith('/dashboard/attendance') || pathname === '/dashboard';
+    return (
+      pathname.startsWith('/dashboard/billing') ||
+      pathname === '/billing' ||
+      pathname.startsWith('/dashboard/customers') ||
+      pathname === '/customers' ||
+      pathname.startsWith('/dashboard/attendance') ||
+      pathname === '/attendance' ||
+      pathname === '/dashboard'
+    );
   }
 
-  return pathname === '/dashboard' || pathname.startsWith('/dashboard/attendance');
+  if (role === 'WAITER' || role === 'STEWARD') {
+    return (
+      pathname.startsWith('/dashboard/billing') ||
+      pathname === '/billing' ||
+      pathname.startsWith('/dashboard/attendance') ||
+      pathname === '/attendance' ||
+      pathname === '/dashboard'
+    );
+  }
+
+  return pathname === '/dashboard' || pathname.startsWith('/dashboard/attendance') || pathname === '/attendance';
 }
 
 /** Guard for the admin & employee dashboard — permits admins and authorized employees */
@@ -94,7 +143,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       try {
         const emp = JSON.parse(empSaved);
         if (emp && emp.id) {
-          activeUser = emp;
+          activeUser = {
+            id: emp.id,
+            name: emp.name,
+            fullName: emp.name,
+            username: emp.username || emp.phone,
+            role: emp.role || 'STAFF',
+            businessId: emp.businessId || localStorage.getItem('businessId') || '',
+            applicationAccess: emp.applicationAccess || 'Full Access (All Modules & POS)',
+          } as any;
         }
       } catch {}
     }

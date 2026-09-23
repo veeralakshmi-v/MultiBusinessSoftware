@@ -116,10 +116,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (saved) {
       try { return JSON.parse(saved); } catch {}
     }
+    const empSaved = localStorage.getItem('employee_session');
+    if (empSaved) {
+      try {
+        const emp = JSON.parse(empSaved);
+        if (emp && emp.id) {
+          return {
+            id: emp.id,
+            name: emp.name,
+            fullName: emp.name,
+            username: emp.username || emp.phone,
+            role: emp.role || 'STAFF',
+            businessId: emp.businessId || localStorage.getItem('businessId') || DEFAULT_BUSINESS_ID,
+            applicationAccess: emp.applicationAccess || 'Full Access (All Modules & POS)',
+          } as any;
+        }
+      } catch {}
+    }
     return null;
   });
   
-  const [token, setToken] = useState<string | null>(localStorage.getItem('token') || null);
+  const [token, setToken] = useState<string | null>(() => {
+    const t = localStorage.getItem('token');
+    if (t) return t;
+    const empSaved = localStorage.getItem('employee_session');
+    if (empSaved) {
+      try {
+        const emp = JSON.parse(empSaved);
+        if (emp && emp.id) return 'demo-live-token-' + emp.id;
+      } catch {}
+    }
+    return null;
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   // SaaS Tenants Registry State
@@ -483,6 +511,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const parsed = JSON.parse(savedProfile);
           if (parsed && (parsed.businessId || parsed.username !== 'admin')) {
             setUser(parsed);
+            setIsLoading(false);
+            return;
+          }
+        } catch {}
+      }
+
+      const empSaved = localStorage.getItem('employee_session');
+      if (empSaved) {
+        try {
+          const emp = JSON.parse(empSaved);
+          if (emp && emp.id) {
+            setUser({
+              id: emp.id,
+              name: emp.name,
+              fullName: emp.name,
+              username: emp.username || emp.phone,
+              role: emp.role || 'STAFF',
+              businessId: emp.businessId || localStorage.getItem('businessId') || DEFAULT_BUSINESS_ID,
+              applicationAccess: emp.applicationAccess || 'Full Access (All Modules & POS)',
+            } as any);
             setIsLoading(false);
             return;
           }

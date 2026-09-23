@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { ThemeEngine } from '../lib/theme/themeEngine';
 import AttendanceCalendar from '../components/attendance/AttendanceCalendar';
+import { isRouteAllowed } from '../App';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -324,14 +325,6 @@ export default function EmployeePortal() {
     };
   }, []);
 
-  const rawAccess = session?.applicationAccess || '';
-  const isFullAccess = !rawAccess || rawAccess.includes('Full Access') || rawAccess.includes('ALL_MODULES');
-  const allowedList = isFullAccess
-    ? ['Dashboard', 'Billing POS', 'Categories & Items', 'Inventory', 'Sales Reports', 'Employee Details', 'Staff Attendance', 'Customers', 'Settings']
-    : rawAccess.split(',').map(s => s.trim());
-
-  const hasPosAccess = allowedList.includes('Billing POS');
-
   const MODULE_ROUTES: { name: string; href: string; icon: any }[] = [
     { name: 'Billing POS', href: '/dashboard/billing', icon: Receipt },
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -343,7 +336,8 @@ export default function EmployeePortal() {
     { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon },
   ];
 
-  const allowedAppModules = MODULE_ROUTES.filter(m => allowedList.includes(m.name));
+  const allowedAppModules = MODULE_ROUTES.filter(m => isRouteAllowed(session, m.href));
+  const hasPosAccess = isRouteAllowed(session, '/dashboard/billing');
 
   const handleNavigateModule = (path: string) => {
     if (!session) return;
