@@ -273,18 +273,6 @@ p, span, div, a, label, table, th, td,
   }
 }
 
-/* ── Responsive helpers ────────────────────── */
-/* Touch-friendly horizontal scroll */
-.scroll-x {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Prevent long words / codes from breaking flex/grid layouts on mobile */
-td, th { word-break: break-word; }
-
-/* Tables should not exceed their container width */
-.overflow-x-auto table { min-width: 600px; }
 
 /* ── Marquee Animation ─────────────────────── */
 @keyframes marquee {
