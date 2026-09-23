@@ -4,8 +4,8 @@ import {
   Sliders, RefreshCw, Save, Eye, Layers, RotateCcw,
   Sun, Moon, CheckCircle2, ChevronRight, Wand2
 } from 'lucide-react';
-import { ThemeEngine, FONT_PRESETS, INVOICE_THEME_DETAILS } from '../../lib/theme/themeEngine';
-import { ThemeConfig, InvoiceThemeId, FontSizeOption } from '../../types/theme';
+import { ThemeEngine, COLOR_PRESETS, FONT_PRESETS, INVOICE_THEME_DETAILS } from '../../lib/theme/themeEngine';
+import { ThemeConfig, InvoiceThemeId, FontSizeOption, ColorPreset } from '../../types/theme';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
 
@@ -66,7 +66,22 @@ export default function ThemeCustomizer() {
   }, [activeTemplate]);
 
   const updateConfig = (newPartial: Partial<ThemeConfig>) => {
-    const updated: ThemeConfig = { ...config, ...newPartial, colorPreset: 'CUSTOM' };
+    const updated: ThemeConfig = { ...config, ...newPartial, colorPreset: newPartial.colorPreset || 'CUSTOM' };
+    setConfig(updated);
+    ThemeEngine.applyTheme(updated);
+    window.dispatchEvent(new Event('theme_changed'));
+  };
+
+  const handleSelectPreset = (preset: ColorPreset) => {
+    const updated: ThemeConfig = {
+      ...config,
+      colorPreset: preset.id,
+      primaryBgColor: preset.primaryBg,
+      secondaryBtnColor: preset.secondaryBtn,
+      textColor: preset.textColor,
+      textAccentColor: preset.textAccentColor,
+      cardBgColor: preset.surfaceBg || preset.cardBg || '#FFFFFF',
+    };
     setConfig(updated);
     ThemeEngine.applyTheme(updated);
     window.dispatchEvent(new Event('theme_changed'));
@@ -302,8 +317,60 @@ export default function ThemeCustomizer() {
           </div>
         </div>
 
+        {/* CURATED COLOR THEME PRESETS */}
+        <div className="space-y-2.5">
+          <label className="text-xs font-bold text-gray-700 block">Select from Curated Theme Color Presets:</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            {COLOR_PRESETS.map((preset) => {
+              const isSelected = config.colorPreset === preset.id || 
+                (config.primaryBgColor.toUpperCase() === preset.primaryBg.toUpperCase() && 
+                 config.secondaryBtnColor.toUpperCase() === preset.secondaryBtn.toUpperCase());
+              return (
+                <div
+                  key={preset.id}
+                  onClick={() => handleSelectPreset(preset)}
+                  className={cn(
+                    "p-3.5 rounded-2xl transition-all cursor-pointer space-y-2 border relative group",
+                    isSelected
+                      ? "border-2 border-[#2563EB] shadow-md ring-2 ring-blue-100 bg-blue-50/20"
+                      : "border-gray-200 hover:border-gray-300 hover:bg-slate-50/70 bg-white"
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-900 truncate pr-1">{preset.name}</span>
+                    {isSelected ? (
+                      <div className="w-5 h-5 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                        <Check className="w-3 h-3 text-white" />
+                      </div>
+                    ) : (
+                      <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-slate-100 text-gray-500">
+                        {preset.id.startsWith('LIGHT') ? 'Light' : 'Dark'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Visual Color Swatch Ribbon */}
+                  <div className="h-6 rounded-lg overflow-hidden flex border border-black/10 shadow-xs">
+                    <div className="flex-1 h-full flex items-center justify-center text-[9px] font-mono font-bold" style={{ backgroundColor: preset.primaryBg, color: preset.textColor }}>
+                      BG
+                    </div>
+                    <div className="w-10 h-full flex items-center justify-center text-[9px] font-mono font-bold text-white" style={{ backgroundColor: preset.secondaryBtn }}>
+                      CTA
+                    </div>
+                    <div className="w-8 h-full flex items-center justify-center text-[9px] font-mono font-bold" style={{ backgroundColor: preset.surfaceBg || preset.cardBg, color: preset.textAccentColor }}>
+                      Aa
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Custom Color Pickers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="pt-2 border-t border-gray-100">
+          <label className="text-xs font-bold text-gray-700 block mb-3">Or Customize Individual Palette Colors:</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* 1. Primary Background Color */}
           <div className="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-3">
@@ -499,6 +566,7 @@ export default function ThemeCustomizer() {
             </div>
           </div>
 
+        </div>
         </div>
 
         {/* Optional Card & Container Surface Background Color */}

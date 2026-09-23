@@ -282,6 +282,16 @@ export class ThemeEngine {
     root.style.setProperty('--theme-border-tint', borderTint);
     root.style.setProperty('--theme-glow', glow);
 
+    // Font Size
+    const fontSizeMap: Record<string, string> = {
+      SMALL: '14px',
+      MEDIUM: '15px',
+      LARGE: '17px'
+    };
+    const resolvedFontSize = fontSizeMap[config.fontSize] || '15px';
+    root.style.setProperty('--theme-font-size-base', resolvedFontSize);
+    root.style.fontSize = resolvedFontSize;
+
     // Font Weight
     if (config.fontWeight) {
       root.style.setProperty('--theme-font-weight', config.fontWeight);
@@ -293,7 +303,7 @@ export class ThemeEngine {
     root.style.setProperty('--theme-primary-bg', `rgba(${rgbSecondary}, 0.12)`);
     root.style.setProperty('--theme-primary-border', borderTint);
 
-    // Ensure document body background
+    // Ensure document body background & color
     document.body.style.backgroundColor = primaryBg;
     document.body.style.color = textColor;
 
@@ -340,7 +350,7 @@ export class ThemeEngine {
       logoUrl: '',
       brandTitle: template?.invoiceLayout?.headerTitle || 'Apex Multi-Business Billing',
       brandTagline: template?.invoiceLayout?.tagline || 'Enterprise Cloud Point of Sale & Billing System',
-      colorPreset: 'CUSTOM',
+      colorPreset: 'LIGHT_SAPPHIRE',
       primaryBgColor: '#F8FAFC',
       secondaryBtnColor: '#2563EB',
       textColor: '#0F172A',
@@ -367,6 +377,10 @@ export class ThemeEngine {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(config));
       this.applyTheme(config);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('theme_changed'));
+        window.dispatchEvent(new Event('storage'));
+      }
     } catch (e) {
       console.error('Failed to save theme config', e);
     }

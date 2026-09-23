@@ -2,10 +2,13 @@
 
 :root {
   --theme-font: 'Outfit', sans-serif;
+  --theme-font-size-base: 15px;
+  --theme-font-weight: 400;
   --theme-bg-primary: #F8FAFC;
   --theme-bg-surface: #FFFFFF;
   --theme-bg-card: #F8FAFC;
   --theme-btn-secondary: #2563EB;
+  --theme-btn-secondary-rgb: 37, 99, 235;
   --theme-btn-secondary-hover: #1D4ED8;
   --theme-btn-text: #FFFFFF;
   --theme-btn-outline-bg: #FFFFFF;
@@ -23,18 +26,23 @@
 }
 
 *, ::before, ::after {
-  border-color: #E2E8F0;
+  border-color: var(--theme-border-tint, #E2E8F0);
 }
 
 /* Global Typography Font Family Override */
+html {
+  font-size: var(--theme-font-size-base, 15px);
+}
+
 body,
 button,
 input,
 select,
 textarea,
 h1, h2, h3, h4, h5, h6,
-p, span, div, a, label, table, th, td {
-  font-family: var(--theme-font, 'Outfit', sans-serif);
+p, span, div, a, label, table, th, td,
+.font-sans, .font-serif {
+  font-family: var(--theme-font, 'Outfit', sans-serif) !important;
 }
 
 

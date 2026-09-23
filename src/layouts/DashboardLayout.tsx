@@ -159,26 +159,55 @@ export default function DashboardLayout() {
   const isCurrentRouteAllowed = isRouteAllowedForRole(user.role, location.pathname);
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] text-[#0F172A] font-sans overflow-hidden">
+    <div 
+      className="flex h-screen overflow-hidden transition-colors duration-200"
+      style={{
+        backgroundColor: 'var(--theme-bg-primary)',
+        color: 'var(--theme-text-primary)',
+        fontFamily: 'var(--theme-font, inherit)'
+      }}
+    >
       {/* Collapsible Sidebar */}
       <aside
         className={cn(
-          "bg-white border-r border-gray-200 flex flex-col hidden md:flex transition-all duration-300 ease-in-out relative z-20 flex-shrink-0",
+          "flex flex-col hidden md:flex transition-all duration-300 ease-in-out relative z-20 flex-shrink-0 border-r",
           isCollapsed ? "w-20" : "w-64"
         )}
+        style={{
+          backgroundColor: 'var(--theme-bg-surface)',
+          borderColor: 'var(--theme-border-tint)'
+        }}
       >
         {/* Brand Header */}
-        <div className={cn("h-20 flex items-center border-b border-gray-200 bg-white transition-all px-4 justify-between")}>
+        <div 
+          className={cn("h-20 flex items-center border-b transition-all px-4 justify-between")}
+          style={{
+            backgroundColor: 'var(--theme-bg-surface)',
+            borderColor: 'var(--theme-border-tint)'
+          }}
+        >
           <div className="flex items-center truncate">
-            <div className="w-10 h-10 bg-[#2563EB] text-white rounded-xl flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-md">
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-md"
+              style={{
+                backgroundColor: 'var(--theme-btn-secondary)',
+                color: 'var(--theme-btn-text)'
+              }}
+            >
               {brandTitle.charAt(0).toUpperCase()}
             </div>
             {!isCollapsed && (
               <div className="ml-3 truncate">
-                <h1 className="font-serif font-bold text-sm tracking-tight text-gray-900 truncate">
+                <h1 
+                  className="font-bold text-sm tracking-tight truncate"
+                  style={{ color: 'var(--theme-text-primary)' }}
+                >
                   {brandTitle}
                 </h1>
-                <span className="text-[10px] text-[#2563EB] font-bold tracking-wider uppercase truncate block">
+                <span 
+                  className="text-[10px] font-bold tracking-wider uppercase truncate block"
+                  style={{ color: 'var(--theme-text-accent)' }}
+                >
                   {brandTagline}
                 </span>
               </div>
@@ -187,10 +216,10 @@ export default function DashboardLayout() {
 
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            className="p-1.5 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/5 transition-colors cursor-pointer"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
-            {isCollapsed ? <ChevronRight className="w-5 h-5 text-[#2563EB]" /> : <ChevronLeft className="w-5 h-5" />}
+            {isCollapsed ? <ChevronRight className="w-5 h-5" style={{ color: 'var(--theme-text-accent)' }} /> : <ChevronLeft className="w-5 h-5" />}
           </button>
         </div>
 
@@ -211,16 +240,26 @@ export default function DashboardLayout() {
                     'flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-150 relative group',
                     isCollapsed ? "justify-center" : "justify-start",
                     isActive
-                      ? 'border-l-4 shadow-xs font-bold bg-blue-50 text-[#2563EB] border-[#2563EB]'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'border-l-4 shadow-xs font-bold'
+                      : 'opacity-80 hover:opacity-100 hover:bg-black/5'
                   )}
+                  style={isActive ? {
+                    backgroundColor: 'rgba(var(--theme-btn-secondary-rgb, 37, 99, 235), 0.12)',
+                    color: 'var(--theme-text-accent)',
+                    borderLeftColor: 'var(--theme-btn-secondary)'
+                  } : {
+                    color: 'var(--theme-text-primary)'
+                  }}
                 >
                   <Icon
                     className={cn(
                       'h-5 w-5 flex-shrink-0 transition-colors',
-                      isCollapsed ? '' : 'mr-3',
-                      isActive ? 'text-[#2563EB]' : 'text-gray-400 group-hover:text-gray-700'
+                      isCollapsed ? '' : 'mr-3'
                     )}
+                    style={{
+                      color: isActive ? 'var(--theme-text-accent)' : 'inherit',
+                      opacity: isActive ? 1 : 0.65
+                    }}
                     aria-hidden="true"
                   />
                   {!isCollapsed && (
@@ -229,7 +268,14 @@ export default function DashboardLayout() {
 
                   {/* Tooltip for Collapsed State */}
                   {isCollapsed && (
-                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-lg shadow-xl border border-gray-200 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    <div 
+                      className="absolute left-full ml-3 px-3 py-1.5 text-xs font-bold rounded-lg shadow-xl border whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50"
+                      style={{
+                        backgroundColor: 'var(--theme-bg-surface)',
+                        color: 'var(--theme-text-primary)',
+                        borderColor: 'var(--theme-border-tint)'
+                      }}
+                    >
                       {item.name}
                     </div>
                   )}
@@ -240,24 +286,26 @@ export default function DashboardLayout() {
         </div>
 
         {/* Sidebar Footer & Collapse Toggle */}
-        <div className="p-3 border-t border-gray-200 space-y-1">
-
+        <div 
+          className="p-3 border-t space-y-1"
+          style={{ borderColor: 'var(--theme-border-tint)' }}
+        >
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={cn(
-              "flex items-center w-full px-3 py-2 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-colors mb-1",
+              "flex items-center w-full px-3 py-2 text-xs font-bold opacity-75 hover:opacity-100 hover:bg-black/5 rounded-xl transition-colors mb-1 cursor-pointer",
               isCollapsed ? "justify-center" : "justify-between"
             )}
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {!isCollapsed && <span className="uppercase tracking-wider text-[10px]">Sidebar View</span>}
-            {isCollapsed ? <PanelLeftOpen className="w-4 h-4 text-[#2563EB]" /> : <PanelLeftClose className="w-4 h-4 opacity-75" />}
+            {isCollapsed ? <PanelLeftOpen className="w-4 h-4" style={{ color: 'var(--theme-text-accent)' }} /> : <PanelLeftClose className="w-4 h-4 opacity-75" />}
           </button>
 
           <button
             onClick={logout}
             className={cn(
-              "flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-xl hover:bg-red-50 text-red-600 transition-colors",
+              "flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-xl hover:bg-red-50 text-red-600 transition-colors cursor-pointer",
               isCollapsed ? "justify-center" : "justify-start"
             )}
             title={isCollapsed ? "Logout" : undefined}
@@ -271,22 +319,43 @@ export default function DashboardLayout() {
       {/* Mobile Hamburger Slide-Over Navigation Drawer */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 flex md:hidden bg-black/40 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-72 h-full border-r border-gray-200 p-5 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left">
+          <div 
+            className="w-72 h-full border-r p-5 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left"
+            style={{
+              backgroundColor: 'var(--theme-bg-surface)',
+              borderColor: 'var(--theme-border-tint)',
+              color: 'var(--theme-text-primary)'
+            }}
+          >
             {/* Drawer Header */}
             <div>
-              <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-4">
+              <div 
+                className="flex items-center justify-between border-b pb-4 mb-4"
+                style={{ borderColor: 'var(--theme-border-tint)' }}
+              >
                 <div className="flex items-center">
-                  <div className="w-9 h-9 bg-[#2563EB] text-white rounded-xl flex items-center justify-center font-bold text-lg mr-3 shadow-sm">
+                  <div 
+                    className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-lg mr-3 shadow-sm"
+                    style={{
+                      backgroundColor: 'var(--theme-btn-secondary)',
+                      color: 'var(--theme-btn-text)'
+                    }}
+                  >
                     {brandTitle.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <h2 className="font-serif font-bold text-sm text-gray-900 tracking-tight">{brandTitle}</h2>
-                    <span className="text-[10px] text-[#2563EB] font-bold block uppercase">{brandTagline}</span>
+                    <h2 className="font-bold text-sm tracking-tight">{brandTitle}</h2>
+                    <span 
+                      className="text-[10px] font-bold block uppercase"
+                      style={{ color: 'var(--theme-text-accent)' }}
+                    >
+                      {brandTagline}
+                    </span>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 bg-gray-100"
+                  className="p-1.5 rounded-lg opacity-70 hover:opacity-100 hover:bg-black/5"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -307,11 +376,18 @@ export default function DashboardLayout() {
                       className={cn(
                         'flex items-center px-3.5 py-3 text-xs font-bold rounded-xl transition-all',
                         isActive
-                          ? 'bg-blue-50 text-[#2563EB] border-l-4 border-[#2563EB]'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                          ? 'border-l-4 shadow-xs font-bold'
+                          : 'opacity-80 hover:opacity-100 hover:bg-black/5'
                       )}
+                      style={isActive ? {
+                        backgroundColor: 'rgba(var(--theme-btn-secondary-rgb, 37, 99, 235), 0.12)',
+                        color: 'var(--theme-text-accent)',
+                        borderLeftColor: 'var(--theme-btn-secondary)'
+                      } : {
+                        color: 'var(--theme-text-primary)'
+                      }}
                     >
-                      <Icon className={cn('h-4 w-4 mr-3', isActive ? 'text-[#2563EB]' : 'text-gray-400')} />
+                      <Icon className={cn('h-4 w-4 mr-3')} style={{ color: isActive ? 'var(--theme-text-accent)' : 'inherit' }} />
                       <span>{item.name}</span>
                     </Link>
                   );
@@ -320,22 +396,37 @@ export default function DashboardLayout() {
             </div>
 
             {/* Mobile Drawer Footer */}
-            <div className="border-t border-gray-200 pt-4 space-y-3">
-              <div className="flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+            <div 
+              className="border-t pt-4 space-y-3"
+              style={{ borderColor: 'var(--theme-border-tint)' }}
+            >
+              <div 
+                className="flex items-center justify-between p-2.5 rounded-xl border"
+                style={{
+                  backgroundColor: 'var(--theme-bg-primary)',
+                  borderColor: 'var(--theme-border-tint)'
+                }}
+              >
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-[#2563EB] flex items-center justify-center text-xs font-bold text-white">
+                  <div 
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-xs"
+                    style={{
+                      backgroundColor: 'var(--theme-btn-secondary)',
+                      color: 'var(--theme-btn-text)'
+                    }}
+                  >
                     {user.username.substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-gray-900 leading-tight">{user.username}</div>
-                    <div className="text-[10px] text-gray-500 uppercase">{user.role}</div>
+                    <div className="text-xs font-bold leading-tight">{user.username}</div>
+                    <div className="text-[10px] opacity-70 uppercase">{user.role}</div>
                   </div>
                 </div>
               </div>
 
               <button
                 onClick={() => { setIsMobileMenuOpen(false); logout(); }}
-                className="flex items-center justify-center w-full px-3 py-2.5 text-xs font-bold rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors gap-2"
+                className="flex items-center justify-center w-full px-3 py-2.5 text-xs font-bold rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors gap-2 cursor-pointer"
               >
                 <LogOut className="h-4 w-4 text-red-600" />
                 <span>Logout Account</span>
@@ -351,35 +442,50 @@ export default function DashboardLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         {/* Top Navbar */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-3 sm:px-5 lg:px-8 z-10 flex-shrink-0">
+        <header 
+          className="h-16 border-b flex items-center justify-between px-3 sm:px-5 lg:px-8 z-10 flex-shrink-0"
+          style={{
+            backgroundColor: 'var(--theme-bg-surface)',
+            borderColor: 'var(--theme-border-tint)',
+            color: 'var(--theme-text-primary)'
+          }}
+        >
           <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
             {/* Mobile Hamburger & Logo */}
             <div className="flex items-center md:hidden min-w-0">
               <button
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 rounded-xl text-gray-600 hover:text-gray-900 bg-gray-100 border border-gray-200 mr-2 flex-shrink-0"
+                className="p-2 rounded-xl opacity-80 hover:opacity-100 bg-black/5 border mr-2 flex-shrink-0"
+                style={{ borderColor: 'var(--theme-border-tint)' }}
                 title="Open Navigation Menu"
               >
-                <Menu className="w-5 h-5 text-[#2563EB]" />
+                <Menu className="w-5 h-5" style={{ color: 'var(--theme-text-accent)' }} />
               </button>
-              <div className="w-8 h-8 bg-[#2563EB] text-white rounded-lg flex items-center justify-center font-bold text-lg mr-2 flex-shrink-0">
+              <div 
+                className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg mr-2 flex-shrink-0"
+                style={{
+                  backgroundColor: 'var(--theme-btn-secondary)',
+                  color: 'var(--theme-btn-text)'
+                }}
+              >
                 {brandTitle.charAt(0).toUpperCase()}
               </div>
-              <h1 className="font-serif font-bold text-xs sm:text-sm tracking-tight text-gray-900 truncate max-w-[90px] xs:max-w-[140px] sm:max-w-xs">{brandTitle}</h1>
+              <h1 className="font-bold text-xs sm:text-sm tracking-tight truncate max-w-[90px] xs:max-w-[140px] sm:max-w-xs">{brandTitle}</h1>
             </div>
 
             {/* Desktop Sidebar Toggle in Top Bar */}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="hidden md:flex items-center gap-2 p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100 border border-gray-200 transition-all"
+              className="hidden md:flex items-center gap-2 p-2 rounded-xl opacity-80 hover:opacity-100 hover:bg-black/5 border transition-all cursor-pointer"
+              style={{ borderColor: 'var(--theme-border-tint)' }}
               title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
-              {isCollapsed ? <PanelLeftOpen className="w-4 h-4 text-[#2563EB]" /> : <PanelLeftClose className="w-4 h-4" />}
-              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">{isCollapsed ? "Expand" : "Collapse"}</span>
+              {isCollapsed ? <PanelLeftOpen className="w-4 h-4" style={{ color: 'var(--theme-text-accent)' }} /> : <PanelLeftClose className="w-4 h-4" />}
+              <span className="text-xs font-bold uppercase tracking-wider">{isCollapsed ? "Expand" : "Collapse"}</span>
             </button>
 
             <div className="hidden lg:flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 truncate max-w-xs">
+              <span className="text-xs font-medium opacity-70 truncate max-w-xs">
                 {brandTitle}
               </span>
             </div>
@@ -390,10 +496,15 @@ export default function DashboardLayout() {
             <Link
               to="/dashboard/settings?tab=theme"
               state={{ tab: 'theme' }}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border border-gray-200 text-xs font-bold rounded-xl transition-all"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 border text-xs font-bold rounded-xl transition-all shadow-xs"
+              style={{
+                backgroundColor: 'var(--theme-bg-primary)',
+                borderColor: 'var(--theme-border-tint)',
+                color: 'var(--theme-text-primary)'
+              }}
               title="Change Application Theme & Color Palette"
             >
-              <Palette className="w-4 h-4 text-[#2563EB]" />
+              <Palette className="w-4 h-4" style={{ color: 'var(--theme-text-accent)' }} />
               <span className="hidden sm:inline">Theme</span>
             </Link>
 
@@ -410,10 +521,15 @@ export default function DashboardLayout() {
                   to={`/${currentStoreSlug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border border-gray-200 text-xs font-bold rounded-xl transition-all"
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 border text-xs font-bold rounded-xl transition-all shadow-xs"
+                  style={{
+                    backgroundColor: 'var(--theme-bg-primary)',
+                    borderColor: 'var(--theme-border-tint)',
+                    color: 'var(--theme-text-primary)'
+                  }}
                   title="Open Live Public Website / Storefront"
                 >
-                  <Globe className="w-4 h-4 text-[#2563EB]" />
+                  <Globe className="w-4 h-4" style={{ color: 'var(--theme-text-accent)' }} />
                   <span className="hidden sm:inline">Open Website</span>
                 </Link>
               );
@@ -423,7 +539,11 @@ export default function DashboardLayout() {
             {isRouteAllowedForRole(user.role, '/dashboard/billing') && location.pathname !== '/dashboard/billing' && location.pathname !== '/billing' && (
               <Link
                 to="/dashboard/billing"
-                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-bold text-xs rounded-xl shadow-md transition-all"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 font-bold text-xs rounded-xl shadow-md transition-all hover:brightness-110"
+                style={{
+                  backgroundColor: 'var(--theme-btn-secondary)',
+                  color: 'var(--theme-btn-text)'
+                }}
               >
                 <Receipt className="w-4 h-4" />
                 <span className="hidden sm:inline">Open POS</span>
@@ -441,15 +561,27 @@ export default function DashboardLayout() {
               const initials = (nameToShow || user.username).substring(0, 2).toUpperCase();
 
               return (
-                <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 bg-gray-100 rounded-xl border border-gray-200">
-                  <div className="w-7 h-7 rounded-full bg-[#2563EB] flex items-center justify-center text-xs font-bold text-white shadow-xs flex-shrink-0">
+                <div 
+                  className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 rounded-xl border"
+                  style={{
+                    backgroundColor: 'var(--theme-bg-primary)',
+                    borderColor: 'var(--theme-border-tint)'
+                  }}
+                >
+                  <div 
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-xs flex-shrink-0"
+                    style={{
+                      backgroundColor: 'var(--theme-btn-secondary)',
+                      color: 'var(--theme-btn-text)'
+                    }}
+                  >
                     {initials}
                   </div>
                   <div className="hidden sm:flex flex-col pr-1 text-left">
-                    <span className="text-xs font-bold text-gray-900 leading-none">
+                    <span className="text-xs font-bold leading-none">
                       {nameToShow}
                     </span>
-                    <span className="text-[10px] text-gray-500 uppercase mt-0.5">
+                    <span className="text-[10px] opacity-70 uppercase mt-0.5">
                       {subToShow}
                     </span>
                   </div>
@@ -459,25 +591,41 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main className={cn("flex-1 bg-[#F8FAFC]", location.pathname === '/billing' ? "p-1.5 sm:p-3 overflow-hidden flex flex-col h-[calc(100vh-64px)]" : "p-2.5 sm:p-5 lg:p-8 overflow-y-auto")}>
+        <main 
+          className={cn("flex-1 transition-colors", location.pathname === '/billing' ? "p-1.5 sm:p-3 overflow-hidden flex flex-col h-[calc(100vh-64px)]" : "p-2.5 sm:p-5 lg:p-8 overflow-y-auto")}
+          style={{
+            backgroundColor: 'var(--theme-bg-primary)',
+            color: 'var(--theme-text-primary)'
+          }}
+        >
           <div className={cn("w-full h-full flex flex-col flex-1 min-w-0", location.pathname === '/billing' ? "overflow-hidden" : "mx-auto max-w-7xl")}>
             {isCurrentRouteAllowed ? (
               <Outlet />
             ) : (
-              <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white border border-gray-200 rounded-2xl shadow-xl space-y-4 my-auto">
+              <div 
+                className="flex flex-col items-center justify-center py-20 px-4 text-center border rounded-2xl shadow-xl space-y-4 my-auto"
+                style={{
+                  backgroundColor: 'var(--theme-bg-surface)',
+                  borderColor: 'var(--theme-border-tint)'
+                }}
+              >
                 <div className="w-16 h-16 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-500">
                   <ShieldAlert className="w-8 h-8" />
                 </div>
                 <div className="space-y-1 max-w-md">
-                  <h2 className="text-xl font-bold text-gray-900 font-serif">Access Restricted ({user.role})</h2>
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    Your assigned role <span className="font-mono text-[#2563EB] font-bold">{user.role}</span> does not have permission to access <span className="font-mono text-gray-900">{location.pathname}</span>.
+                  <h2 className="text-xl font-bold">Access Restricted ({user.role})</h2>
+                  <p className="text-xs opacity-75 leading-relaxed">
+                    Your assigned role <span className="font-mono font-bold" style={{ color: 'var(--theme-text-accent)' }}>{user.role}</span> does not have permission to access <span className="font-mono">{location.pathname}</span>.
                   </p>
                 </div>
                 <div className="pt-2">
                   <Link
                     to={navigation[0]?.href || '/dashboard/billing'}
-                    className="px-5 py-2.5 bg-[#2563EB] text-white font-bold text-xs rounded-xl shadow-md hover:bg-[#1D4ED8] transition-all inline-flex items-center gap-2"
+                    className="px-5 py-2.5 font-bold text-xs rounded-xl shadow-md transition-all inline-flex items-center gap-2"
+                    style={{
+                      backgroundColor: 'var(--theme-btn-secondary)',
+                      color: 'var(--theme-btn-text)'
+                    }}
                   >
                     <span>Go to Authorized Section</span>
                   </Link>
