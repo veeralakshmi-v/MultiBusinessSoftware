@@ -108,6 +108,8 @@ const DEFAULT_BUSINESS_TYPE: BusinessType = 'RETAIL';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+import { CloudSync } from '../lib/sync/cloudSync';
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('user_profile');
@@ -128,6 +130,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('saas_tenants_updated', handleTenantsUpdated);
     return () => window.removeEventListener('saas_tenants_updated', handleTenantsUpdated);
   }, []);
+
+  // Sync cloud database on mount and whenever user/business changes
+  useEffect(() => {
+    const targetBizId = user?.businessId || localStorage.getItem('businessId') || DEFAULT_BUSINESS_ID;
+    CloudSync.syncAllData(targetBizId);
+  }, [user?.businessId]);
 
   // Determine active tenant
   const activeTenant = useMemo(() => {
@@ -257,24 +265,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const createTenant = (data: Parameters<typeof TenantEngine.createTenant>[0]): Tenant => {
     const created = TenantEngine.createTenant(data);
+    // Post to Supabase PostgreSQL database
+    fetch('/api/tenants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(created),
+    }).catch(err => console.warn('Failed to post tenant to API:', err));
     refreshTenants();
     return created;
   };
 
   const updateTenant = (tenantId: string, updates: Partial<Tenant>): Tenant | null => {
     const updated = TenantEngine.updateTenant(tenantId, updates);
+    if (updated) {
+      fetch('/api/tenants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      }).catch(err => console.warn('Failed to update tenant in API:', err));
+    }
     refreshTenants();
     return updated;
   };
 
   const deleteTenant = (tenantId: string): boolean => {
     const res = TenantEngine.deleteTenant(tenantId);
+    fetch(`/api/tenants/${tenantId}`, { method: 'DELETE' }).catch(() => {});
     refreshTenants();
     return res;
   };
 
   const setTenantStatus = (tenantId: string, status: TenantStatus): Tenant | null => {
     const updated = TenantEngine.setTenantStatus(tenantId, status);
+    if (updated) {
+      fetch('/api/tenants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      }).catch(err => console.warn('Failed to update tenant status in API:', err));
+    }
     refreshTenants();
     return updated;
   };
@@ -524,10 +553,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('user_profile', JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
-    if (newUser.businessId) {
-      setBusinessId(newUser.businessId);
-      localStorage.setItem('businessId', newUser.businessId);
-    }
+    const targetBizId = newUser.businessId || DEFAULT_BUSINESS_ID;
+    setBusinessId(targetBizId);
+    localStorage.setItem('businessId', targetBizId);
+    CloudSync.syncAllData(targetBizId);
   };
 
   const logout = () => {

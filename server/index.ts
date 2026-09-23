@@ -211,11 +211,52 @@ app.get('/api/tenants', async (req, res) => {
     const businesses = await prisma.business.findMany({
       include: {
         profileSettings: true,
-        users: { where: { role: 'ADMIN' } },
+        users: true,
+        employees: true,
       },
       orderBy: { createdAt: 'desc' }
     });
-    return res.json(businesses);
+
+    const tenants = businesses.map(b => {
+      const adminUser = b.users.find(u => u.role === 'ADMIN') || b.users[0];
+      const adminEmp = b.employees.find(e => e.role === 'ADMIN') || b.employees[0];
+      const prof = b.profileSettings;
+
+      return {
+        id: b.id,
+        businessName: prof?.businessName || b.name,
+        legalEntityName: prof?.legalName || prof?.businessName || b.name,
+        ownerName: adminEmp?.fullName || adminUser?.username || 'Administrator',
+        ownerEmail: prof?.email || adminEmp?.email || '',
+        ownerPhone: prof?.phone || adminEmp?.phone || '',
+        adminUsername: adminUser?.username || 'admin',
+        adminPasswordHash: adminUser?.password || 'admin123',
+        businessType: (b.type || 'RETAIL') as any,
+        currency: prof?.currencyCode || 'INR',
+        currencySymbol: prof?.currencySymbol || '₹',
+        gstin: prof?.gstin || '',
+        address: prof?.address || '',
+        city: prof?.city || '',
+        state: prof?.state || '',
+        status: b.isActive ? 'ACTIVE' : 'SUSPENDED',
+        subscription: {
+          plan: 'GROWTH',
+          status: b.isActive ? 'ACTIVE' : 'SUSPENDED',
+          startDate: b.createdAt.toISOString(),
+          expiryDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+          monthlyFee: 1999,
+          maxStaff: 25,
+          maxInvoicesPerMonth: 10000,
+          allowWebsite: true,
+          allowCustomDomain: false,
+          autoRenew: true,
+        },
+        createdAt: b.createdAt.toISOString(),
+        updatedAt: b.updatedAt.toISOString(),
+      };
+    });
+
+    return res.json(tenants);
   } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
