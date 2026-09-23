@@ -96,7 +96,7 @@ export function getDefaultRoleForCategory(cat: string): string {
 
 export default function EmployeeDirectory() {
   const navigate = useNavigate();
-  const { user, activeTenant, businessId } = useAuth();
+  const { user, activeTenant, businessId, updateBusinessProfile } = useAuth();
   const allTenants = TenantEngine.getTenants();
   const currentBusinessId = activeTenant?.id || businessId || user?.businessId || localStorage.getItem('businessId') || (allTenants.length > 0 ? allTenants[0].id : 'biz-default-business');
   const tenantPrefix = `tenant_${currentBusinessId}_`;
@@ -111,23 +111,6 @@ export default function EmployeeDirectory() {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // If the list has a placeholder admin, update with effectiveTenant details
-          if (eff?.ownerName) {
-            return parsed.map(s => {
-              if (s.role === 'ADMIN') {
-                return {
-                  ...s,
-                  name: eff.ownerName,
-                  username: eff.adminUsername || s.username,
-                  phone: eff.ownerPhone || s.phone,
-                  aadharNumber: eff.ownerAadhaar ? formatAadhar(eff.ownerAadhaar) : (s.aadharNumber || ''),
-                  email: eff.ownerEmail || s.email,
-                  address: eff.address || s.address,
-                };
-              }
-              return s;
-            });
-          }
           return parsed;
         }
       } catch { }
@@ -140,10 +123,10 @@ export default function EmployeeDirectory() {
         role: 'ADMIN',
         category: 'Management/Admin',
         applicationAccess: 'Full Access (All Modules & POS)',
-        phone: eff?.ownerPhone || '',
+        phone: eff?.ownerPhone || '9876543210',
         familyPhone: '',
         email: eff?.ownerEmail || 'admin@mybusiness.com',
-        pinCode: eff?.adminPasswordHash || '1234',
+        pinCode: eff?.adminPasswordHash || 'admin123',
         status: 'ACTIVE',
         dob: '1990-01-01',
         doj: new Date().toISOString().slice(0, 10),
@@ -187,93 +170,11 @@ export default function EmployeeDirectory() {
   const [staffPhoto, setStaffPhoto] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
 
-  // Load and reload staff list when business changes
-  useEffect(() => {
-    const all = TenantEngine.getTenants();
-    const eff = activeTenant || TenantEngine.getTenantById(currentBusinessId) || (all.length > 0 ? all[0] : null);
-    const prefix = eff ? `tenant_${eff.id}_` : tenantPrefix;
-    const saved = localStorage.getItem(`${prefix}universal_staff_list`) || localStorage.getItem('universal_staff_list');
-    let currentList: StaffUser[] = [];
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          currentList = parsed;
-        }
-      } catch { }
-    }
-
-    const defaultAdminUsername = eff?.adminUsername || 'admin';
-    const defaultOwnerPhone = eff?.ownerPhone || '';
-    const defaultOwnerName = eff?.ownerName || 'Business Administrator';
-    const defaultOwnerAadhaar = eff?.ownerAadhaar ? formatAadhar(eff.ownerAadhaar) : '';
-
-    // If empty, seed with the single primary owner/admin account
-    if (currentList.length === 0) {
-      currentList = [
-        {
-          id: `admin-${eff?.id || currentBusinessId}`,
-          name: defaultOwnerName,
-          username: defaultAdminUsername,
-          role: 'ADMIN',
-          category: 'Management/Admin',
-          applicationAccess: 'Full Access (All Modules & POS)',
-          phone: defaultOwnerPhone,
-          familyPhone: '',
-          email: eff?.ownerEmail || '',
-          pinCode: eff?.adminPasswordHash || 'admin123',
-          status: 'ACTIVE',
-          dob: '1990-01-01',
-          doj: new Date().toISOString().slice(0, 10),
-          dor: '',
-          aadharNumber: defaultOwnerAadhaar,
-          address: eff?.address || '',
-        },
-      ];
-    } else if (eff?.ownerName) {
-      // Update placeholder admin details with real tenant owner information
-      currentList = currentList.map(s => {
-        if (s.role === 'ADMIN') {
-          return {
-            ...s,
-            name: eff.ownerName,
-            username: eff.adminUsername || s.username,
-            phone: eff.ownerPhone || s.phone,
-            aadharNumber: defaultOwnerAadhaar || s.aadharNumber,
-            email: eff.ownerEmail || s.email,
-            address: eff.address || s.address,
-          };
-        }
-        return s;
-      });
-    }
-
-    // Clean duplicate phone/username copies
-    const deduped: StaffUser[] = [];
-    const seen = new Set<string>();
-
-    currentList.forEach((s) => {
-      const uKey = (s.username || '').toLowerCase().trim();
-      const pKey = (s.phone || '').replace(/\D/g, '').slice(-10);
-      const isPlaceholder = uKey === 'admin' && s.name === 'Business Administrator' && defaultAdminUsername !== 'admin';
-
-      if (isPlaceholder) return; // ignore legacy generic placeholder if customized admin exists
-
-      if (uKey && seen.has(uKey)) return;
-      if (pKey && pKey.length >= 7 && seen.has(pKey)) return;
-
-      if (uKey) seen.add(uKey);
-      if (pKey && pKey.length >= 7) seen.add(pKey);
-      deduped.push(s);
-    });
-
-    setStaffList(deduped.length > 0 ? deduped : currentList);
-  }, [currentBusinessId, tenantPrefix, activeTenant]);
-
   // Sync strictly to tenant isolated database namespace
   useEffect(() => {
     if (staffList.length > 0) {
       localStorage.setItem(`${tenantPrefix}universal_staff_list`, JSON.stringify(staffList));
+      localStorage.setItem('universal_staff_list', JSON.stringify(staffList));
     }
   }, [staffList, tenantPrefix]);
 
@@ -285,55 +186,30 @@ export default function EmployeeDirectory() {
       .then(res => res.json())
       .then((data: any[]) => {
         if (Array.isArray(data) && data.length > 0) {
-          setStaffList(prev => {
-            const list = [...prev];
-            const seenUsers = new Set<string>();
-            const seenPhones = new Set<string>();
-
-            list.forEach(p => {
-              if (p.username) seenUsers.add(p.username.toLowerCase().trim());
-              const pClean = (p.phone || '').replace(/\D/g, '').slice(-10);
-              if (pClean) seenPhones.add(pClean);
-            });
-
-            data.forEach((u: any) => {
-              const uName = (u.username || '').toLowerCase().trim();
-              const uPhone = (u.phone || '').replace(/\D/g, '').slice(-10);
-
-              // Don't add phone duplicate of existing user
-              if (seenUsers.has(uName)) return;
-              if (uPhone && seenPhones.has(uPhone)) return;
-
-              if (uName) seenUsers.add(uName);
-              if (uPhone) seenPhones.add(uPhone);
-
-              const displayName = (u.fullName && u.fullName.trim()) || (u.name && u.name.trim()) || u.username;
-
-              list.push({
-                id: u.id || `emp-${Date.now()}`,
-                name: displayName,
-                username: u.username || uName,
-                phone: u.phone || '',
-                email: u.email || '',
-                role: u.role || 'CASHIER',
-                category: u.category || 'Management/Admin',
-                applicationAccess: u.applicationAccess || 'Attendance & Staff Portal',
-                status: u.status || 'ACTIVE',
-                pinCode: u.password || '1234',
-                aadharNumber: u.aadharNumber || '',
-                address: u.address || '',
-                dob: u.dob || '',
-                doj: u.doj || '',
-                photoUrl: u.photoUrl,
-              });
-            });
-
-            // Filter out placeholder admin if customized admin exists
-            const hasCustomAdmin = list.some(l => l.username && l.username !== 'admin' && l.role === 'ADMIN');
-            return hasCustomAdmin
-              ? list.filter(l => !(l.username === 'admin' && l.name === 'Business Administrator'))
-              : list;
+          const mappedList: StaffUser[] = data.map((u: any) => {
+            const displayName = (u.fullName && u.fullName.trim()) || (u.name && u.name.trim()) || u.username;
+            return {
+              id: u.id || `emp-${Date.now()}`,
+              name: displayName,
+              username: u.username || u.phone || 'staff',
+              phone: u.phone || '',
+              familyPhone: u.familyPhone || '',
+              email: u.email || '',
+              role: u.role || 'STAFF',
+              category: u.category || (u.role === 'ADMIN' ? 'Management/Admin' : 'General'),
+              applicationAccess: u.applicationAccess || (u.role === 'ADMIN' ? 'Full Access (All Modules & POS)' : 'Attendance & Staff Portal'),
+              status: u.status || 'ACTIVE',
+              pinCode: u.pinCode || u.password || '1234',
+              aadharNumber: u.aadharNumber || '',
+              address: u.address || '',
+              dob: u.dob || '',
+              doj: u.doj || '',
+              dor: u.dor || '',
+              photoUrl: u.photoUrl,
+            };
           });
+
+          setStaffList(mappedList);
         }
       })
       .catch(() => {});
@@ -487,81 +363,108 @@ export default function EmployeeDirectory() {
     const computedStatus = computedRole === 'ADMIN' ? 'ACTIVE' : staffStatus;
     const formattedAadharVal = formatAadhar(aadharDigits);
 
-    if (selectedStaff && isEditing) {
-      setStaffList(prev =>
-        prev.map(s =>
-          s.id === selectedStaff.id
-            ? {
-              ...s,
-              name: staffName.trim(),
-              username: effectiveUsername,
-              role: computedRole,
-              category: computedCategory,
-              applicationAccess: computedAppAccess,
-              phone: phoneDigits,
-              familyPhone: staffFamilyPhone ? cleanPhone(staffFamilyPhone) : '',
-              email: staffEmail.trim(),
-              pinCode: staffPin.trim() || '1234',
-              status: computedStatus,
-              dob: staffDob,
-              doj: staffDoj,
-              dor: staffDor,
-              aadharNumber: formattedAadharVal,
-              address: staffAddress.trim(),
-              photoUrl: staffPhoto,
-            }
-            : s
-        )
-      );
+    const isUpdating = !!(selectedStaff && isEditing);
+    const targetId = isUpdating ? selectedStaff.id : `emp-${Date.now()}`;
+
+    const staffRecord: StaffUser = {
+      id: targetId,
+      name: staffName.trim(),
+      username: effectiveUsername,
+      role: computedRole,
+      category: computedCategory,
+      applicationAccess: computedAppAccess,
+      phone: phoneDigits,
+      familyPhone: staffFamilyPhone ? cleanPhone(staffFamilyPhone) : '',
+      email: staffEmail.trim(),
+      pinCode: staffPin.trim() || '1234',
+      status: computedStatus,
+      dob: staffDob,
+      doj: staffDoj,
+      dor: staffDor,
+      aadharNumber: formattedAadharVal,
+      address: staffAddress.trim(),
+      photoUrl: staffPhoto,
+    };
+
+    if (isUpdating) {
+      setStaffList(prev => prev.map(s => s.id === selectedStaff.id ? staffRecord : s));
     } else {
-      const newStaff: StaffUser = {
-        id: `emp-${Date.now()}`,
-        name: staffName.trim(),
-        username: effectiveUsername,
-        role: computedRole,
-        category: computedCategory,
-        applicationAccess: computedAppAccess,
-        phone: phoneDigits,
-        familyPhone: staffFamilyPhone ? cleanPhone(staffFamilyPhone) : '',
-        email: staffEmail.trim(),
-        pinCode: staffPin.trim() || '1234',
-        status: computedStatus,
-        dob: staffDob,
-        doj: staffDoj,
-        dor: staffDor,
-        aadharNumber: formattedAadharVal,
-        address: staffAddress.trim(),
-        photoUrl: staffPhoto,
-      };
-      setStaffList(prev => [...prev, newStaff]);
+      setStaffList(prev => [...prev, staffRecord]);
     }
 
-    // Persist employee to Supabase PostgreSQL database via API with businessId scope
-    fetch('/api/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-business-id': currentBusinessId
-      },
-      body: JSON.stringify({
-        businessId: currentBusinessId,
-        name: staffName.trim(),
-        fullName: staffName.trim(),
-        staffName: staffName.trim(),
-        username: effectiveUsername,
-        phone: phoneDigits,
-        password: staffPin.trim() || '1234',
-        pinCode: staffPin.trim() || '1234',
-        role: computedRole,
-        aadharNumber: formattedAadharVal,
-        address: staffAddress.trim(),
-        email: staffEmail.trim(),
-      })
-    }).then(res => res.json())
-      .then(data => {
-        console.log('✅ Employee saved to backend:', data);
-      })
-      .catch(err => console.error('Error syncing staff to backend:', err));
+    // If Admin account is updated, sync Tenant, Auth Profile and Context
+    if (computedRole === 'ADMIN' || selectedStaff?.role === 'ADMIN') {
+      try {
+        TenantEngine.updateTenant(currentBusinessId, {
+          ownerName: staffName.trim(),
+          ownerPhone: phoneDigits,
+          ownerEmail: staffEmail.trim(),
+          ownerAadhaar: aadharDigits,
+          address: staffAddress.trim(),
+          adminUsername: effectiveUsername,
+          adminPasswordHash: staffPin.trim() || '1234',
+        });
+        if (updateBusinessProfile) {
+          updateBusinessProfile({
+            phone: phoneDigits,
+            email: staffEmail.trim(),
+            address: staffAddress.trim(),
+          });
+        }
+        if (user && (user.role === 'ADMIN' || user.id === selectedStaff?.id)) {
+          const updatedUserObj = {
+            ...user,
+            name: staffName.trim(),
+            username: effectiveUsername,
+          };
+          localStorage.setItem('user_profile', JSON.stringify(updatedUserObj));
+        }
+      } catch (err) {
+        console.error('Error syncing tenant admin profile:', err);
+      }
+    }
+
+    // Persist to Supabase PostgreSQL database via API
+    try {
+      const url = isUpdating ? `/api/users/${selectedStaff.id}` : '/api/users';
+      const method = isUpdating ? 'PUT' : 'POST';
+
+      fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-business-id': currentBusinessId
+        },
+        body: JSON.stringify({
+          businessId: currentBusinessId,
+          name: staffName.trim(),
+          fullName: staffName.trim(),
+          staffName: staffName.trim(),
+          username: effectiveUsername,
+          phone: phoneDigits,
+          familyPhone: staffFamilyPhone ? cleanPhone(staffFamilyPhone) : '',
+          password: staffPin.trim() || '1234',
+          pinCode: staffPin.trim() || '1234',
+          role: computedRole,
+          category: computedCategory,
+          applicationAccess: computedAppAccess,
+          status: computedStatus,
+          dob: staffDob,
+          doj: staffDoj,
+          dor: staffDor,
+          aadharNumber: formattedAadharVal,
+          address: staffAddress.trim(),
+          email: staffEmail.trim(),
+          photoUrl: staffPhoto,
+        })
+      }).then(res => res.json())
+        .then(data => {
+          console.log('✅ User successfully saved to PostgreSQL database:', data);
+        })
+        .catch(err => console.error('Error syncing user to backend:', err));
+    } catch (err) {
+      console.error('Network/Server error updating user:', err);
+    }
 
     setIsModalOpen(false);
   };

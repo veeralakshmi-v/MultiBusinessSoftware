@@ -1548,6 +1548,344 @@ app.post('/api/inventory/transactions', async (req, res) => {
   }
 });
 
+// 7.5 Users & Staff Management API
+app.get('/api/users', async (req, res) => {
+  const { businessId } = getRequestContext(req);
+  try {
+    await ensureBusinessExists(businessId);
+    
+    // Fetch users, employees, and profile settings for this business
+    const [dbUsers, dbEmployees, settings] = await Promise.all([
+      prisma.user.findMany({ where: { businessId } }),
+      (prisma as any).employee.findMany({ where: { businessId } }).catch(() => []),
+      prisma.businessProfileSettings.findUnique({ where: { businessId } }).catch(() => null),
+    ]);
+
+    const resultList: any[] = [];
+    const seenUsernames = new Set<string>();
+
+    // 1. Process DB Users
+    for (const u of dbUsers) {
+      const uKey = u.username.toLowerCase().trim();
+      seenUsernames.add(uKey);
+      
+      const matchingEmp = dbEmployees.find((e: any) => 
+        e.employeeCode === `EMP-${u.username}` || 
+        e.phone === u.username || 
+        (u.role === 'ADMIN' && e.role === 'ADMIN')
+      );
+
+      const name = matchingEmp?.fullName || (u.role === 'ADMIN' ? (settings?.businessName ? `${settings.businessName} Admin` : 'Admin User') : u.username);
+      const phone = matchingEmp?.phone || (u.username.match(/^\d{10}$/) ? u.username : settings?.phone || '');
+      const email = matchingEmp?.email || settings?.email || '';
+
+      resultList.push({
+        id: u.id,
+        name,
+        username: u.username,
+        role: u.role,
+        phone,
+        email,
+        address: matchingEmp?.address || settings?.address || '',
+        category: matchingEmp?.department?.name || (u.role === 'ADMIN' ? 'Management/Admin' : 'General'),
+        status: matchingEmp?.status || 'ACTIVE',
+        pinCode: u.password,
+        aadharNumber: (matchingEmp as any)?.aadharNumber || '',
+        dob: matchingEmp?.dateOfBirth ? new Date(matchingEmp.dateOfBirth).toISOString().slice(0, 10) : '',
+        doj: matchingEmp?.dateOfJoining ? new Date(matchingEmp.dateOfJoining).toISOString().slice(0, 10) : '',
+      });
+    }
+
+    // 2. Process any employees that don't have a direct User record
+    for (const e of dbEmployees) {
+      const empUserKey = (e.phone || e.employeeCode || '').toLowerCase().trim();
+      if (empUserKey && !seenUsernames.has(empUserKey)) {
+        seenUsernames.add(empUserKey);
+        resultList.push({
+          id: e.id,
+          name: e.fullName || `${e.firstName} ${e.lastName}`,
+          username: e.phone || e.employeeCode,
+          role: e.role || 'STAFF',
+          phone: e.phone || '',
+          email: e.email || '',
+          address: e.address || '',
+          category: e.department?.name || 'General',
+          status: e.status || 'ACTIVE',
+          pinCode: '1234',
+          aadharNumber: (e as any)?.aadharNumber || '',
+          dob: e.dateOfBirth ? new Date(e.dateOfBirth).toISOString().slice(0, 10) : '',
+          doj: e.dateOfJoining ? new Date(e.dateOfJoining).toISOString().slice(0, 10) : '',
+        });
+      }
+    }
+
+    // 3. Ensure at least one Admin exists in response
+    if (!resultList.some(r => r.role === 'ADMIN')) {
+      resultList.unshift({
+        id: `admin-${businessId}`,
+        name: settings?.businessName ? `${settings.businessName} Admin` : 'Business Administrator',
+        username: 'admin',
+        role: 'ADMIN',
+        phone: settings?.phone || '',
+        email: settings?.email || '',
+        address: settings?.address || '',
+        category: 'Management/Admin',
+        status: 'ACTIVE',
+        pinCode: 'admin123',
+        applicationAccess: 'Full Access (All Modules & POS)',
+        aadharNumber: '',
+        dob: '1990-01-01',
+        doj: new Date().toISOString().slice(0, 10),
+      });
+    }
+
+    return res.json(resultList);
+  } catch (err: any) {
+    console.error('❌ Error in GET /api/users:', err);
+    return res.json([]);
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  const { businessId } = getRequestContext(req);
+  const { name, fullName, staffName, username, phone, email, password, pinCode, role, address, aadharNumber, dob, doj, dor, category } = req.body;
+  const effectiveName = (name || fullName || staffName || username || 'Staff User').trim();
+  const effectiveUsername = (username || phone || effectiveName).trim();
+  const effectivePhone = phone ? phone.trim() : '';
+  const effectivePass = password || pinCode || '1234';
+  const effectiveRole = role || 'STAFF';
+
+  try {
+    await ensureBusinessExists(businessId);
+
+    // Upsert User
+    const user = await prisma.user.upsert({
+      where: { username: effectiveUsername },
+      update: {
+        businessId,
+        password: effectivePass,
+        role: effectiveRole,
+      },
+      create: {
+        businessId,
+        username: effectiveUsername,
+        password: effectivePass,
+        role: effectiveRole,
+      }
+    });
+
+    // Upsert matching Employee record
+    const empCode = `EMP-${effectiveUsername}`;
+    const nameParts = effectiveName.split(' ');
+    const firstName = nameParts[0] || effectiveName;
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    try {
+      await (prisma as any).employee.upsert({
+        where: { employeeCode: empCode },
+        update: {
+          businessId,
+          fullName: effectiveName,
+          firstName,
+          lastName,
+          phone: effectivePhone,
+          email: email ? email.trim() : undefined,
+          address: address ? address.trim() : undefined,
+          role: effectiveRole,
+          status: 'ACTIVE',
+        },
+        create: {
+          businessId,
+          employeeCode: empCode,
+          fullName: effectiveName,
+          firstName,
+          lastName,
+          phone: effectivePhone,
+          email: email ? email.trim() : undefined,
+          address: address ? address.trim() : undefined,
+          role: effectiveRole,
+          status: 'ACTIVE',
+        }
+      });
+    } catch (empErr) {}
+
+    // If Admin, update business profile settings as well
+    if (effectiveRole === 'ADMIN') {
+      try {
+        await prisma.businessProfileSettings.upsert({
+          where: { businessId },
+          update: {
+            phone: effectivePhone || undefined,
+            email: email ? email.trim() : undefined,
+            address: address ? address.trim() : undefined,
+          },
+          create: {
+            businessId,
+            businessName: effectiveName,
+            phone: effectivePhone || '+91 98765 43210',
+            email: email ? email.trim() : 'admin@mybusiness.com',
+            address: address ? address.trim() : 'Chennai, India',
+          }
+        });
+      } catch (settingsErr) {}
+    }
+
+    console.log(`✅ Saved User [${user.id}] ${effectiveName} (${effectiveRole}) in DB`);
+    return res.status(201).json({ success: true, user: { ...user, name: effectiveName, phone: effectivePhone, email, address, aadharNumber } });
+  } catch (err: any) {
+    console.error('❌ Error saving user:', err);
+    return res.status(500).json({ error: 'Failed to save user', details: err.message });
+  }
+});
+
+app.put('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { businessId } = getRequestContext(req);
+  const { name, fullName, staffName, username, phone, email, password, pinCode, role, address, aadharNumber, dob, doj, dor, category, status } = req.body;
+
+  try {
+    await ensureBusinessExists(businessId);
+
+    // 1. Locate existing User by id or username or role
+    let existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id },
+          { username: id },
+          ...(id.startsWith('admin') || role === 'ADMIN' ? [{ businessId, role: 'ADMIN' }] : [])
+        ]
+      }
+    });
+
+    const effectiveName = (name || fullName || staffName || existingUser?.username || 'Admin').trim();
+    const effectiveUsername = (username || phone || existingUser?.username || 'admin').trim();
+    const effectivePhone = phone !== undefined ? phone.trim() : undefined;
+    const effectiveEmail = email !== undefined ? email.trim() : undefined;
+    const effectiveAddress = address !== undefined ? address.trim() : undefined;
+    const effectivePass = password || pinCode;
+    const effectiveRole = role || existingUser?.role || 'ADMIN';
+
+    if (existingUser) {
+      existingUser = await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          username: effectiveUsername,
+          ...(effectivePass ? { password: effectivePass } : {}),
+          role: effectiveRole,
+        }
+      });
+    } else {
+      existingUser = await prisma.user.create({
+        data: {
+          businessId,
+          username: effectiveUsername,
+          password: effectivePass || 'admin123',
+          role: effectiveRole,
+        }
+      });
+    }
+
+    // 2. Update or create corresponding Employee record
+    const empCode = `EMP-${effectiveUsername}`;
+    const nameParts = effectiveName.split(' ');
+    const firstName = nameParts[0] || effectiveName;
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    try {
+      await (prisma as any).employee.upsert({
+        where: { employeeCode: empCode },
+        update: {
+          businessId,
+          fullName: effectiveName,
+          firstName,
+          lastName,
+          ...(effectivePhone !== undefined ? { phone: effectivePhone } : {}),
+          ...(effectiveEmail !== undefined ? { email: effectiveEmail } : {}),
+          ...(effectiveAddress !== undefined ? { address: effectiveAddress } : {}),
+          role: effectiveRole,
+          status: status || 'ACTIVE',
+        },
+        create: {
+          businessId,
+          employeeCode: empCode,
+          fullName: effectiveName,
+          firstName,
+          lastName,
+          phone: effectivePhone || effectiveUsername,
+          email: effectiveEmail,
+          address: effectiveAddress,
+          role: effectiveRole,
+          status: status || 'ACTIVE',
+        }
+      });
+    } catch (empErr) {}
+
+    // 3. If Admin, update business profile settings too
+    if (effectiveRole === 'ADMIN') {
+      try {
+        await prisma.businessProfileSettings.upsert({
+          where: { businessId },
+          update: {
+            ...(effectivePhone !== undefined ? { phone: effectivePhone } : {}),
+            ...(effectiveEmail !== undefined ? { email: effectiveEmail } : {}),
+            ...(effectiveAddress !== undefined ? { address: effectiveAddress } : {}),
+          },
+          create: {
+            businessId,
+            businessName: effectiveName,
+            phone: effectivePhone || '+91 98765 43210',
+            email: effectiveEmail || 'admin@mybusiness.com',
+            address: effectiveAddress || 'Chennai, India',
+          }
+        });
+      } catch (settingsErr) {}
+    }
+
+    console.log(`✅ Successfully updated User [${existingUser.id}] ${effectiveName} in database`);
+    return res.json({
+      success: true,
+      user: {
+        id: existingUser.id,
+        name: effectiveName,
+        username: existingUser.username,
+        role: existingUser.role,
+        phone: effectivePhone,
+        email: effectiveEmail,
+        address: effectiveAddress,
+        aadharNumber,
+        status: status || 'ACTIVE'
+      }
+    });
+  } catch (err: any) {
+    console.error(`❌ Failed to update user [${id}]:`, err);
+    return res.status(500).json({ error: 'Failed to update user', details: err.message });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { businessId } = getRequestContext(req);
+  try {
+    const user = await prisma.user.findFirst({
+      where: { id, businessId }
+    });
+    if (user && user.role === 'ADMIN') {
+      return res.status(403).json({ error: 'Primary Admin user cannot be deleted' });
+    }
+    if (user) {
+      await prisma.user.delete({ where: { id: user.id } });
+      try {
+        await (prisma as any).employee.deleteMany({
+          where: { employeeCode: `EMP-${user.username}` }
+        });
+      } catch {}
+    }
+    return res.json({ success: true, id });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
 // 8. Customers API
 app.get('/api/customers', async (req, res) => {
   const { businessId } = getRequestContext(req);
