@@ -31,21 +31,16 @@ model Business {
   auditLogs         AuditLog[]
   profileSettings   BusinessProfileSettings?
   moduleConfig      TenantModuleConfig?
-  dashboardConfig   DashboardConfig?
-  customFields      CustomFieldDefinition[]
   invoiceTypes      InvoiceType[]
   // Feature 19 – Attendance Module
   departments       Department[]
   designations      Designation[]
   employees         Employee[]
   shifts            Shift[]
-  officeLocations   OfficeLocation[]
   attendances       Attendance[]
   leaveTypes        LeaveType[]
   leaveRequests     LeaveRequest[]
   holidays          Holiday[]
-  attendanceLogs    AttendanceLog[]
-  attendanceSettings AttendanceSettings?
 }
 
 // 2. Settings & Module Configurations
@@ -103,26 +98,6 @@ model TenantModuleConfig {
   updatedAt            DateTime @updatedAt
 }
 
-model CustomFieldDefinition {
-  id            String   @id @default(uuid())
-  businessId    String   @default("biz-default-business")
-  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  key           String
-  label         String
-  dataType      String   @default("TEXT")
-  unit          String?
-  options       String?
-  defaultValue  String?
-  isRequired    Boolean  @default(false)
-  isSearchable  Boolean  @default(false)
-  isFilterable  Boolean  @default(true)
-  showInPosGrid Boolean  @default(true)
-  showInInvoice Boolean  @default(false)
-  displayOrder  Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
 model InvoiceType {
   id                     String   @id @default(uuid())
   businessId             String   @default("biz-default-business")
@@ -141,15 +116,6 @@ model InvoiceType {
   orders                 Order[]
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
-}
-
-model DashboardConfig {
-  id             String   @id @default(uuid())
-  businessId     String   @unique @default("biz-default-business")
-  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  widgets        String   @default("[]")
-  refreshRateSec Int      @default(60)
-  updatedAt      DateTime @updatedAt
 }
 
 // 3. User Accounts
@@ -502,8 +468,6 @@ model Employee {
 
   attendances     Attendance[]
   leaveRequests   LeaveRequest[]
-  breakTimes      BreakTime[]
-  attendanceLogs  AttendanceLog[]
 }
 
 // ── TABLE 4: Shift ───────────────────────────────────────────
@@ -529,24 +493,7 @@ model Shift {
   attendances       Attendance[]
 }
 
-// ── TABLE 5: OfficeLocation ──────────────────────────────────
-model OfficeLocation {
-  id            String     @id @default(uuid())
-  businessId    String     @default("biz-default-business")
-  business      Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  officeName    String
-  address       String?
-  latitude      Float
-  longitude     Float
-  allowedRadius Float      @default(100)                     // in metres
-  isActive      Boolean    @default(true)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  attendanceLocations AttendanceLocation[]
-}
-
-// ── TABLE 6: Attendance ──────────────────────────────────────
+// ── TABLE 5: Attendance ──────────────────────────────────────
 model Attendance {
   id                 String               @id @default(uuid())
   businessId         String               @default("biz-default-business")
@@ -577,36 +524,9 @@ model Attendance {
   notes              String?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-
-  breakTimes         BreakTime[]
-  attendanceLocation AttendanceLocation?
 }
 
-// ── TABLE 7: AttendanceLocation ──────────────────────────────
-model AttendanceLocation {
-  id               String          @id @default(uuid())
-  attendanceId     String          @unique
-  attendance       Attendance      @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
-  officeLocationId String?
-  officeLocation   OfficeLocation? @relation(fields: [officeLocationId], references: [id])
-  punchInLat       Float
-  punchInLon       Float
-  punchInAccuracy  Float?
-  punchInAddress   String?
-  punchOutLat      Float?
-  punchOutLon      Float?
-  punchOutAccuracy Float?
-  punchOutAddress  String?
-  distanceFromOfficeM Float?                                // metres at punch-in
-  isWithinGeofence Boolean        @default(true)
-  ipAddress        String?
-  deviceInfo       String?
-  browser          String?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-}
-
-// ── TABLE 8: LeaveType ───────────────────────────────────────
+// ── TABLE 6: LeaveType ───────────────────────────────────────
 model LeaveType {
   id              String         @id @default(uuid())
   businessId      String         @default("biz-default-business")
@@ -627,7 +547,7 @@ model LeaveType {
   leaveRequests   LeaveRequest[]
 }
 
-// ── TABLE 9: LeaveRequest ────────────────────────────────────
+// ── TABLE 7: LeaveRequest ────────────────────────────────────
 model LeaveRequest {
   id            String      @id @default(uuid())
   businessId    String      @default("biz-default-business")
@@ -652,7 +572,7 @@ model LeaveRequest {
   updatedAt     DateTime    @updatedAt
 }
 
-// ── TABLE 10: Holiday ────────────────────────────────────────
+// ── TABLE 8: Holiday ────────────────────────────────────────
 model Holiday {
   id           String   @id @default(uuid())
   businessId   String   @default("biz-default-business")
@@ -664,71 +584,6 @@ model Holiday {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-}
-
-// ── TABLE 11: BreakTime ──────────────────────────────────────
-model BreakTime {
-  id           String     @id @default(uuid())
-  attendanceId String
-  attendance   Attendance @relation(fields: [attendanceId], references: [id], onDelete: Cascade)
-  employeeId   String
-  employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  breakType    String     @default("LUNCH")                // LUNCH, TEA, CUSTOM
-  label        String?
-  startTime    DateTime
-  endTime      DateTime?
-  durationMins Int        @default(0)
-  isActive     Boolean    @default(true)
-  notes        String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-}
-
-// ── TABLE 12: AttendanceLog ──────────────────────────────────
-// Immutable audit trail – every punch-in, punch-out, manual edit, and override recorded here
-model AttendanceLog {
-  id           String   @id @default(uuid())
-  businessId   String   @default("biz-default-business")
-  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  employeeId   String
-  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  eventType    String                                       // PUNCH_IN, PUNCH_OUT, BREAK_START, BREAK_END, MANUAL_EDIT, OVERRIDE, LEAVE_APPLIED, LEAVE_APPROVED, LEAVE_REJECTED
-  eventTime    DateTime @default(now())
-  latitude     Float?
-  longitude    Float?
-  accuracy     Float?
-  ipAddress    String?
-  deviceInfo   String?
-  browser      String?
-  performedBy  String?                                      // userId or "SYSTEM"
-  previousValue String?                                     // JSON snapshot before change
-  newValue      String?                                     // JSON snapshot after change
-  notes        String?
-  createdAt    DateTime @default(now())
-}
-
-// ── TABLE 13: AttendanceSettings ────────────────────────────
-model AttendanceSettings {
-  id                      String   @id @default(uuid())
-  businessId              String   @unique @default("biz-default-business")
-  business                Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  enableGeofence          Boolean  @default(true)
-  defaultGeofenceRadiusM  Int      @default(100)
-  allowSelfieOnPunch      Boolean  @default(false)
-  allowWfhPunch           Boolean  @default(true)
-  enableOvertime          Boolean  @default(true)
-  overtimeMultiplier      Float    @default(1.5)
-  enableAutoAbsentMark    Boolean  @default(true)
-  autoAbsentAfterMins     Int      @default(60)
-  enableMissedPunchAlert  Boolean  @default(true)
-  missedPunchAlertMins    Int      @default(30)
-  enableLateAlert         Boolean  @default(true)
-  enableAbsentAlert       Boolean  @default(true)
-  enableLeaveNotification Boolean  @default(true)
-  weekOffDays             String   @default("0,6")          // CSV: 0=Sun, 6=Sat
-  workingHoursPerDay      Float    @default(8.0)
-  gracePeriodMins         Int      @default(15)
-  updatedAt               DateTime @updatedAt
 }
 
 
