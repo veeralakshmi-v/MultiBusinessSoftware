@@ -8,14 +8,18 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const dbUrl = process.env.DATABASE_URL || 'postgresql://postgres.yqciwlvmoboszvxzodrl:Kousalya%402252@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require&connect_timeout=15&pool_timeout=20&connection_limit=10';
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: dbUrl,
-    },
-  },
-});
+const dbUrl = process.env.DATABASE_URL;
+const prisma = new PrismaClient(
+  dbUrl
+    ? {
+        datasources: {
+          db: {
+            url: dbUrl,
+          },
+        },
+      }
+    : undefined
+);
 
 // Auto-reconnect helper for Desktop Application socket resilience
 async function checkAndReconnectDb() {
@@ -121,7 +125,7 @@ async function ensureBusinessExists(businessId: string, businessName = 'My Busin
       update: {},
       create: { id: businessId, name: businessName, type: businessType }
     });
-  } catch (e) {}
+  } catch (e) { }
 }
 
 // 1. Health & Desktop DB Status API
@@ -206,7 +210,7 @@ app.post('/api/auth/login', async (req, res) => {
         },
       });
     }
-  } catch (err) {}
+  } catch (err) { }
 
   return res.status(401).json({ error: 'Invalid username, phone number, or password' });
 });
@@ -925,14 +929,14 @@ const deleteUserHandler = async (req: express.Request, res: express.Response) =>
       await prisma.user.deleteMany({
         where: { OR: [{ id }, { username: id }] }
       });
-    } catch {}
+    } catch { }
 
     // Delete employee if exists
     try {
       await prisma.employee.deleteMany({
         where: { OR: [{ id }, { employeeCode: `EMP-${id}` }, { phone: id }] }
       });
-    } catch {}
+    } catch { }
 
     console.log(`🗑️ Deleted User/Employee [${id}] from DB`);
     return res.json({ success: true, id });
@@ -1197,7 +1201,7 @@ app.put('/api/menu-items/:id', async (req, res) => {
             }
           });
           targetCatId = createdCat.id;
-        } catch (e) {}
+        } catch (e) { }
       }
     }
 
@@ -1212,7 +1216,7 @@ app.put('/api/menu-items/:id', async (req, res) => {
       if (existing.attributes) {
         existingAttrs = typeof existing.attributes === 'string' ? JSON.parse(existing.attributes) : existing.attributes;
       }
-    } catch (e) {}
+    } catch (e) { }
 
     const newAttrs = {
       ...existingAttrs,
@@ -1450,7 +1454,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
 app.get('/api/dashboard', async (req, res) => {
   const { businessId } = getRequestContext(req);
   const dateParam = (req.query.date as string) || new Date().toISOString().slice(0, 10);
-  
+
   try {
     await ensureBusinessExists(businessId);
     let allOrders = await prisma.order.findMany({
@@ -1475,7 +1479,7 @@ app.get('/api/dashboard', async (req, res) => {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      
+
       const dayOrders = allOrders.filter(o => o.createdAt.toISOString().slice(0, 10) === iso && o.status === 'COMPLETED');
       const rev = dayOrders.reduce((sum, o) => sum + o.total, 0);
       trendDays.push({ date: iso, count: dayOrders.length, revenue: rev });
@@ -1760,7 +1764,7 @@ app.get('/api/users', async (req, res) => {
   const { businessId } = getRequestContext(req);
   try {
     await ensureBusinessExists(businessId);
-    
+
     // Fetch users, employees, and profile settings for this business
     const [dbUsers, dbEmployees, settings] = await Promise.all([
       prisma.user.findMany({ where: { businessId } }),
@@ -1775,10 +1779,10 @@ app.get('/api/users', async (req, res) => {
     for (const u of dbUsers) {
       const uKey = u.username.toLowerCase().trim();
       seenUsernames.add(uKey);
-      
-      const matchingEmp = dbEmployees.find((e: any) => 
-        e.employeeCode === `EMP-${u.username}` || 
-        e.phone === u.username || 
+
+      const matchingEmp = dbEmployees.find((e: any) =>
+        e.employeeCode === `EMP-${u.username}` ||
+        e.phone === u.username ||
         (u.role === 'ADMIN' && e.role === 'ADMIN')
       );
 
@@ -1914,7 +1918,7 @@ app.post('/api/users', async (req, res) => {
           status: 'ACTIVE',
         }
       });
-    } catch (empErr) {}
+    } catch (empErr) { }
 
     // If Admin, update business profile settings as well
     if (effectiveRole === 'ADMIN') {
@@ -1934,7 +1938,7 @@ app.post('/api/users', async (req, res) => {
             address: address ? address.trim() : 'Chennai, India',
           }
         });
-      } catch (settingsErr) {}
+      } catch (settingsErr) { }
     }
 
     console.log(`✅ Saved User [${user.id}] ${effectiveName} (${effectiveRole}) in DB`);
@@ -2025,7 +2029,7 @@ app.put('/api/users/:id', async (req, res) => {
           status: status || 'ACTIVE',
         }
       });
-    } catch (empErr) {}
+    } catch (empErr) { }
 
     // 3. If Admin, update business profile settings too
     if (effectiveRole === 'ADMIN') {
@@ -2045,7 +2049,7 @@ app.put('/api/users/:id', async (req, res) => {
             address: effectiveAddress || 'Chennai, India',
           }
         });
-      } catch (settingsErr) {}
+      } catch (settingsErr) { }
     }
 
     console.log(`✅ Successfully updated User [${existingUser.id}] ${effectiveName} in database`);
@@ -2085,7 +2089,7 @@ app.delete('/api/users/:id', async (req, res) => {
         await (prisma as any).employee.deleteMany({
           where: { employeeCode: `EMP-${user.username}` }
         });
-      } catch {}
+      } catch { }
     }
     return res.json({ success: true, id });
   } catch (err: any) {
@@ -3185,7 +3189,7 @@ app.patch('/api/leaves/:id', async (req, res) => {
             notes: `Approved Leave: ${updated.leaveType?.name || 'Leave'}`,
           }
         });
-      } catch (attErr) {}
+      } catch (attErr) { }
     }
 
     return res.json({
@@ -3254,7 +3258,7 @@ app.get('/api/attendance', async (req, res) => {
       }));
       return res.json(formatted);
     }
-  } catch (err) {}
+  } catch (err) { }
 
   return res.json(memAttendance);
 });
