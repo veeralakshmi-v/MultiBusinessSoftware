@@ -1,0 +1,328 @@
+@import "tailwindcss";
+
+:root {
+  --theme-font: 'Outfit', sans-serif;
+  --theme-font-size-base: 15px;
+  --theme-font-weight: 400;
+  --theme-bg-primary: #F8FAFC;
+  --theme-bg-surface: #FFFFFF;
+  --theme-bg-card: #F8FAFC;
+  --theme-btn-secondary: #2563EB;
+  --theme-btn-secondary-rgb: 37, 99, 235;
+  --theme-btn-secondary-hover: #1D4ED8;
+  --theme-btn-text: #FFFFFF;
+  --theme-btn-outline-bg: #FFFFFF;
+  --theme-btn-outline-text: #0F172A;
+  --theme-input-bg: #FFFFFF;
+  --theme-text-primary: #0F172A;
+  --theme-text-accent: #2563EB;
+  --theme-text-muted: #64748B;
+  --theme-border-tint: #E2E8F0;
+  --theme-glow: 0 4px 20px rgba(37, 99, 235, 0.18);
+  --theme-primary: #2563EB;
+  --theme-primary-hover: #1D4ED8;
+  --theme-primary-bg: rgba(37, 99, 235, 0.12);
+  --theme-primary-border: rgba(37, 99, 235, 0.25);
+}
+
+*, ::before, ::after {
+  border-color: var(--theme-border-tint, #E2E8F0);
+}
+
+/* Global Typography Font Family Override */
+html {
+  font-size: var(--theme-font-size-base, 15px);
+}
+
+body,
+button,
+input,
+select,
+textarea,
+h1, h2, h3, h4, h5, h6,
+p, span, div, a, label, table, th, td,
+.font-sans, .font-serif {
+  font-family: var(--theme-font, 'Outfit', sans-serif) !important;
+}
+
+
+/* Dynamic Theme Utilities */
+.bg-theme-primary {
+  background-color: var(--theme-bg-primary) !important;
+}
+
+.bg-theme-surface {
+  background-color: var(--theme-bg-surface) !important;
+}
+
+.btn-theme-secondary {
+  background-color: var(--theme-btn-secondary) !important;
+  color: var(--theme-btn-text) !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-theme-secondary:hover {
+  background-color: var(--theme-btn-secondary-hover) !important;
+  box-shadow: var(--theme-glow) !important;
+}
+
+.text-theme-primary {
+  color: var(--theme-text-primary) !important;
+}
+
+.text-theme-secondary,
+.text-theme-accent {
+  color: var(--theme-text-accent) !important;
+}
+
+.border-theme-secondary {
+  border-color: var(--theme-border-tint) !important;
+}
+
+.shadow-theme-glow {
+  box-shadow: var(--theme-glow) !important;
+}
+
+/* Dynamic Fallbacks for Sapphire Blue Classes Across Application */
+.bg-\[\#2563EB\],
+button.bg-\[\#2563EB\],
+a.bg-\[\#2563EB\] {
+  background-color: var(--theme-btn-secondary) !important;
+  color: var(--theme-btn-text) !important;
+}
+
+.hover\:bg-\[\#1D4ED8\]:hover,
+button.hover\:bg-\[\#1D4ED8\]:hover,
+a.hover\:bg-\[\#1D4ED8\]:hover {
+  background-color: var(--theme-btn-secondary-hover) !important;
+}
+
+.text-\[\#2563EB\],
+span.text-\[\#2563EB\],
+svg.text-\[\#2563EB\],
+p.text-\[\#2563EB\],
+h3.text-\[\#2563EB\],
+h1.text-\[\#2563EB\],
+label.text-\[\#2563EB\],
+strong.text-\[\#2563EB\] {
+  color: var(--theme-text-accent) !important;
+}
+
+.border-\[\#2563EB\] {
+  border-color: var(--theme-btn-secondary) !important;
+}
+
+.shadow-blue-500\/25,
+.shadow-blue-500\/20,
+.shadow-blue-500\/30,
+.shadow-blue-500\/35 {
+  box-shadow: var(--theme-glow) !important;
+}
+
+/* Custom Luxury Dark Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border-tint);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-btn-secondary);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-border-tint) var(--theme-bg-primary);
+}
+
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glassmorphism & Accent Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.80);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.80);
+}
+
+.glass-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.08), 0 8px 10px -6px rgba(37, 99, 235, 0.04);
+}
+
+.glass-card-static {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #F3E5AB 0%, #C5A059 50%, #9B783E 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-glow {
+  box-shadow: 0 0 20px rgba(197, 160, 89, 0.15);
+}
+
+/* ── Thermal & Standard Invoice Print Styles ────────────────────── */
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Prevent browser UI headers/footers and background artifacts */
+  body * {
+    visibility: hidden;
+  }
+
+  .print-invoice-modal,
+  .print-invoice-modal * {
+    visibility: visible;
+  }
+
+  .print-invoice-modal {
+    position: static !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .no-print,
+  .print-hide {
+    display: none !important;
+  }
+
+  /* 58mm Thermal Receipt Printable Specifications (48mm printable area) */
+  .thermal-receipt-58mm {
+    width: 48mm !important;
+    max-width: 48mm !important;
+    min-width: 48mm !important;
+    margin: 0 auto !important;
+    padding: 1mm 1.5mm !important;
+    box-sizing: border-box !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    page-break-inside: auto !important;
+  }
+
+  /* 80mm Thermal Receipt Printable Specifications (72mm printable area) */
+  .thermal-receipt-80mm {
+    width: 72mm !important;
+    max-width: 72mm !important;
+    min-width: 72mm !important;
+    margin: 0 auto !important;
+    padding: 2mm 2.5mm !important;
+    box-sizing: border-box !important;
+    font-size: 10.5px !important;
+    line-height: 1.25 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    page-break-inside: auto !important;
+  }
+
+  /* Thermal Tables: Fixed proportional layout prevents long names from expanding table */
+  .thermal-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    box-sizing: border-box !important;
+  }
+
+  .thermal-table th,
+  .thermal-table td {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* QR Code scaling */
+  .thermal-qr-58mm {
+    width: 60px !important;
+    height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+  }
+
+  .thermal-qr-80mm {
+    width: 84px !important;
+    height: 84px !important;
+    max-width: 84px !important;
+    max-height: 84px !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+  }
+}
+
+
+/* ── Marquee Animation ─────────────────────── */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  white-space: nowrap;
+  animation: marquee 22s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+

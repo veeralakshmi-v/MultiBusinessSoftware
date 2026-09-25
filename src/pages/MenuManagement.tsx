@@ -1,0 +1,1107 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { 
+  Package, Plus, Search, Edit2, Trash2, Tag, Check, X, 
+  AlertCircle, DollarSign, Layers, Filter, CheckCircle2, ShieldAlert, Sparkles,
+  Boxes, Barcode, ArrowUpDown, ChevronRight, FolderPlus, HelpCircle, Globe,
+  Image as ImageIcon, Upload
+} from 'lucide-react';
+import { cn, compressImageFile } from '../lib/utils';
+
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  itemCount?: number;
+}
+
+interface MenuItem {
+  id: string;
+  name: string;
+  categoryId: string;
+  categoryName?: string;
+  price: number;
+  costPrice?: number;
+  mrp?: number;
+  gst: number;
+  hsnCode?: string;
+  sku?: string;
+  barcode?: string;
+  unit?: string;
+  currentStock?: number;
+  minStock?: number;
+  description?: string;
+  isAvailable: boolean;
+  showInWebsite?: boolean;
+  imageUrl?: string;
+  createdAt?: string;
+}
+
+export default function MenuManagement() {
+  const { businessProfile } = useAuth();
+  const currency = businessProfile.currencySymbol || '₹';
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [items, setItems] = useState<MenuItem[]>([]);
+
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [stockFilter, setStockFilter] = useState<'ALL' | 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK'>('ALL');
+
+  // Category Modal State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [catName, setCatName] = useState<string>('');
+  const [catDesc, setCatDesc] = useState<string>('');
+
+  // Item Modal State
+  const [isItemModalOpen, setIsItemModalOpen] = useState<boolean>(false);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+
+  // Form Fields for Item
+  const [itemName, setItemName] = useState('');
+  const [itemCatId, setItemCatId] = useState('');
+  const [itemPrice, setItemPrice] = useState<number | ''>('');
+  const [itemCostPrice, setItemCostPrice] = useState<number | ''>('');
+  const [itemMrp, setItemMrp] = useState<number | ''>('');
+  const [itemGst, setItemGst] = useState<number>(businessProfile.defaultTaxRate || 5);
+  const [itemHsn, setItemHsn] = useState('');
+  const [itemSku, setItemSku] = useState('');
+  const [itemBarcode, setItemBarcode] = useState('');
+  const [itemUnit, setItemUnit] = useState('Pcs');
+  const [itemStock, setItemStock] = useState<number | ''>(50);
+  const [itemMinStock, setItemMinStock] = useState<number | ''>(10);
+  const [itemDesc, setItemDesc] = useState('');
+  const [itemAvailable, setItemAvailable] = useState<boolean>(true);
+  const [itemShowInWebsite, setItemShowInWebsite] = useState<boolean>(false);
+  const [itemImageUrl, setItemImageUrl] = useState<string>('');
+
+  // Refresh from server and sync
+  const refreshCatalog = () => {
+    fetch('/api/categories')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCategories(data);
+          localStorage.setItem('universal_categories', JSON.stringify(data));
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/menu-items')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setItems(data);
+          localStorage.setItem('universal_items', JSON.stringify(data));
+        }
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    refreshCatalog();
+
+    const handleStorage = (e: Event) => {
+      const se = e as StorageEvent;
+      if (!se.key || se.key.includes('universal_') || se.key.includes('item') || se.key.includes('cat')) {
+        refreshCatalog();
+      }
+    };
+
+    const handleCatsUpdated = (e: any) => {
+      if (e?.detail && Array.isArray(e.detail)) {
+        setCategories(e.detail);
+      } else {
+        refreshCatalog();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('categories_updated', handleCatsUpdated);
+    window.addEventListener('inventory_updated', refreshCatalog);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('categories_updated', handleCatsUpdated);
+      window.removeEventListener('inventory_updated', refreshCatalog);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      localStorage.setItem('universal_categories', JSON.stringify(categories));
+    }
+  }, [categories]);
+
+  useEffect(() => {
+    if (items.length > 0) {
+      localStorage.setItem('universal_items', JSON.stringify(items));
+    }
+  }, [items]);
+
+  // Compute item count per category
+  const categoriesWithCounts = useMemo(() => {
+    return categories.map(cat => {
+      const count = items.filter(it => it.categoryId === cat.id).length;
+      return { ...cat, itemCount: count };
+    });
+  }, [categories, items]);
+
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    const searchTerms = q ? q.split(/\s+/) : [];
+
+    return items.filter(item => {
+      const matchCat = selectedCategory === 'ALL' || item.categoryId === selectedCategory;
+      if (!matchCat) return false;
+
+      const stock = item.currentStock ?? 0;
+      const min = item.minStock ?? 10;
+      let matchStock = true;
+      if (stockFilter === 'IN_STOCK') matchStock = stock > min;
+      else if (stockFilter === 'LOW_STOCK') matchStock = stock > 0 && stock <= min;
+      else if (stockFilter === 'OUT_OF_STOCK') matchStock = stock <= 0;
+
+      if (!matchStock) return false;
+      if (searchTerms.length === 0) return true;
+
+      const searchableText = [
+        item.name,
+        item.categoryName,
+        item.description,
+        item.sku,
+        item.barcode,
+        item.hsnCode,
+        item.unit
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      return searchTerms.every(term => searchableText.includes(term));
+    });
+  }, [items, selectedCategory, searchQuery, stockFilter]);
+
+  // Category Modal Handlers
+  const handleOpenCategoryModal = (cat?: Category) => {
+    if (cat) {
+      setEditingCategory(cat);
+      setCatName(cat.name);
+      setCatDesc(cat.description || '');
+    } else {
+      setEditingCategory(null);
+      setCatName('');
+      setCatDesc('');
+    }
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!catName.trim()) return;
+
+    if (editingCategory) {
+      const updatedCat = { ...editingCategory, name: catName.trim(), description: catDesc.trim() };
+      const updatedCats = categories.map(c => c.id === editingCategory.id ? updatedCat : c);
+      setCategories(updatedCats);
+      localStorage.setItem('universal_categories', JSON.stringify(updatedCats));
+      try {
+        await fetch(`/api/categories/${editingCategory.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedCat),
+        });
+      } catch (e) {}
+    } else {
+      let createdCat: Category = {
+        id: `cat-${Date.now()}`,
+        name: catName.trim(),
+        description: catDesc.trim(),
+      };
+      try {
+        const res = await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: catName.trim(), description: catDesc.trim() }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.id) {
+            createdCat = { ...createdCat, id: data.id, name: data.name || createdCat.name };
+          }
+        }
+      } catch (e) {}
+
+      const updatedCats = [...categories, createdCat];
+      setCategories(updatedCats);
+      localStorage.setItem('universal_categories', JSON.stringify(updatedCats));
+    }
+
+    window.dispatchEvent(new Event('storage'));
+    setIsCategoryModalOpen(false);
+  };
+
+  const handleDeleteCategory = async (catId: string) => {
+    const hasItems = items.some(it => it.categoryId === catId);
+    if (hasItems) {
+      if (!confirm('This category contains products. Deleting it will reassign items to General. Continue?')) {
+        return;
+      }
+      setItems(prev => prev.map(it => it.categoryId === catId ? { ...it, categoryId: categories[0]?.id || 'cat-1' } : it));
+    } else {
+      if (!confirm('Are you sure you want to delete this category?')) return;
+    }
+
+    const updatedCats = categories.filter(c => c.id !== catId);
+    setCategories(updatedCats);
+    localStorage.setItem('universal_categories', JSON.stringify(updatedCats));
+    window.dispatchEvent(new Event('storage'));
+    if (selectedCategory === catId) setSelectedCategory('ALL');
+
+    try {
+      fetch(`/api/categories/${catId}`, { method: 'DELETE' });
+    } catch (e) {}
+  };
+
+  // Item Modal Handlers
+  const handleOpenItemModal = (item?: MenuItem) => {
+    if (item) {
+      setEditingItem(item);
+      setItemName(item.name);
+      setItemCatId(item.categoryId || categories[0]?.id || 'cat-1');
+      setItemPrice(item.price);
+      setItemCostPrice(item.costPrice ?? '');
+      setItemMrp(item.mrp ?? '');
+      setItemGst(item.gst ?? businessProfile.defaultTaxRate);
+      setItemHsn(item.hsnCode || '');
+      setItemSku(item.sku || '');
+      setItemBarcode(item.barcode || '');
+      setItemUnit(item.unit || 'Pcs');
+      setItemStock(item.currentStock ?? 50);
+      setItemMinStock(item.minStock ?? 10);
+      setItemDesc(item.description || '');
+      setItemAvailable(item.isAvailable !== false);
+      setItemShowInWebsite(item.showInWebsite === true);
+      setItemImageUrl(item.imageUrl || '');
+    } else {
+      setEditingItem(null);
+      setItemName('');
+      setItemCatId(selectedCategory !== 'ALL' ? selectedCategory : (categories[0]?.id || 'cat-1'));
+      setItemPrice('');
+      setItemCostPrice('');
+      setItemMrp('');
+      setItemGst(businessProfile.defaultTaxRate || 5);
+      setItemHsn('');
+      setItemSku(`SKU-${Math.floor(1000 + Math.random() * 9000)}`);
+      setItemBarcode('');
+      setItemUnit('Pcs');
+      setItemStock(50);
+      setItemMinStock(10);
+      setItemDesc('');
+      setItemAvailable(true);
+      setItemShowInWebsite(false);
+      setItemImageUrl('');
+    }
+    setIsItemModalOpen(true);
+  };
+
+  const handleSaveItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!itemName.trim() || itemPrice === '') return;
+
+    const catObj = categories.find(c => c.id === itemCatId);
+
+    const itemData: MenuItem = {
+      id: editingItem ? editingItem.id : `item-${Date.now()}`,
+      name: itemName.trim(),
+      categoryId: itemCatId || categories[0]?.id || 'cat-1',
+      categoryName: catObj?.name || 'General',
+      price: Number(itemPrice),
+      costPrice: itemCostPrice !== '' ? Number(itemCostPrice) : undefined,
+      mrp: itemMrp !== '' ? Number(itemMrp) : undefined,
+      gst: Number(itemGst),
+      hsnCode: itemHsn.trim() || undefined,
+      sku: itemSku.trim() || undefined,
+      barcode: itemBarcode.trim() || undefined,
+      unit: itemUnit.trim() || 'Pcs',
+      currentStock: itemStock !== '' ? Number(itemStock) : 0,
+      minStock: itemMinStock !== '' ? Number(itemMinStock) : 10,
+      description: itemDesc.trim() || undefined,
+      isAvailable: itemAvailable,
+      showInWebsite: itemShowInWebsite,
+      imageUrl: itemImageUrl || undefined,
+    };
+
+    if (editingItem) {
+      const updatedItems = items.map(i => i.id === editingItem.id ? itemData : i);
+      setItems(updatedItems);
+      localStorage.setItem('universal_items', JSON.stringify(updatedItems));
+      try {
+        await fetch(`/api/menu-items/${editingItem.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(itemData),
+        });
+      } catch (e) {}
+    } else {
+      let createdItem = itemData;
+      try {
+        const res = await fetch('/api/menu-items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(itemData),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.id) {
+            createdItem = { ...createdItem, id: data.id };
+          }
+        }
+      } catch (e) {}
+
+      const updatedItems = [createdItem, ...items];
+      setItems(updatedItems);
+      localStorage.setItem('universal_items', JSON.stringify(updatedItems));
+    }
+
+    window.dispatchEvent(new Event('storage'));
+    setIsItemModalOpen(false);
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    const updated = items.filter(i => i.id !== itemId);
+    setItems(updated);
+    localStorage.setItem('universal_items', JSON.stringify(updated));
+    try {
+      fetch(`/api/menu-items/${itemId}`, { method: 'DELETE' });
+    } catch (e) {}
+  };
+
+  const handleToggleAvailability = (item: MenuItem) => {
+    const updated = { ...item, isAvailable: !item.isAvailable };
+    setItems(prev => prev.map(i => i.id === item.id ? updated : i));
+    try {
+      fetch(`/api/menu-items/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+    } catch (e) {}
+  };
+
+  const handleToggleWebsite = (item: MenuItem) => {
+    const updated = { ...item, showInWebsite: !item.showInWebsite };
+    const updatedItems = items.map(i => i.id === item.id ? updated : i);
+    setItems(updatedItems);
+    localStorage.setItem('universal_items', JSON.stringify(updatedItems));
+    try {
+      fetch(`/api/menu-items/${item.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      });
+    } catch (e) {}
+  };
+
+  const totalLowStock = items.filter(it => (it.currentStock ?? 0) <= (it.minStock ?? 10)).length;
+
+  return (
+    <div className="space-y-6 pb-12">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/80 backdrop-blur-md border border-white/60 p-5 rounded-3xl shadow-lg shadow-gray-200/50">
+        <div>
+          <div className="flex items-center gap-2">
+            <Layers className="w-6 h-6 text-[#2563EB]" />
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Categories & Product Catalog</h1>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">
+            Create categories and add products, prices, tax rates, and inventory stock for your business.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => handleOpenCategoryModal()}
+            className="px-3.5 py-2 bg-white text-gray-900 border border-gray-100 hover:bg-blue-50 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+          >
+            <FolderPlus className="w-4 h-4 text-[#2563EB]" />
+            <span>Add Category</span>
+          </button>
+          <button
+            onClick={() => handleOpenItemModal()}
+            className="px-4 py-2 font-bold rounded-xl text-xs transition-all flex items-center gap-2 shadow-md cursor-pointer btn-theme-secondary"
+            style={{
+              backgroundColor: 'var(--theme-btn-secondary)',
+              color: 'var(--theme-btn-text)',
+              boxShadow: 'var(--theme-glow)'
+            }}
+          >
+            <Plus className="w-4 h-4 text-current" />
+            <span>Add New Item</span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* Metrics Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-white border border-gray-200 p-3.5 rounded-xl flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-[#C5A059]/10 border border-[#2563EB]/20 flex items-center justify-center text-[#2563EB]">
+            <Layers className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-[11px] text-gray-400 font-medium">Categories</div>
+            <div className="text-base font-bold text-white">{categories.length}</div>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 p-3.5 rounded-xl flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <Package className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-[11px] text-gray-400 font-medium">Total Items</div>
+            <div className="text-base font-bold text-white">{items.length}</div>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 p-3.5 rounded-xl flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-400">
+            <CheckCircle2 className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-[11px] text-gray-400 font-medium">Active for Sale</div>
+            <div className="text-base font-bold text-white">{items.filter(i => i.isAvailable).length}</div>
+          </div>
+        </div>
+
+        <div className="bg-white border border-gray-200 p-3.5 rounded-xl flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <Boxes className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-[11px] text-gray-400 font-medium">Low Stock Alerts</div>
+            <div className="text-base font-bold text-amber-400">{totalLowStock} items</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Category Selection Tabs / Chips */}
+      <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Select Category to View Items</span>
+          <span className="text-[11px] text-[#2563EB] font-medium">{filteredItems.length} products listed</span>
+
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button
+            onClick={() => setSelectedCategory('ALL')}
+            className={cn(
+              "px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 flex-shrink-0 border",
+              selectedCategory === 'ALL'
+                ? "shadow-md border-transparent btn-theme-secondary"
+                : "bg-white text-gray-900 border-gray-100 hover:bg-gray-50"
+            )}
+            style={selectedCategory === 'ALL' ? {
+              backgroundColor: 'var(--theme-btn-secondary)',
+              color: 'var(--theme-btn-text)'
+            } : {}}
+          >
+            <span>All Items</span>
+            <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", selectedCategory === 'ALL' ? "bg-black/20 text-current" : "bg-white/10 text-gray-900")}>
+              {items.length}
+            </span>
+          </button>
+
+          {categoriesWithCounts.map(cat => {
+            const isSelected = selectedCategory === cat.id;
+            return (
+              <div key={cat.id} className="relative group flex-shrink-0">
+                <button
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={cn(
+                    "px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 border pr-8",
+                    isSelected
+                      ? "shadow-md border-transparent btn-theme-secondary"
+                      : "bg-white text-gray-900 border-gray-100 hover:bg-gray-50"
+                  )}
+                  style={isSelected ? {
+                    backgroundColor: 'var(--theme-btn-secondary)',
+                    color: 'var(--theme-btn-text)'
+                  } : {}}
+                >
+                  <span>{cat.name}</span>
+                  <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-mono", isSelected ? "bg-black/20 text-current" : "bg-white/10 text-gray-900")}>
+                    {cat.itemCount}
+                  </span>
+                </button>
+
+                {/* Quick Edit/Delete buttons on hover */}
+                <div className="absolute right-1 top-1 hidden group-hover:flex items-center gap-1 bg-white p-0.5 rounded-md border border-gray-200 shadow-lg z-10">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleOpenCategoryModal(cat); }}
+                    className="p-1 hover:text-[#2563EB] text-gray-400"
+                    title="Edit Category"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleDeleteCategory(cat.id); }}
+                    className="p-1 hover:text-red-400 text-gray-400"
+                    title="Delete Category"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Items Filtering & Search Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search items by Name, Barcode, or SKU..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#2563EB] transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={stockFilter}
+            onChange={(e) => setStockFilter(e.target.value as any)}
+            className="bg-white border border-gray-200 text-gray-600 text-xs px-3 py-2.5 rounded-xl outline-none focus:border-[#2563EB]"
+          >
+            <option value="ALL">All Stock Levels</option>
+            <option value="IN_STOCK">In Stock</option>
+            <option value="LOW_STOCK">Low Stock (≤ threshold)</option>
+            <option value="OUT_OF_STOCK">Out of Stock</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Items Catalog Table / Grid */}
+      <div className="bg-white/90 border border-gray-100 rounded-2xl overflow-hidden shadow-md shadow-gray-100/50 shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-gray-50 text-gray-400 font-bold uppercase text-[10px] border-b border-gray-200 tracking-wider">
+              <tr>
+                <th className="p-3.5">Product / Item</th>
+                <th className="p-3.5">Category</th>
+                <th className="p-3.5 text-right">Selling Price</th>
+                <th className="p-3.5 text-right">Cost Price</th>
+                <th className="p-3.5 text-center">Tax / GST</th>
+                <th className="p-3.5 text-center">Unit</th>
+                <th className="p-3.5 text-center">Stock Level</th>
+                <th className="p-3.5 text-center">POS Status</th>
+                <th className="p-3.5 text-center">Website</th>
+                <th className="p-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#1F1F21]">
+              {filteredItems.map(item => {
+                const catObj = categories.find(c => c.id === item.categoryId);
+                const stock = item.currentStock ?? 0;
+                const min = item.minStock ?? 10;
+                const isLow = stock <= min && stock > 0;
+                const isOut = stock <= 0;
+
+                return (
+                  <tr key={item.id} className="hover:bg-gray-50 transition-colors group">
+                    <td className="p-3.5">
+                      <div className="flex items-center gap-3">
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} className="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0 bg-gray-50" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 flex-shrink-0">
+                            <Package className="w-4 h-4" />
+                          </div>
+                        )}
+                        <div>
+                          <div className="font-bold text-gray-900 text-sm">{item.name}</div>
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5">
+                            {item.sku && <span>SKU: {item.sku}</span>}
+                            {item.barcode && <span>• Barcode: {item.barcode}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="p-3.5">
+                      <span className="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-gray-600 text-[11px] font-medium">
+                        {catObj?.name || 'General'}
+                      </span>
+                    </td>
+
+                    <td className="p-3.5 text-right font-mono font-bold text-white text-sm">
+                      {currency}{item.price.toFixed(2)}
+                    </td>
+
+                    <td className="p-3.5 text-right font-mono text-gray-400">
+                      {item.costPrice !== undefined ? `${currency}${item.costPrice.toFixed(2)}` : '—'}
+                    </td>
+
+                    <td className="p-3.5 text-center">
+                      <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#2563EB] border border-[#2563EB]/20 font-mono text-[10px] font-bold">
+                        {item.gst}% GST
+                      </span>
+                    </td>
+
+                    <td className="p-3.5 text-center text-gray-400 font-medium">
+                      {item.unit || 'Pcs'}
+                    </td>
+
+                    <td className="p-3.5 text-center">
+                      <span className={cn(
+                        "px-2.5 py-1 rounded-full text-[10px] font-bold font-mono inline-flex items-center gap-1",
+                        isOut ? "bg-red-500/10 text-red-400 border border-red-500/30" :
+                        isLow ? "bg-amber-500/10 text-amber-400 border border-amber-500/30" :
+                        "bg-green-500/10 text-green-400 border border-green-500/30"
+                      )}>
+                        {stock} {item.unit || 'Pcs'}
+                      </span>
+                    </td>
+
+                    <td className="p-3.5 text-center">
+                      <button
+                        onClick={() => handleToggleAvailability(item)}
+                        className={cn(
+                          "px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all",
+                          item.isAvailable
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"
+                            : "bg-gray-500/10 text-gray-400 border border-gray-500/30 hover:bg-gray-500/20"
+                        )}
+                      >
+                        {item.isAvailable ? 'Active' : 'Disabled'}
+                      </button>
+                    </td>
+
+                    <td className="p-3.5 text-center">
+                      <button
+                        onClick={() => handleToggleWebsite(item)}
+                        title={item.showInWebsite ? "Visible on Website - Click to Hide" : "Hidden from Website - Click to Show"}
+                        className={cn(
+                          "px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border inline-flex items-center gap-1",
+                          item.showInWebsite
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                            : "bg-gray-500/10 text-gray-400 border-gray-500/30 hover:bg-gray-500/20"
+                        )}
+                      >
+                        <Globe className="w-3 h-3" />
+                        <span>{item.showInWebsite ? 'Visible' : 'Hidden'}</span>
+                      </button>
+                    </td>
+
+                    <td className="p-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleOpenItemModal(item)}
+                          className="p-1.5 bg-gray-50 hover:bg-gray-100 text-gray-600 hover:text-[#2563EB] border border-gray-200 rounded-lg transition-all"
+                          title="Edit Product"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="p-1.5 bg-gray-50 hover:bg-red-500/10 text-gray-400 hover:text-red-400 border border-gray-200 rounded-lg transition-all"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {filteredItems.length === 0 && (
+            <div className="py-16 text-center text-gray-500 space-y-3">
+              <Package className="w-10 h-10 mx-auto text-gray-600 opacity-60" />
+              <p className="text-sm font-semibold text-gray-400">No items match your criteria</p>
+              <p className="text-xs text-gray-600 max-w-sm mx-auto">
+                Click "Add New Item" to create your first product under this category.
+              </p>
+              <button
+                onClick={() => handleOpenItemModal()}
+                className="px-4 py-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8] font-bold text-xs rounded-xl shadow-md"
+              >
+                + Add Item Now
+              </button>
+
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Category Add/Edit Modal */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+              <div className="flex items-center gap-2">
+                <FolderPlus className="w-5 h-5 text-[#2563EB]" />
+                <h3 className="font-bold text-gray-900 text-base">
+                  {editingCategory ? 'Edit Category' : 'Create New Category'}
+                </h3>
+              </div>
+              <button onClick={() => setIsCategoryModalOpen(false)} className="text-gray-600 hover:text-gray-900">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategory} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Beverages, Groceries, Apparel, Electronics"
+                  value={catName}
+                  onChange={(e) => setCatName(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Description (Optional)</label>
+                <textarea
+                  rows={3}
+                  placeholder="Brief description for category..."
+                  value={catDesc}
+                  onChange={(e) => setCatDesc(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="px-4 py-2 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-xl text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 font-bold rounded-xl text-xs cursor-pointer btn-theme-secondary"
+                  style={{
+                    backgroundColor: 'var(--theme-btn-secondary)',
+                    color: 'var(--theme-btn-text)',
+                    boxShadow: 'var(--theme-glow)'
+                  }}
+                >
+                  {editingCategory ? 'Update Category' : 'Save Category'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Item Add/Edit Modal */}
+      {isItemModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in">
+          <div className="bg-white border border-gray-200 rounded-2xl w-full max-w-2xl p-6 shadow-2xl space-y-5 my-8">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+              <div className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-[#2563EB]" />
+                <h3 className="font-bold text-gray-900 text-base">
+                  {editingItem ? 'Edit Product Item' : 'Add Item under Category'}
+                </h3>
+              </div>
+              <button onClick={() => setIsItemModalOpen(false)} className="text-gray-600 hover:text-gray-900">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveItem} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Item Name */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Product / Item Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Masala Chai, USB Cable, Paracetamol 500mg, Cotton T-Shirt"
+                    value={itemName}
+                    onChange={(e) => setItemName(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+
+                {/* Category Selector */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Category *</label>
+                  <select
+                    value={itemCatId}
+                    onChange={(e) => setItemCatId(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                  >
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Unit */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Unit of Measurement</label>
+                  <select
+                    value={itemUnit}
+                    onChange={(e) => setItemUnit(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                  >
+                    <option value="Pcs">Pcs (Pieces)</option>
+                    <option value="Unit">Unit</option>
+                    <option value="Kg">Kg (Kilograms)</option>
+                    <option value="g">g (Grams)</option>
+                    <option value="Ltr">Ltr (Liters)</option>
+                    <option value="ml">ml (Milliliters)</option>
+                    <option value="Box">Box</option>
+                    <option value="Packet">Packet</option>
+                    <option value="Plate">Plate / Portion</option>
+                    <option value="Cup">Cup</option>
+                    <option value="Bottle">Bottle</option>
+                    <option value="Strip">Strip</option>
+                    <option value="Service">Service</option>
+                    <option value="Hour">Hour</option>
+                  </select>
+                </div>
+
+                {/* Selling Price */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Selling Price ({currency}) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    required
+                    placeholder="0.00"
+                    value={itemPrice}
+                    onChange={(e) => setItemPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+
+                {/* Cost Price */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Cost / Purchase Price ({currency})</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    value={itemCostPrice}
+                    onChange={(e) => setItemCostPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+
+                {/* Tax / GST Rate */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">GST / Tax Rate (%)</label>
+                  <select
+                    value={itemGst}
+                    onChange={(e) => setItemGst(Number(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                  >
+                    <option value={0}>0% (Tax Exempt / Nil)</option>
+                    <option value={5}>5% (Standard Essential)</option>
+                    <option value={12}>12% (Standard FMCG/Pharma)</option>
+                    <option value={18}>18% (Standard Services/Goods)</option>
+                    <option value={28}>28% (Luxury / High Rate)</option>
+                  </select>
+                </div>
+
+                {/* Opening Stock */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Initial Stock Quantity</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={itemStock}
+                    onChange={(e) => setItemStock(e.target.value === '' ? '' : Number(e.target.value))}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+
+                {/* SKU Code */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">SKU / Item Code</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. SKU-1001"
+                    value={itemSku}
+                    onChange={(e) => setItemSku(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+
+                {/* Barcode */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Barcode / EAN (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Scan or enter barcode"
+                    value={itemBarcode}
+                    onChange={(e) => setItemBarcode(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 font-mono outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Notes / Description (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="Additional item details or specifications"
+                    value={itemDesc}
+                    onChange={(e) => setItemDesc(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
+                  />
+                </div>
+
+                {/* Product Image Upload Field */}
+                <div className="sm:col-span-2 p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                  <label className="block text-xs font-semibold text-gray-600">Product Image (Optional)</label>
+                  <div className="flex items-center gap-3.5">
+                    {itemImageUrl ? (
+                      <div className="relative group w-16 h-16 rounded-xl border border-gray-200 overflow-hidden bg-white shadow-xs flex-shrink-0">
+                        <img src={itemImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setItemImageUrl('')}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[9px] font-bold gap-0.5"
+                          title="Remove photo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 bg-white flex flex-col items-center justify-center text-gray-400 flex-shrink-0">
+                        <ImageIcon className="w-5 h-5 stroke-[1.5]" />
+                        <span className="text-[8px] mt-0.5 font-semibold">No Image</span>
+                      </div>
+                    )}
+
+                    <div className="flex-1 space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 hover:border-[#2563EB] text-[#2563EB] text-xs font-bold shadow-xs hover:bg-blue-50 transition-all">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{itemImageUrl ? 'Change Photo' : 'Upload Product Photo'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  const dataUrl = await compressImageFile(file);
+                                  setItemImageUrl(dataUrl);
+                                } catch (err: any) {
+                                  alert(err?.message || 'Failed to upload image');
+                                }
+                              }
+                            }}
+                          />
+                        </label>
+
+                        {itemImageUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setItemImageUrl('')}
+                            className="px-2.5 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold border border-red-200 transition-all inline-flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Remove</span>
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-gray-500">
+                        Upload PNG, JPG, or WEBP. Automatically optimized for fast loading across Billing & Website.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Active Status & Website Toggles */}
+                <div className="sm:col-span-2 space-y-2.5 pt-1">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={itemAvailable}
+                      onChange={(e) => setItemAvailable(e.target.checked)}
+                      className="rounded border-gray-200 text-[#2563EB] focus:ring-0 bg-gray-50 w-4 h-4"
+                    />
+                    <span className="text-xs text-gray-700 font-semibold">Available for active billing in POS</span>
+                  </label>
+
+                  {/* Website Visibility Checkbox */}
+                  <div className="p-3 bg-white border border-gray-200 rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                        <Globe className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-gray-900">Show in Website / Online Catalog</div>
+                        <div className="text-[10px] text-gray-500">If checked, this product will be visible to customers on your public website</div>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={itemShowInWebsite}
+                        onChange={(e) => setItemShowInWebsite(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setIsItemModalOpen(false)}
+                  className="px-4 py-2 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-xl text-xs font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 font-bold rounded-xl text-xs shadow-lg cursor-pointer btn-theme-secondary"
+                  style={{
+                    backgroundColor: 'var(--theme-btn-secondary)',
+                    color: 'var(--theme-btn-text)',
+                    boxShadow: 'var(--theme-glow)'
+                  }}
+                >
+                  {editingItem ? 'Update Product' : 'Save Product'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
