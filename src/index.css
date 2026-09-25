@@ -240,6 +240,39 @@ strong.text-\[\#2563EB\] {
     display: none !important;
   }
 
+  /* ── A4 Tax Invoice Printable Specifications ────────────────────── */
+  .a4-tax-invoice {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    margin: 0 auto !important;
+    padding: 8mm 10mm !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    page-break-after: avoid !important;
+    page-break-inside: auto !important;
+  }
+
+  .a4-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  .a4-table tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  .a4-table th,
+  .a4-table td {
+    padding: 6px 8px !important;
+    border: 1px solid #94a3b8 !important;
+  }
+
   /* 58mm Thermal Receipt Printable Specifications (48mm printable area) */
   .thermal-receipt-58mm {
     width: 48mm !important;
