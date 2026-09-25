@@ -1,83 +1,10 @@
 import { Department, DepartmentStatus, DepartmentFilterOptions } from '../../types/department';
 
-export const INITIAL_DEPARTMENTS: Department[] = [
-  {
-    id: 'dept-001',
-    businessId: 'biz-apex-group',
-    name: 'Billing & Accounts',
-    code: 'DEPT-BILL',
-    managerName: 'Anitha Venkatesh',
-    description: 'POS billing counters, cash drawer management, payment reconciliation, and invoice dispatch.',
-    status: 'ACTIVE',
-    employeeCount: 3,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-  {
-    id: 'dept-002',
-    businessId: 'biz-apex-group',
-    name: 'Kitchen & Culinary',
-    code: 'DEPT-KITCHEN',
-    managerName: 'Chef Rajesh Kumar',
-    description: 'Food preparation, kitchen order ticket (KOT) workflows, chef stations, and hygiene compliance.',
-    status: 'ACTIVE',
-    employeeCount: 4,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-  {
-    id: 'dept-003',
-    businessId: 'biz-apex-group',
-    name: 'Management & Operations',
-    code: 'DEPT-MGMT',
-    managerName: 'Anitha Venkatesh',
-    description: 'General store management, shift scheduling, statutory compliance, and executive operations.',
-    status: 'ACTIVE',
-    employeeCount: 2,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-  {
-    id: 'dept-004',
-    businessId: 'biz-apex-group',
-    name: 'Pharmacy & Healthcare',
-    code: 'DEPT-PHARMA',
-    managerName: 'Dr. Suresh Sharma',
-    description: 'Prescription verification, scheduled medicine dispensation, OTC retail, and clinical inventory.',
-    status: 'ACTIVE',
-    employeeCount: 2,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-  {
-    id: 'dept-005',
-    businessId: 'biz-apex-group',
-    name: 'Customer Service & Floor',
-    code: 'DEPT-SERVICE',
-    managerName: 'Priya Selvam',
-    description: 'Dining floor hosting, customer assistance, takeaway parcel dispatch, and feedback collection.',
-    status: 'ACTIVE',
-    employeeCount: 3,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-  {
-    id: 'dept-006',
-    businessId: 'biz-apex-group',
-    name: 'Warehouse & Storage',
-    code: 'DEPT-INVENTORY',
-    managerName: 'Rajesh Kumar',
-    description: 'Central storage depot, inter-branch stock transfers, reorder tracking, and batch control.',
-    status: 'ACTIVE',
-    employeeCount: 2,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-];
+export const INITIAL_DEPARTMENTS: Department[] = [];
 
 export class DepartmentEngine {
   private static STORAGE_KEY = 'multi_biz_departments_db';
-  private static memoryDepartments: Department[] = [...INITIAL_DEPARTMENTS];
+  private static memoryDepartments: Department[] = [];
 
   /**
    * Retrieves filtered and searched departments

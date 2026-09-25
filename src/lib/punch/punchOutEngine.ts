@@ -2,66 +2,11 @@ import { PunchOutRecord } from '../../types/punch';
 import { PunchInEngine } from './punchInEngine';
 import { GeoLocationPayload } from '../../types/attendance';
 
-export const INITIAL_PUNCH_OUT_LOGS: PunchOutRecord[] = [
-  {
-    id: 'punchout-001',
-    punchInId: 'punch-001',
-    businessId: 'biz-apex-group',
-    employeeId: 'emp-001',
-    employeeName: 'Kowsalya Sundaram',
-    department: 'Billing & Cash Desk',
-    shiftName: 'Morning Early Shift (08:00 - 16:00)',
-    punchInTime: '08:05:14 AM',
-    punchOutTime: '05:05:14 PM',
-    workedHours: 8.5,
-    workedHoursFormatted: '8h 30m',
-    overtime: 0.5,
-    overtimeFormatted: '0h 30m',
-    breakHours: 0.5,
-    breakHoursFormatted: '30m',
-    currentLocation: {
-      latitude: 13.0828,
-      longitude: 80.2709,
-      accuracy: 6.5,
-      officeName: 'Apex Central Flagship HQ',
-      address: 'No. 45, Mount Road, Anna Salai, Chennai, TN',
-    },
-    punchOutDate: '2026-08-26',
-    status: 'COMPLETED',
-    createdAt: '2026-08-26T17:05:14.000Z',
-  },
-  {
-    id: 'punchout-002',
-    punchInId: 'punch-002',
-    businessId: 'biz-apex-group',
-    employeeId: 'emp-002',
-    employeeName: 'Chef Rajesh Kumar',
-    department: 'Kitchen & Culinary',
-    shiftName: 'Morning Early Shift (08:00 - 16:00)',
-    punchInTime: '07:55:30 AM',
-    punchOutTime: '04:25:30 PM',
-    workedHours: 8.0,
-    workedHoursFormatted: '8h 00m',
-    overtime: 0.0,
-    overtimeFormatted: '0h 00m',
-    breakHours: 0.5,
-    breakHoursFormatted: '30m',
-    currentLocation: {
-      latitude: 13.0826,
-      longitude: 80.2706,
-      accuracy: 10.0,
-      officeName: 'Apex Central Flagship HQ',
-      address: 'No. 45, Mount Road, Anna Salai, Chennai, TN',
-    },
-    punchOutDate: '2026-08-26',
-    status: 'COMPLETED',
-    createdAt: '2026-08-26T16:25:30.000Z',
-  }
-];
+export const INITIAL_PUNCH_OUT_LOGS: PunchOutRecord[] = [];
 
 export class PunchOutEngine {
   private static STORAGE_KEY = 'multi_biz_punch_out_records_db';
-  private static memoryPunchOuts: PunchOutRecord[] = [...INITIAL_PUNCH_OUT_LOGS];
+  private static memoryPunchOuts: PunchOutRecord[] = [];
 
   /**
    * Helper: Calculates Worked Hours and Overtime based on Punch In, Punch Out, and Break Duration

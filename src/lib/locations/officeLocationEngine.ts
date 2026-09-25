@@ -5,72 +5,11 @@ import {
 } from '../../types/officeLocation';
 import { GeoLocationEngine } from '../attendance/geoLocationEngine';
 
-export const INITIAL_OFFICE_LOCATIONS: OfficeLocation[] = [
-  {
-    id: 'loc-001',
-    businessId: 'biz-apex-group',
-    name: 'Apex Central Flagship HQ',
-    latitude: 13.0827,
-    longitude: 80.2707,
-    allowedRadiusMeters: 200,
-    branchId: 'branch-001',
-    branchName: 'Apex Central Flagship (Anna Salai)',
-    status: 'ACTIVE',
-    address: 'No. 45, Mount Road, Anna Salai, Chennai, TN 600002',
-    assignedStaffCount: 8,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-  {
-    id: 'loc-002',
-    businessId: 'biz-apex-group',
-    name: 'Apex Express Retail & POS Hub',
-    latitude: 13.0418,
-    longitude: 80.2341,
-    allowedRadiusMeters: 150,
-    branchId: 'branch-002',
-    branchName: 'Apex Express Station (T. Nagar)',
-    status: 'ACTIVE',
-    address: '72, Usman Road, T. Nagar, Chennai, TN 600017',
-    assignedStaffCount: 5,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-  {
-    id: 'loc-003',
-    businessId: 'biz-apex-group',
-    name: 'Apex OMR Tech Lounge & Café',
-    latitude: 12.9716,
-    longitude: 80.2458,
-    allowedRadiusMeters: 300,
-    branchId: 'branch-003',
-    branchName: 'Apex OMR Tech Park Lounge (OMR)',
-    status: 'ACTIVE',
-    address: 'Block B, Sholinganallur IT Expressway, Chennai, TN 600119',
-    assignedStaffCount: 4,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-  {
-    id: 'loc-004',
-    businessId: 'biz-apex-group',
-    name: 'Apex Regional Distribution Yard',
-    latitude: 13.1143,
-    longitude: 80.1548,
-    allowedRadiusMeters: 500,
-    branchId: 'branch-001',
-    branchName: 'Apex Central Flagship (Anna Salai)',
-    status: 'ACTIVE',
-    address: 'Ambattur Industrial Estate, Chennai, TN 600058',
-    assignedStaffCount: 3,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2026-08-26T10:00:00.000Z',
-  },
-];
+export const INITIAL_OFFICE_LOCATIONS: OfficeLocation[] = [];
 
 export class OfficeLocationEngine {
   private static STORAGE_KEY = 'multi_biz_office_locations_db';
-  private static memoryLocations: OfficeLocation[] = [...INITIAL_OFFICE_LOCATIONS];
+  private static memoryLocations: OfficeLocation[] = [];
 
   /**
    * Retrieves filtered and searched office locations

@@ -1,84 +1,10 @@
 import { BreakRecord, BreakType, BreakStatus, DailyWorkBreakSummary } from '../../types/break';
 
-export const INITIAL_BREAK_LOGS: BreakRecord[] = [
-  {
-    id: 'brk-001',
-    businessId: 'biz-apex-group',
-    employeeId: 'emp-001',
-    employeeName: 'Kowsalya Sundaram',
-    department: 'Billing & Cash Desk',
-    breakType: 'TEA',
-    breakTitle: 'Morning Tea Break',
-    breakStart: '11:00:00 AM',
-    breakEnd: '11:15:00 AM',
-    durationMinutes: 15,
-    durationHours: 0.25,
-    durationFormatted: '15m',
-    status: 'COMPLETED',
-    date: '2026-08-26',
-    createdAt: '2026-08-26T11:00:00.000Z',
-    updatedAt: '2026-08-26T11:15:00.000Z',
-  },
-  {
-    id: 'brk-002',
-    businessId: 'biz-apex-group',
-    employeeId: 'emp-001',
-    employeeName: 'Kowsalya Sundaram',
-    department: 'Billing & Cash Desk',
-    breakType: 'LUNCH',
-    breakTitle: 'Lunch Break',
-    breakStart: '01:15:00 PM',
-    breakEnd: '01:50:00 PM',
-    durationMinutes: 35,
-    durationHours: 0.58,
-    durationFormatted: '35m',
-    status: 'COMPLETED',
-    date: '2026-08-26',
-    createdAt: '2026-08-26T13:15:00.000Z',
-    updatedAt: '2026-08-26T13:50:00.000Z',
-  },
-  {
-    id: 'brk-003',
-    businessId: 'biz-apex-group',
-    employeeId: 'emp-002',
-    employeeName: 'Chef Rajesh Kumar',
-    department: 'Kitchen & Culinary',
-    breakType: 'LUNCH',
-    breakTitle: 'Lunch Break',
-    breakStart: '01:00:00 PM',
-    breakEnd: '01:45:00 PM',
-    durationMinutes: 45,
-    durationHours: 0.75,
-    durationFormatted: '45m',
-    status: 'COMPLETED',
-    date: '2026-08-26',
-    createdAt: '2026-08-26T13:00:00.000Z',
-    updatedAt: '2026-08-26T13:45:00.000Z',
-  },
-  {
-    id: 'brk-004',
-    businessId: 'biz-apex-group',
-    employeeId: 'emp-002',
-    employeeName: 'Chef Rajesh Kumar',
-    department: 'Kitchen & Culinary',
-    breakType: 'CUSTOM',
-    breakTitle: 'Custom Rest & Hydration Break',
-    customReason: 'Kitchen heat cool-off and hydration',
-    breakStart: '03:30:00 PM',
-    breakEnd: '03:45:00 PM',
-    durationMinutes: 15,
-    durationHours: 0.25,
-    durationFormatted: '15m',
-    status: 'COMPLETED',
-    date: '2026-08-26',
-    createdAt: '2026-08-26T15:30:00.000Z',
-    updatedAt: '2026-08-26T15:45:00.000Z',
-  },
-];
+export const INITIAL_BREAK_LOGS: BreakRecord[] = [];
 
 export class BreakEngine {
   private static STORAGE_KEY = 'multi_biz_break_records_db';
-  private static memoryBreaks: BreakRecord[] = [...INITIAL_BREAK_LOGS];
+  private static memoryBreaks: BreakRecord[] = [];
 
   /**
    * Starts a new Break session (Lunch Break, Tea Break, or Custom Break)

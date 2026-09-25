@@ -4,81 +4,11 @@ import { ShiftEngine } from '../shifts/shiftEngine';
 import { OfficeLocationEngine } from '../locations/officeLocationEngine';
 import { GeoLocationPayload } from '../../types/attendance';
 
-export const INITIAL_PUNCH_IN_LOGS: PunchInRecord[] = [
-  {
-    id: 'punch-001',
-    businessId: 'biz-apex-group',
-    employeeId: 'emp-001',
-    employeeName: 'Kowsalya Sundaram',
-    department: 'Billing & Cash Desk',
-    shiftName: 'Morning Early Shift (08:00 - 16:00)',
-    punchInTime: '08:05:14 AM',
-    punchInDate: '2026-08-26',
-    latitude: 13.0828,
-    longitude: 80.2709,
-    accuracy: 8.5,
-    device: 'Desktop PC (Windows 11)',
-    ipAddress: '192.168.1.104',
-    browser: 'Google Chrome 128.0',
-    operatingSystem: 'Windows 11 Enterprise (64-bit)',
-    officeName: 'Apex Central Flagship HQ',
-    distanceFromOfficeMeters: 24.2,
-    status: 'PRESENT',
-    isGeofenceVerified: true,
-    remarks: 'Punched in on-time via cashier desktop terminal.',
-    createdAt: '2026-08-26T08:05:14.000Z',
-  },
-  {
-    id: 'punch-002',
-    businessId: 'biz-apex-group',
-    employeeId: 'emp-002',
-    employeeName: 'Chef Rajesh Kumar',
-    department: 'Kitchen & Culinary',
-    shiftName: 'Morning Early Shift (08:00 - 16:00)',
-    punchInTime: '07:55:30 AM',
-    punchInDate: '2026-08-26',
-    latitude: 13.0826,
-    longitude: 80.2706,
-    accuracy: 12.0,
-    device: 'Mobile Phone (Apple iPhone 15 Pro)',
-    ipAddress: '192.168.1.112',
-    browser: 'Safari Mobile 18.0',
-    operatingSystem: 'iOS 18.1',
-    officeName: 'Apex Central Flagship HQ',
-    distanceFromOfficeMeters: 15.8,
-    status: 'PRESENT',
-    isGeofenceVerified: true,
-    remarks: 'Early punch at kitchen prep station.',
-    createdAt: '2026-08-26T07:55:30.000Z',
-  },
-  {
-    id: 'punch-003',
-    businessId: 'biz-apex-group',
-    employeeId: 'emp-005',
-    employeeName: 'Priya Selvam',
-    department: 'Customer Service & Floor',
-    shiftName: 'General Shift (09:30 - 18:30)',
-    punchInTime: '09:28:45 AM',
-    punchInDate: '2026-08-26',
-    latitude: 13.0419,
-    longitude: 80.2340,
-    accuracy: 6.2,
-    device: 'Mobile Phone (Samsung Galaxy S24 Ultra)',
-    ipAddress: '192.168.2.45',
-    browser: 'Chrome Mobile 128.0',
-    operatingSystem: 'Android 15',
-    officeName: 'Apex Express Retail & POS Hub',
-    distanceFromOfficeMeters: 18.1,
-    status: 'PRESENT',
-    isGeofenceVerified: true,
-    remarks: 'Verified mobile check-in inside dining lobby.',
-    createdAt: '2026-08-26T09:28:45.000Z',
-  }
-];
+export const INITIAL_PUNCH_IN_LOGS: PunchInRecord[] = [];
 
 export class PunchInEngine {
   private static STORAGE_KEY = 'multi_biz_punch_in_records_db';
-  private static memoryPunches: PunchInRecord[] = [...INITIAL_PUNCH_IN_LOGS];
+  private static memoryPunches: PunchInRecord[] = [];
 
   /**
    * Records a new Punch In with Geofence verification and saves all 7 required fields:
