@@ -71,55 +71,56 @@ export default function Inventory() {
 
 
 
+function mapApiItem(d: any): any {
+  const attrs = typeof d.attributes === 'string' ? JSON.parse(d.attributes || '{}') : (d.attributes || {});
+  return {
+    id: d.id,
+    name: d.name,
+    categoryId: d.categoryId || d.category?.id || '',
+    categoryName: d.category?.name || attrs.categoryName || 'General',
+    currentStock: (typeof d.currentStock === 'number' && !isNaN(d.currentStock)) ? d.currentStock : (attrs.currentStock ?? 50),
+    minStockLevel: (typeof d.minStockLevel === 'number' && !isNaN(d.minStockLevel)) ? d.minStockLevel : (attrs.minStockLevel ?? attrs.minStock ?? 10),
+    minStock: (typeof d.minStock === 'number' && !isNaN(d.minStock)) ? d.minStock : (attrs.minStock ?? attrs.minStockLevel ?? 10),
+    pricePerUnit: (typeof d.price === 'number' && !isNaN(d.price)) ? d.price : (d.pricePerUnit || 0),
+    price: (typeof d.price === 'number' && !isNaN(d.price)) ? d.price : (d.pricePerUnit || 0),
+    costPrice: (typeof d.costPrice === 'number' && !isNaN(d.costPrice)) ? d.costPrice : (attrs.costPrice || 0),
+    unit: d.unit || attrs.unit || 'Pcs',
+    sku: d.sku || attrs.sku || '',
+    barcode: d.barcode || attrs.barcode || '',
+    hsnCode: d.hsnCode || '',
+    gst: (typeof d.gst === 'number' && !isNaN(d.gst)) ? d.gst : 5,
+    isAvailable: d.isAvailable !== false,
+    showInWebsite: d.showInWebsite === true || attrs.showInWebsite === true,
+    description: d.description || attrs.description || '',
+    imageUrl: d.imageUrl || '',
+    supplierId: d.supplierId || attrs.supplierId || '',
+    supplierName: d.supplierName || attrs.supplierName || '',
+  };
+}
+
+function getLocalItems(): any[] {
+  try {
+    const saved = localStorage.getItem('universal_items');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch { }
+  return [];
+}
+
 function getCombinedMaterials(): Promise<any[]> {
-  return new Promise(resolve => {
-    fetch('/api/menu-items')
-      .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          const list = data.map((d: any) => {
-            const attrs = typeof d.attributes === 'string' ? JSON.parse(d.attributes || '{}') : (d.attributes || {});
-            return {
-              id: d.id,
-              name: d.name,
-              categoryId: d.categoryId || d.category?.id || '',
-              categoryName: d.category?.name || attrs.categoryName || 'General',
-              currentStock: (typeof d.currentStock === 'number' && !isNaN(d.currentStock)) ? d.currentStock : (attrs.currentStock ?? 50),
-              minStockLevel: (typeof d.minStockLevel === 'number' && !isNaN(d.minStockLevel)) ? d.minStockLevel : (attrs.minStockLevel ?? attrs.minStock ?? 10),
-              minStock: (typeof d.minStock === 'number' && !isNaN(d.minStock)) ? d.minStock : (attrs.minStock ?? attrs.minStockLevel ?? 10),
-              pricePerUnit: (typeof d.price === 'number' && !isNaN(d.price)) ? d.price : (d.pricePerUnit || 0),
-              price: (typeof d.price === 'number' && !isNaN(d.price)) ? d.price : (d.pricePerUnit || 0),
-              costPrice: (typeof d.costPrice === 'number' && !isNaN(d.costPrice)) ? d.costPrice : (attrs.costPrice || 0),
-              unit: d.unit || attrs.unit || 'Pcs',
-              sku: d.sku || attrs.sku || '',
-              barcode: d.barcode || attrs.barcode || '',
-              hsnCode: d.hsnCode || '',
-              gst: (typeof d.gst === 'number' && !isNaN(d.gst)) ? d.gst : 5,
-              isAvailable: d.isAvailable !== false,
-              showInWebsite: d.showInWebsite === true || attrs.showInWebsite === true,
-              description: d.description || attrs.description || '',
-              imageUrl: d.imageUrl || '',
-              supplierId: d.supplierId || attrs.supplierId || '',
-              supplierName: d.supplierName || attrs.supplierName || '',
-            };
-          });
-          localStorage.setItem('universal_items', JSON.stringify(list));
-          resolve(list);
-          return;
-        }
-        resolve([]);
-      })
-      .catch(() => {
-        try {
-          const saved = localStorage.getItem('universal_items');
-          if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) return resolve(parsed);
-          }
-        } catch { }
-        resolve([]);
-      });
-  });
+  return fetch('/api/menu-items')
+    .then(r => r.json())
+    .then(data => {
+      if (Array.isArray(data)) {
+        const list = data.map(mapApiItem);
+        localStorage.setItem('universal_items', JSON.stringify(list));
+        return list;
+      }
+      return getLocalItems();
+    })
+    .catch(() => getLocalItems());
 }
 
 export async function fetchUnifiedCategories(): Promise<any[]> {
@@ -358,7 +359,9 @@ function DashboardTab({ businessType, stockNoun }: { businessType: string; stock
 }
 
 function MaterialsTab({ stockNoun }: { stockNoun: string }) {
-  const [materials, setMaterials] = useState<any[]>([]);
+  // Load from localStorage immediately so list shows without delay
+  const [materials, setMaterials] = useState<any[]>(() => getLocalItems());
+  const [isLoading, setIsLoading] = useState(true);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [searchQ, setSearchQ] = useState('');
@@ -371,7 +374,11 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
   });
 
   const fetchMats = useCallback(() => {
-    getCombinedMaterials().then(setMaterials);
+    setIsLoading(true);
+    getCombinedMaterials().then(data => {
+      setMaterials(data);
+      setIsLoading(false);
+    }).catch(() => setIsLoading(false));
     try {
       const savedSups = localStorage.getItem('universal_suppliers');
       if (savedSups) {
