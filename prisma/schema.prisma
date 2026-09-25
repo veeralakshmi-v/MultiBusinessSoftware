@@ -17,7 +17,6 @@ model Business {
   createdAt         DateTime                 @default(now())
   updatedAt         DateTime                 @updatedAt
   
-  branches          Branch[]
   users             User[]
   categories        Category[]
   menuItems         MenuItem[]
@@ -47,25 +46,6 @@ model Business {
   holidays          Holiday[]
   attendanceLogs    AttendanceLog[]
   attendanceSettings AttendanceSettings?
-}
-
-model Branch {
-  id         String   @id @default(uuid())
-  businessId String   @default("biz-default-business")
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  code       String
-  name       String
-  address    String?
-  phone      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  users      User[]
-  // Feature 19 – Attendance Module
-  departments     Department[]
-  employees       Employee[]
-  shifts          Shift[]
-  officeLocations OfficeLocation[]
-  holidays        Holiday[]
 }
 
 // 2. Settings & Module Configurations
@@ -177,8 +157,6 @@ model User {
   id         String   @id @default(uuid())
   businessId String   @default("biz-default-business")
   business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  branchId   String?
-  branch     Branch?  @relation(fields: [branchId], references: [id])
   username   String   @unique
   password   String
   role       String   @default("CASHIER") // ADMIN, MANAGER, CASHIER, KITCHEN_STAFF
@@ -457,8 +435,6 @@ model Department {
   id          String      @id @default(uuid())
   businessId  String      @default("biz-default-business")
   business    Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  branchId    String?
-  branch      Branch?     @relation(fields: [branchId], references: [id])
   name        String
   code        String?
   description String?
@@ -493,8 +469,6 @@ model Employee {
   id              String          @id @default(uuid())
   businessId      String          @default("biz-default-business")
   business        Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  branchId        String?
-  branch          Branch?         @relation(fields: [branchId], references: [id])
   departmentId    String?
   department      Department?     @relation(fields: [departmentId], references: [id])
   designationId   String?
@@ -537,8 +511,6 @@ model Shift {
   id                String     @id @default(uuid())
   businessId        String     @default("biz-default-business")
   business          Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  branchId          String?
-  branch            Branch?    @relation(fields: [branchId], references: [id])
   name              String
   code              String?
   startTime         String                                    // "08:00"
@@ -562,8 +534,6 @@ model OfficeLocation {
   id            String     @id @default(uuid())
   businessId    String     @default("biz-default-business")
   business      Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  branchId      String?
-  branch        Branch?    @relation(fields: [branchId], references: [id])
   officeName    String
   address       String?
   latitude      Float
@@ -687,8 +657,6 @@ model Holiday {
   id           String   @id @default(uuid())
   businessId   String   @default("biz-default-business")
   business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  branchId     String?
-  branch       Branch?  @relation(fields: [branchId], references: [id])
   holidayName  String
   date         String                                       // "YYYY-MM-DD"
   description  String?
