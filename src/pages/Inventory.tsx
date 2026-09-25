@@ -397,8 +397,13 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
 
     const handleStorageChange = (e: Event) => {
       const se = e as StorageEvent;
-      if (!se.key || se.key.includes('universal_') || se.key.includes('item') || se.key.includes('cat')) {
+      // Only re-fetch on explicit add/edit events, not generic storage changes
+      // (delete is handled optimistically - don't re-fetch on storage events to avoid items reappearing)
+      if (se.key === 'inventory_updated' || se.key === 'universal_categories') {
         fetchMats();
+        fetchUnifiedCategories().then(setCategories);
+      } else if (!se.key) {
+        // Custom event (no key) - only sync categories not items
         fetchUnifiedCategories().then(setCategories);
       }
     };
@@ -645,15 +650,33 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
   const handleDeleteItem = async (itemId: string, name: string) => {
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
+    // Optimistically remove from UI immediately
+    setMaterials(prev => prev.filter(m => m.id !== itemId));
+
+    // Also remove from localStorage so it doesn't reappear on re-fetch
+    try {
+      const saved = localStorage.getItem('universal_items');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const updated = parsed.filter((m: any) => m.id !== itemId);
+          localStorage.setItem('universal_items', JSON.stringify(updated));
+        }
+      }
+    } catch { }
+
     try {
       const res = await fetch(`/api/menu-items/${itemId}`, { method: 'DELETE' });
-      if (res.ok) {
-        setMaterials(prev => prev.filter(m => m.id !== itemId));
-        window.dispatchEvent(new Event('storage'));
+      if (!res.ok) {
+        // Revert on failure - re-fetch from server
+        fetchMats();
+        alert(`Failed to delete "${name}". Please try again.`);
       }
-    } catch (err) { }
-
-    fetchMats();
+      // On success: do NOT call fetchMats() - we already updated state & localStorage
+    } catch (err) {
+      // Network error - revert
+      fetchMats();
+    }
   };
 
   // Filter products by Search, Category Chip, and Stock Level Filter
@@ -1354,8 +1377,8 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
         <table className="w-full text-left text-sm text-gray-900 min-w-[1050px]">
           <thead className="bg-gray-50 text-gray-900 font-bold uppercase text-xs border-b border-gray-100">
             <tr>
-              <th className="px-4 py-3 whitespace-nowrap">Product / Item</th>
-              <th className="px-4 py-3 whitespace-nowrap">Category</th>
+              <th className="px-4 py-3 whitespace-nowrap min-w-[220px]">Product / Item</th>
+              <th className="px-4 py-3 whitespace-nowrap min-w-[100px]">Category</th>
               <th className="px-4 py-3 text-right whitespace-nowrap">Selling Price</th>
               <th className="px-4 py-3 text-right whitespace-nowrap">Cost Price</th>
               <th className="px-4 py-3 text-center whitespace-nowrap">Tax / GST</th>
@@ -1370,8 +1393,8 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
             {filtered.length === 0 ? (
               <tr><td colSpan={10} className="px-5 py-8 text-center text-gray-500 text-xs">No products found matching your search or filters. Click "Add {stockNoun.split(' ')[0]}" above to create one.</td></tr>
             ) : filtered.map(m => (
-              <tr key={m.id} className="hover:bg-gray-50/60 transition-colors">
-                <td className="px-4 py-3 font-bold text-gray-900">
+              <tr key={m.id} className="hover:bg-gray-50/60 transition-colors align-middle">
+                <td className="px-4 py-3 align-middle">
                   <div className="flex items-center gap-3">
                     {m.imageUrl ? (
                       <img src={m.imageUrl} alt={m.name} className="w-9 h-9 rounded-lg object-cover border border-gray-200 flex-shrink-0 bg-gray-50" />
@@ -1380,27 +1403,27 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                         <Package className="w-4 h-4" />
                       </div>
                     )}
-                    <div>
-                      <div className="text-sm font-bold text-gray-900">{m.name}</div>
-                      <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5">
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-gray-900 max-w-[200px] truncate" title={m.name}>{m.name}</div>
+                      <div className="flex items-center gap-2 text-[10px] text-gray-500 font-mono mt-0.5 whitespace-nowrap">
                         {m.sku && <span>SKU: {m.sku}</span>}
-                        {m.barcode && <span>• Barcode: {m.barcode}</span>}
+                        {m.barcode && <span>• {m.barcode}</span>}
                         {m.hsnCode && <span>• HSN: {m.hsnCode}</span>}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-gray-900 opacity-80 text-xs">{m.categoryName || 'General'}</td>
-                <td className="px-4 py-3 text-right text-[#2563EB] font-mono font-bold">₹{(m.pricePerUnit || m.price || 0).toFixed(2)}</td>
-                <td className="px-4 py-3 text-right font-mono text-gray-900 opacity-70">{m.costPrice ? `₹${Number(m.costPrice).toFixed(2)}` : '—'}</td>
-                <td className="px-4 py-3 text-center">
-                  <span className="px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-blue-100 font-mono text-[10px] font-bold">
+                <td className="px-4 py-3 text-gray-900 opacity-80 text-xs align-middle whitespace-nowrap">{m.categoryName || 'General'}</td>
+                <td className="px-4 py-3 text-right text-[#2563EB] font-mono font-bold align-middle whitespace-nowrap">₹{(m.pricePerUnit || m.price || 0).toFixed(2)}</td>
+                <td className="px-4 py-3 text-right font-mono text-gray-900 opacity-70 align-middle whitespace-nowrap">{m.costPrice ? `₹${Number(m.costPrice).toFixed(2)}` : '—'}</td>
+                <td className="px-4 py-3 text-center align-middle">
+                  <span className="px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] border border-blue-100 font-mono text-[10px] font-bold whitespace-nowrap">
                     {typeof m.gst === 'number' ? m.gst : 0}% GST
                   </span>
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 text-center align-middle">
                   <span className={cn(
-                    "px-2.5 py-1 rounded-full text-[10px] font-bold font-mono inline-flex items-center gap-1 border",
+                    "px-2.5 py-1 rounded-full text-[10px] font-bold font-mono inline-flex items-center gap-1 border whitespace-nowrap",
                     (m.currentStock ?? 0) <= (m.minStockLevel ?? 10)
                       ? 'bg-red-500/15 text-red-500 border-red-500/30'
                       : 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30'
@@ -1408,7 +1431,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                     {m.currentStock ?? 0} {m.unit || 'Pcs'}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 text-center align-middle">
                   <div className="inline-flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded-xl border border-gray-200">
                     <button
                       onClick={() => handleAdjustStock(m.id, -1)}
@@ -1433,11 +1456,11 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                     </button>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 text-center align-middle">
                   <button
                     onClick={() => handleToggleAvailability(m)}
                     className={cn(
-                      "px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border cursor-pointer",
+                      "px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border cursor-pointer whitespace-nowrap",
                       m.isAvailable !== false
                         ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/25"
                         : "bg-gray-500/15 text-gray-500 border-gray-500/30 hover:bg-gray-500/25"
@@ -1446,7 +1469,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                     {m.isAvailable !== false ? 'Active' : 'Disabled'}
                   </button>
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 text-center align-middle">
                   <button
                     onClick={() => handleToggleWebsiteVisibility(m)}
                     title={m.showInWebsite ? "Visible on Website - Click to Hide" : "Hidden from Website - Click to Show"}
@@ -1461,7 +1484,7 @@ function MaterialsTab({ stockNoun }: { stockNoun: string }) {
                     <span>{m.showInWebsite === true ? 'Visible' : 'Hidden'}</span>
                   </button>
                 </td>
-                <td className="px-4 py-3 text-center pr-6">
+                <td className="px-4 py-3 text-center pr-6 align-middle">
                   <div className="flex items-center justify-center gap-1.5">
                     <button
                       onClick={() => handleEditClick(m)}
