@@ -22,8 +22,9 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  // If user is already logged in:
-  if (user && !forcePrompt) {
+  // Only auto-redirect if actively logged in as an ADMIN/MANAGER with a valid token:
+  const storedToken = localStorage.getItem('token');
+  if (user && storedToken && (user.role === 'ADMIN' || user.role === 'MANAGER') && !forcePrompt) {
     return <Navigate to={redirectTo || '/dashboard'} replace />;
   }
 
@@ -95,13 +96,24 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // 1. Direct Default Admin Authentication
-      if (cleanUser.toLowerCase() === 'admin' && (cleanPass === 'admin123' || cleanPass === 'admin' || cleanPass === '1234')) {
-        performLogin('admin', 'ADMIN', {
-          id: 'user-admin',
-          applicationAccess: 'Full Access (All Modules & POS)'
-        });
-        return;
+      // 1. Direct Default Admin Authentication with custom password support
+      const customAdminPass = localStorage.getItem('admin_custom_password');
+      const isDefaultAdminPassValid = customAdminPass
+        ? (cleanPass === customAdminPass)
+        : (cleanPass === 'admin123' || cleanPass === 'admin' || cleanPass === '1234');
+
+      if (cleanUser.toLowerCase() === 'admin') {
+        if (isDefaultAdminPassValid) {
+          performLogin('admin', 'ADMIN', {
+            id: 'user-admin',
+            applicationAccess: 'Full Access (All Modules & POS)'
+          });
+          return;
+        } else {
+          setError('Invalid administrator password. Please enter the correct password.');
+          setLoading(false);
+          return;
+        }
       }
 
       // 2. Client Business Admin Authentication

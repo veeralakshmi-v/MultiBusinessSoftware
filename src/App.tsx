@@ -129,40 +129,20 @@ export function isRouteAllowed(user: any, pathname: string): boolean {
   return pathname === '/dashboard' || pathname.startsWith('/dashboard/attendance') || pathname === '/attendance';
 }
 
-/** Guard for the admin & employee dashboard — permits admins and authorized employees */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
+  const { user, token, isLoading } = useAuth();
   const location = useLocation();
   if (isLoading) return <PageLoader />;
 
-  // Resolve user either from AuthContext or from active employee session
-  let activeUser = user;
-  if (!activeUser) {
-    const empSaved = localStorage.getItem('employee_session');
-    if (empSaved) {
-      try {
-        const emp = JSON.parse(empSaved);
-        if (emp && emp.id) {
-          activeUser = {
-            id: emp.id,
-            name: emp.name,
-            fullName: emp.name,
-            username: emp.username || emp.phone,
-            role: emp.role || 'STAFF',
-            businessId: emp.businessId || localStorage.getItem('businessId') || '',
-            applicationAccess: emp.applicationAccess || 'Full Access (All Modules & POS)',
-          } as any;
-        }
-      } catch {}
-    }
-  }
-
-  if (!activeUser) {
+  if (!user || !token) {
     return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
   }
 
-  if (!isRouteAllowed(activeUser, location.pathname)) {
-    return <Navigate to="/employee" replace />;
+  if (!isRouteAllowed(user, location.pathname)) {
+    if (user.role === 'STAFF' || user.role === 'EMPLOYEE') {
+      return <Navigate to="/employee" replace />;
+    }
+    return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
   }
 
   return <>{children}</>;

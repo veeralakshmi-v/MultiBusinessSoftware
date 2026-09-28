@@ -195,9 +195,9 @@ export default function LandingPage() {
           </div>
 
           <button
-            onClick={() => navigate(user ? '/dashboard' : '/login')}
+            onClick={() => navigate(user && (user.role === 'ADMIN' || user.role === 'MANAGER') ? '/dashboard' : '/login')}
             className="w-9 h-9 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-xs text-[#0F172A] transition-all cursor-pointer shadow-inner"
-            title="User Profile"
+            title="Store Admin Login"
           >
             {brandInitials}
           </button>

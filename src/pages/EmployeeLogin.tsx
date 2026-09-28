@@ -106,22 +106,12 @@ export default function EmployeeLogin() {
           phone: match.phone,
           email: match.email,
           businessId: match.businessId || localStorage.getItem('businessId') || '',
-          applicationAccess: match.applicationAccess || 'Full Access (All Modules & POS)',
+          applicationAccess: match.applicationAccess || 'Attendance & Staff Portal',
         };
         localStorage.setItem('employee_session', JSON.stringify(sessionObj));
         if (sessionObj.businessId) {
           localStorage.setItem('businessId', sessionObj.businessId);
         }
-
-        login('demo-live-token-' + match.id, {
-          id: match.id,
-          name: match.name,
-          fullName: match.name,
-          username: match.username || match.phone,
-          role: match.role || 'STAFF',
-          businessId: sessionObj.businessId,
-          applicationAccess: match.applicationAccess || 'Full Access (All Modules & POS)',
-        } as any);
 
         setLoading(false);
         navigate('/employee');

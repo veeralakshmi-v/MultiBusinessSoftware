@@ -375,7 +375,7 @@ export default function EmployeePortal() {
       username: session.username || session.phone,
       role: session.role,
       businessId: (session as any).businessId || localStorage.getItem('businessId') || '',
-      applicationAccess: session.applicationAccess || 'Full Access (All Modules & POS)',
+      applicationAccess: session.applicationAccess || 'Attendance & Staff Portal',
     } as any);
     navigate(path);
   };

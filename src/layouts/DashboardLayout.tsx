@@ -17,24 +17,7 @@ export default function DashboardLayout() {
   const { user: authUser, logout, businessProfile, activeTenant, tenants } = useAuth();
   const location = useLocation();
 
-  const user = useMemo(() => {
-    if (authUser) return authUser;
-    try {
-      const emp = JSON.parse(localStorage.getItem('employee_session') || '{}');
-      if (emp && emp.id) {
-        return {
-          id: emp.id,
-          name: emp.name,
-          fullName: emp.name,
-          username: emp.username || emp.phone,
-          role: emp.role || 'STAFF',
-          businessId: emp.businessId || localStorage.getItem('businessId') || '',
-          applicationAccess: emp.applicationAccess || 'Full Access (All Modules & POS)',
-        };
-      }
-    } catch { }
-    return { id: '', username: '', role: 'STAFF' };
-  }, [authUser]);
+  const user = authUser;
 
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     return localStorage.getItem('sidebar_collapsed') === 'true';
