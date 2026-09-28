@@ -15,7 +15,7 @@ const pool = new Pool({
   connectionTimeoutMillis: 8000,
 });
 
-function getReqContext(req: any) {
+function getReqContext(req) {
   const url = new URL(req.url || '/', 'https://multi-business-billing-system.vercel.app');
   const path = url.pathname;
   const searchParams = url.searchParams;
@@ -26,7 +26,7 @@ function getReqContext(req: any) {
   return { path, searchParams, businessId };
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-business-id');
@@ -41,7 +41,7 @@ export default async function handler(req: any, res: any) {
   try {
     // ── 1. HEALTH CHECK ──
     if (path === '/api/health' || path === '/health') {
-      const q = await pool.query('SELECT 1');
+      await pool.query('SELECT 1');
       return res.status(200).json({ status: 'ok', dbStatus: 'CONNECTED', provider: 'Supabase PostgreSQL' });
     }
 
@@ -69,7 +69,7 @@ export default async function handler(req: any, res: any) {
         }
 
         const items = rows.map(item => {
-          let attrs: any = {};
+          let attrs = {};
           try {
             attrs = typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : (item.attributes || {});
           } catch {}
@@ -382,7 +382,7 @@ export default async function handler(req: any, res: any) {
 
     // Fallback 404
     return res.status(200).json([]);
-  } catch (err: any) {
+  } catch (err) {
     console.error(`API Error on [${method}] ${path}:`, err);
     return res.status(500).json({ error: err.message || 'Internal Server Error' });
   }
