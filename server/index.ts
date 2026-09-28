@@ -3264,23 +3264,22 @@ app.get('/api/attendance', async (req, res) => {
       where: whereClause,
       include: {
         employee: true,
-        attendanceLocation: true,
       },
       orderBy: { attendanceDate: 'desc' }
     });
 
-    if (dbAtt.length > 0) {
-      const formatted = dbAtt.map(a => ({
+    if (dbAtt && dbAtt.length > 0) {
+      const formatted = dbAtt.map((a: any) => ({
         id: a.id,
         employeeId: a.employeeId,
         employeeName: a.employee?.fullName || 'Staff Member',
-        date: a.attendanceDate.toISOString().split('T')[0],
+        date: a.attendanceDate ? a.attendanceDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         punchIn: a.punchInTime ? a.punchInTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '',
         punchInSelfie: '',
-        punchInLocation: a.attendanceLocation?.punchInAddress || '',
+        punchInLocation: (a.punchInLatitude && a.punchInLongitude) ? `${a.punchInLatitude}, ${a.punchInLongitude}` : '',
         punchOut: a.punchOutTime ? a.punchOutTime.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : null,
         punchOutSelfie: null,
-        punchOutLocation: a.attendanceLocation?.punchOutAddress || null,
+        punchOutLocation: (a.punchOutLatitude && a.punchOutLongitude) ? `${a.punchOutLatitude}, ${a.punchOutLongitude}` : null,
         status: a.status,
       }));
       return res.json(formatted);
