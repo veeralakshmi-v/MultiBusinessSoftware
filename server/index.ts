@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const DEFAULT_SUPABASE_URL = "postgresql://postgres.yqciwlvmoboszvxzodrl:af_final_website@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1";
+const DEFAULT_SUPABASE_URL = "postgresql://postgres.yqciwlvmoboszvxzodrl:multibusinessbillingsoftware@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1";
 const dbUrl = process.env.DATABASE_URL || DEFAULT_SUPABASE_URL;
 
 const prisma = new PrismaClient({
