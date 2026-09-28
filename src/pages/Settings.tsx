@@ -1088,7 +1088,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Ramesh Kumar"
+                    placeholder="Enter Staff Name"
                     value={staffName}
                     onChange={(e) => setStaffName(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-blue-400"
@@ -1598,7 +1598,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
                       <span className="text-[10px] font-mono text-gray-500 flex-shrink-0">#{idx + 1}</span>
                       <input
                         type="text"
-                        placeholder="Caption (e.g. Our Founder — Mr. Ramesh Kumar)"
+                        placeholder="Caption (e.g. Welcome to our Store)"
                         value={slide.caption}
                         onChange={e => updateSlide(slide.id, { caption: e.target.value })}
                         className="flex-1 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-900 placeholder-gray-400 outline-none focus:border-blue-400"

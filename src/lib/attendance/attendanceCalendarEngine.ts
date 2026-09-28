@@ -77,8 +77,8 @@ export class AttendanceCalendarEngine {
     const employees = EmployeeEngine.getEmployees({ pageSize: 50 }).employees;
     const employee = employees.find(e => e.id === employeeId) || employees[0] || {
       id: 'emp-001',
-      name: 'Kowsalya Sundaram',
-      department: 'Billing & Cash Desk',
+      name: 'Staff Member',
+      department: 'Staff Desk',
     };
 
     const monthNames = [

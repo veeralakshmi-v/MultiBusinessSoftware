@@ -18,8 +18,8 @@ import {
 
 export default function WebsiteBuilder() {
   const { businessProfile, activeTenant, user } = useAuth();
-  const currentTenantId = activeTenant?.id || user?.businessId || 'biz-apex-supermarket';
-  const currentTenantName = activeTenant?.businessName || businessProfile.businessName || 'APEX ENTERPRISE';
+  const currentTenantId = activeTenant?.id || user?.businessId || 'biz-default-business';
+  const currentTenantName = activeTenant?.businessName || businessProfile.businessName || 'My Store';
 
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<
@@ -810,7 +810,7 @@ export default function WebsiteBuilder() {
                       storeSlug: c.storeSlug || toSlug(val)
                     }));
                   }}
-                  placeholder="e.g. APEX ENTERPRISE"
+                  placeholder="e.g. My Store"
                   className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
@@ -1756,7 +1756,7 @@ export default function WebsiteBuilder() {
                 type="email"
                 value={config.email}
                 onChange={e => setConfig(c => ({ ...c, email: e.target.value }))}
-                placeholder="e.g. contact@apexenterprise.com"
+                placeholder="e.g. contact@mybusiness.com"
                 className="w-full border border-gray-300 rounded-lg px-3.5 py-2 text-sm bg-white text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>

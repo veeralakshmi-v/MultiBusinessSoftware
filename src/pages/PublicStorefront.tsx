@@ -129,7 +129,7 @@ export default function PublicStorefront() {
   useEffect(() => {
     const path = location.pathname.toLowerCase();
     if (path === '/website' || path === '/store' || path === '/website/' || path === '/store/') {
-      const activeSlug = config.storeSlug || toSlug(config.brandName || 'apex-enterprise');
+      const activeSlug = config.storeSlug || toSlug(config.brandName || 'my-store');
       navigate(`/${activeSlug}`, { replace: true });
     }
   }, [config.storeSlug, config.brandName, location.pathname, navigate]);
@@ -1099,7 +1099,7 @@ export default function PublicStorefront() {
                 </li>
                 <li className="flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5 text-[#2563EB]" />
-                  <span>{config.email || 'contact@apexenterprise.com'}</span>
+                  <span>{config.email || 'contact@mybusiness.com'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <MapPin className="w-3.5 h-3.5 text-[#2563EB]" />

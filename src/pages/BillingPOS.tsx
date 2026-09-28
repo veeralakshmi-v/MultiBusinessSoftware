@@ -172,10 +172,7 @@ export default function BillingPOS() {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch {}
-    return [
-      { id: 'cust-1', name: 'Ramesh Kumar', mobile: '9876543210', email: 'ramesh@gmail.com', pendingBalance: 0 },
-      { id: 'cust-2', name: 'Priya Sharma', mobile: '9123456789', email: 'priya@gmail.com', pendingBalance: 0 },
-    ];
+    return [];
   });
 
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
@@ -1895,7 +1892,7 @@ export default function BillingPOS() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Ramesh Kumar"
+                  placeholder="Enter Customer Name"
                   value={newCustName}
                   onChange={(e) => setNewCustName(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"
@@ -1918,7 +1915,7 @@ export default function BillingPOS() {
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Email (Optional)</label>
                 <input
                   type="email"
-                  placeholder="e.g. ramesh@gmail.com"
+                  placeholder="customer@email.com"
                   value={newCustEmail}
                   onChange={(e) => setNewCustEmail(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"

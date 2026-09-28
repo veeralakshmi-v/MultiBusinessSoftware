@@ -1031,7 +1031,7 @@ function CustomerFormModal({
                   <input
                     required
                     type="text"
-                    placeholder="e.g. Ramesh Kumar"
+                    placeholder="Enter Customer Name"
                     value={form.name}
                     onChange={e => setForm({ ...form, name: e.target.value })}
                     className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#2563EB] focus:bg-white"
@@ -1054,7 +1054,7 @@ function CustomerFormModal({
                 <label className="block font-bold text-gray-700 mb-1">Email Address (Optional)</label>
                 <input
                   type="email"
-                  placeholder="ramesh@gmail.com"
+                  placeholder="customer@email.com"
                   value={form.email}
                   onChange={e => setForm({ ...form, email: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#2563EB] focus:bg-white"

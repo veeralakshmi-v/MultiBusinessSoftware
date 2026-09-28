@@ -151,7 +151,7 @@ export default function LandingPage() {
         }
       }
     } catch {}
-    return brandName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'apex-enterprise';
+    return brandName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'my-store';
   };
 
   const storeSlug = getStoreSlug();

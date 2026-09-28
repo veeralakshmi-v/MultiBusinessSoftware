@@ -864,7 +864,7 @@ export default function EmployeeDirectory() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Ramesh Kumar"
+                    placeholder="Enter Full Name"
                     value={staffName}
                     onChange={(e) => setStaffName(e.target.value)}
                     className="w-full bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#2563EB]"

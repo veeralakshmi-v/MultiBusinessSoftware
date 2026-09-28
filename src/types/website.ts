@@ -121,8 +121,8 @@ export interface WebsiteConfig {
 // =========================================================================
 export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   published: true,
-  storeSlug: 'apex-enterprise',
-  brandName: 'APEX ENTERPRISE',
+  storeSlug: 'my-store',
+  brandName: 'MY STORE',
   brandTagline: 'Excellence, Innovation & Premium Quality',
   brandSubtext: 'MULTI-BUSINESS SOLUTIONS',
   
@@ -362,8 +362,8 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
 
   phone: '9876543210',
   whatsapp: '9876543210',
-  email: 'contact@apexenterprise.com',
-  address: 'Main Commercial Hub, City Center, Suite 500',
+  email: 'contact@mybusiness.com',
+  address: 'Main Commercial Hub, City Center',
   workingHours: 'Mon - Sat: 9:00 AM - 8:00 PM',
   googleMapsUrl: '',
   newsletterTitle: 'Stay Updated',
