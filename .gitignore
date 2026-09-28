@@ -129,3 +129,6 @@ scratch/
 .gemini/
 *.db
 *.db-journal
+
+.vercel
+.env*
