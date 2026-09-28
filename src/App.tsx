@@ -10,7 +10,6 @@ import { Loader2 } from 'lucide-react';
 const LandingPage    = lazy(() => import('./pages/LandingPage'));
 const Dashboard      = lazy(() => import('./pages/Dashboard'));
 const BillingPOS     = lazy(() => import('./pages/BillingPOS'));
-const MenuManagement = lazy(() => import('./pages/MenuManagement'));
 const Inventory      = lazy(() => import('./pages/Inventory'));
 const Customers      = lazy(() => import('./pages/Customers'));
 const Reports        = lazy(() => import('./pages/Reports'));
