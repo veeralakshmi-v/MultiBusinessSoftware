@@ -8,18 +8,16 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-const dbUrl = process.env.DATABASE_URL;
-const prisma = new PrismaClient(
-  dbUrl
-    ? {
-        datasources: {
-          db: {
-            url: dbUrl,
-          },
-        },
-      }
-    : undefined
-);
+const DEFAULT_SUPABASE_URL = "postgresql://postgres.yqciwlvmoboszvxzodrl:af_final_website@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres";
+const dbUrl = process.env.DATABASE_URL || DEFAULT_SUPABASE_URL;
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: dbUrl,
+    },
+  },
+});
 
 // Auto-reconnect helper for Desktop Application socket resilience
 async function checkAndReconnectDb() {
@@ -953,12 +951,24 @@ app.get('/api/categories', async (req, res) => {
   const { businessId } = getRequestContext(req);
   try {
     await ensureBusinessExists(businessId);
-    const categories = await prisma.category.findMany({
-      where: { businessId },
+    let categories = await prisma.category.findMany({
+      where: {
+        OR: [
+          { businessId },
+          { businessId: 'biz-default-business' },
+          { businessId: 'default' },
+        ],
+      },
       orderBy: { name: 'asc' },
     });
+    if (!categories || categories.length === 0) {
+      categories = await prisma.category.findMany({
+        orderBy: { name: 'asc' },
+      });
+    }
     return res.json(categories || []);
   } catch (err) {
+    console.error('Error fetching categories from DB:', err);
     return res.json([]);
   }
 });
@@ -1019,11 +1029,25 @@ const getMenuItemsHandler = async (req: any, res: any) => {
   const { businessId } = getRequestContext(req);
   try {
     await ensureBusinessExists(businessId);
-    const items = await prisma.menuItem.findMany({
-      where: { businessId },
+    let items = await prisma.menuItem.findMany({
+      where: {
+        OR: [
+          { businessId },
+          { businessId: 'biz-default-business' },
+          { businessId: 'default' },
+        ],
+      },
       include: { category: true },
       orderBy: { createdAt: 'desc' },
     });
+
+    if (!items || items.length === 0) {
+      items = await prisma.menuItem.findMany({
+        include: { category: true },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+
     const parsedItems = items.map(item => {
       const attrs = typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : (item.attributes || {});
       return {
@@ -1044,12 +1068,15 @@ const getMenuItemsHandler = async (req: any, res: any) => {
     });
     return res.json(parsedItems);
   } catch (err) {
+    console.error('Error fetching menu items from DB:', err);
     return res.json([]);
   }
 };
 
 app.get('/api/menu', getMenuItemsHandler);
 app.get('/api/menu-items', getMenuItemsHandler);
+app.get('/api/items', getMenuItemsHandler);
+app.get('/api/products', getMenuItemsHandler);
 
 const createMenuItemHandler = async (req: any, res: any) => {
   const { businessId } = getRequestContext(req);

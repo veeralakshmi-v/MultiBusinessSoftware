@@ -319,7 +319,8 @@ export class ThemeEngine {
 
     // 3. Update Document Title
     if (config.brandTitle) {
-      document.title = `${config.brandTitle} | Multi-Business POS`;
+      const cleanTitle = config.brandTitle.replace(/Apex\s*/gi, '').trim() || 'Store';
+      document.title = `${cleanTitle} | Multi-Business POS`;
     }
   }
 
@@ -327,12 +328,29 @@ export class ThemeEngine {
    * Retrieves active theme config with fallback to template defaults
    */
   static getThemeConfig(template?: BusinessTemplate): ThemeConfig {
+    let defaultBrandName = 'Multi-Business Billing';
+    try {
+      const savedProfile = localStorage.getItem('universal_business_profile');
+      if (savedProfile) {
+        const p = JSON.parse(savedProfile);
+        if (p.businessName && p.businessName !== 'My Business' && !p.businessName.includes('Apex')) {
+          defaultBrandName = p.businessName;
+        }
+      }
+    } catch {}
+
     try {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
+        let brandTitle = parsed.brandTitle;
+        if (!brandTitle || brandTitle.includes('Apex')) {
+          brandTitle = defaultBrandName;
+        }
         return {
           ...parsed,
+          brandTitle,
+          headerTitle: (!parsed.headerTitle || parsed.headerTitle.includes('Apex')) ? defaultBrandName : parsed.headerTitle,
           primaryBgColor: parsed.primaryBgColor || '#F8FAFC',
           secondaryBtnColor: parsed.secondaryBtnColor || '#2563EB',
           textColor: parsed.textColor || '#0F172A',
@@ -346,9 +364,13 @@ export class ThemeEngine {
     } catch {}
 
     // Fallback defaults from active template
+    const headerTitle = template?.invoiceLayout?.headerTitle && !template.invoiceLayout.headerTitle.includes('Apex')
+      ? template.invoiceLayout.headerTitle
+      : defaultBrandName;
+
     return {
       logoUrl: '',
-      brandTitle: template?.invoiceLayout?.headerTitle || 'Apex Multi-Business Billing',
+      brandTitle: headerTitle,
       brandTagline: template?.invoiceLayout?.tagline || 'Enterprise Cloud Point of Sale & Billing System',
       colorPreset: 'LIGHT_SAPPHIRE',
       primaryBgColor: '#F8FAFC',
@@ -361,7 +383,7 @@ export class ThemeEngine {
       fontSize: 'MEDIUM',
       iconStyle: 'ROUNDED_ORGANIC',
       invoiceTheme: 'MODERN_BLUE',
-      headerTitle: template?.invoiceLayout?.headerTitle || 'Apex Multi-Business Billing',
+      headerTitle,
       tagline: template?.invoiceLayout?.tagline || 'Enterprise Point of Sale',
       termsText: template?.invoiceLayout?.termsText || 'Goods once sold cannot be returned without original bill.',
       thankYouNote: template?.invoiceLayout?.thankYouNote || 'Thank you for your business! Please visit again.',

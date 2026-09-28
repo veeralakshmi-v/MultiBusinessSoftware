@@ -1,36 +1,36 @@
 import { WhiteLabelConfig } from '../../types/whitelabel';
 
 export const DEFAULT_WHITELABEL_CONFIG: WhiteLabelConfig = {
-  companyName: 'Apex Multi-Business POS',
-  legalEntityName: 'Apex Retail & Foodtech Private Limited',
+  companyName: 'Multi-Business POS',
+  legalEntityName: 'Universal Multi-Business Enterprises',
   logoUrl: '',
   faviconUrl: '',
-  customDomain: 'billing.apexenterprise.com',
+  customDomain: '',
   isDomainVerified: true,
   sslStatus: 'ACTIVE',
   
   invoice: {
-    headerTitle: 'Apex Multi-Business Store',
+    headerTitle: 'Multi-Business Store',
     tagline: 'Authentic Quality & Premium Experience',
     watermarkText: 'AUTHENTIC & PAID',
     footerNote: 'Thank you for your patronage! Please visit again.',
     termsAndConditions: 'Goods once sold cannot be returned without original tax bill. E&OE.',
     hidePlatformBranding: true,
-    gstin: '33AAAAA0000A1Z5',
-    cin: 'U72900TN2024PTC123456',
-    fssai: '12421001000543',
+    gstin: '',
+    cin: '',
+    fssai: '',
   },
 
   email: {
-    senderName: 'Apex Invoicing & Receipts',
-    senderEmail: 'invoices@apexenterprise.com',
-    replyToEmail: 'support@apexenterprise.com',
-    emailFooterSignature: '© 2026 Apex Enterprise Group. All rights reserved.',
+    senderName: 'Invoicing & Receipts',
+    senderEmail: 'invoices@mybusiness.com',
+    replyToEmail: 'support@mybusiness.com',
+    emailFooterSignature: '© Multi-Business Group. All rights reserved.',
   },
 
   sms: {
-    senderId: 'APEXBK',
-    templatePrefix: 'Dear Customer, your bill at Apex',
+    senderId: 'STORE',
+    templatePrefix: 'Dear Customer, your bill',
     supportPhone: '+91 98765 43210',
   },
 
@@ -84,7 +84,8 @@ export class WhiteLabelEngine {
 
     // 1. Browser Tab Title
     if (config.companyName) {
-      document.title = `${config.companyName} | Cloud POS`;
+      const cleanCompany = config.companyName.replace(/Apex\s*/gi, '').trim() || 'Store';
+      document.title = `${cleanCompany} | Cloud POS`;
     }
 
     // 2. Favicon
