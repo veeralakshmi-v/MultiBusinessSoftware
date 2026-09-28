@@ -10,6 +10,7 @@ import {
 import { ThemeEngine } from '../lib/theme/themeEngine';
 import AttendanceCalendar from '../components/attendance/AttendanceCalendar';
 import { isRouteAllowed } from '../App';
+import { reverseGeocodeCoordinates } from '../lib/attendance/reverseGeocode';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -119,9 +120,13 @@ function PunchModal({ mode, onConfirm, onClose }: PunchModalProps) {
     if (!navigator.geolocation) { setLocError('Geolocation not supported.'); setLocLoading(false); return; }
     setLocLoading(true);
     navigator.geolocation.getCurrentPosition(
-      pos => {
+      async pos => {
         const { latitude: lat, longitude: lng, accuracy } = pos.coords;
-        const display = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        let display = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        try {
+          const placeName = await reverseGeocodeCoordinates(lat, lng);
+          if (placeName) display = placeName;
+        } catch {}
         setLocation({ lat, lng, accuracy: Math.round(accuracy), display });
         setLocLoading(false);
       },

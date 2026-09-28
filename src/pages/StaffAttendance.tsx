@@ -7,6 +7,7 @@ import {
   UserCircle, MapPin, Camera, TrendingUp, CalendarCheck, UserX, Timer, Plus
 } from 'lucide-react';
 import AttendanceCalendar from '../components/attendance/AttendanceCalendar';
+import { reverseGeocodeCoordinates } from '../lib/attendance/reverseGeocode';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -138,6 +139,39 @@ function StatusBadge({ status }: { status: AttendanceStatus }) {
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.color} ${cfg.bg} ${cfg.border}`}>
       <Icon className="w-3 h-3" /> {cfg.label}
+    </span>
+  );
+}
+
+function LocationBadge({ locationStr }: { locationStr?: string | null }) {
+  const [resolvedName, setResolvedName] = useState<string>(locationStr || '—');
+
+  useEffect(() => {
+    if (!locationStr) {
+      setResolvedName('—');
+      return;
+    }
+
+    // Check if locationStr is raw coordinates like "13.0418, 80.2341"
+    const coordMatch = locationStr.match(/^([-+]?\d+\.\d+)\s*,\s*([-+]?\d+\.\d+)$/);
+    if (coordMatch) {
+      const lat = parseFloat(coordMatch[1]);
+      const lng = parseFloat(coordMatch[2]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        reverseGeocodeCoordinates(lat, lng).then(name => {
+          if (name) setResolvedName(name);
+        }).catch(() => {});
+        return;
+      }
+    }
+    setResolvedName(locationStr);
+  }, [locationStr]);
+
+  if (!locationStr || resolvedName === '—') return <span className="text-gray-400">—</span>;
+
+  return (
+    <span className="text-[11px] text-gray-700 font-medium truncate block max-w-[180px]" title={resolvedName}>
+      📍 {resolvedName}
     </span>
   );
 }
@@ -715,10 +749,8 @@ export default function StaffAttendance() {
                                 {!rec?.punchInSelfie && <span className="text-gray-400 text-[10px]">—</span>}
                               </div>
                             </td>
-                            <td className="px-4 py-3 max-w-[120px]">
-                              {rec?.punchInLocation
-                                ? <span className="text-[9px] text-gray-500 font-mono truncate block">{rec.punchInLocation.split(',').slice(0, 2).join(',')}</span>
-                                : <span className="text-gray-400">—</span>}
+                            <td className="px-4 py-3 max-w-[180px]">
+                              <LocationBadge locationStr={rec?.punchInLocation} />
                             </td>
                           </tr>
                           {/* Expanded detail row showing all punch sessions */}
@@ -747,7 +779,7 @@ export default function StaffAttendance() {
                                     }]).map((sess, sIdx) => {
                                       const sDur = sess.punchIn && sess.punchOut ? calcWorkedHours(sess.punchIn, sess.punchOut) : 0;
                                       return (
-                                        <div key={sess.id || sIdx} className="bg-white p-3 rounded-xl border border-gray-200 space-y-2 text-xs">
+                                        <div key={sess.id || sIdx} className="bg-white p-3.5 rounded-xl border border-gray-200 space-y-2.5 text-xs shadow-xs">
                                           <div className="flex items-center justify-between font-bold">
                                             <span className="text-[#2563EB]">Session #{sIdx + 1}</span>
                                             <span className="text-gray-600 font-mono text-[11px]">
@@ -755,16 +787,22 @@ export default function StaffAttendance() {
                                             </span>
                                           </div>
                                           <div className="grid grid-cols-2 gap-2 text-[11px]">
-                                            <div className="space-y-1">
+                                            <div className="space-y-1.5">
                                               <p className="text-emerald-700 font-semibold font-mono">IN: {sess.punchIn}</p>
+                                              {sess.punchInLocation && (
+                                                <LocationBadge locationStr={sess.punchInLocation} />
+                                              )}
                                               {sess.punchInSelfie && (
                                                 <img src={sess.punchInSelfie} alt="In selfie" className="w-16 h-16 rounded-lg object-cover border border-emerald-300" />
                                               )}
                                             </div>
-                                            <div className="space-y-1">
+                                            <div className="space-y-1.5">
                                               <p className="text-red-700 font-semibold font-mono">
                                                 {sess.punchOut ? `OUT: ${sess.punchOut}` : 'Active Shift'}
                                               </p>
+                                              {sess.punchOutLocation && (
+                                                <LocationBadge locationStr={sess.punchOutLocation} />
+                                              )}
                                               {sess.punchOutSelfie && (
                                                 <img src={sess.punchOutSelfie} alt="Out selfie" className="w-16 h-16 rounded-lg object-cover border border-red-300" />
                                               )}
