@@ -98,15 +98,17 @@ function mapApiItem(d: any): any {
   };
 }
 
+import { DEFAULT_SUPABASE_ITEMS, DEFAULT_SUPABASE_CATEGORIES } from '../lib/defaultData';
+
 function getLocalItems(): any[] {
   try {
     const saved = localStorage.getItem('universal_items');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
   } catch { }
-  return [];
+  return DEFAULT_SUPABASE_ITEMS;
 }
 
 function getCombinedMaterials(): Promise<any[]> {
@@ -142,9 +144,14 @@ export async function fetchUnifiedCategories(): Promise<any[]> {
     }
   } catch {}
 
-  const catMap = new Map<string, any>();
+  // 0. Seed baseline categories from Supabase default categories
+  for (const c of DEFAULT_SUPABASE_CATEGORIES) {
+    if (c && c.name) {
+      catMap.set(c.name.trim().toLowerCase(), c);
+    }
+  }
 
-  // 1. Add local categories first
+  // 1. Add local categories
   for (const c of localCats) {
     if (c && c.name && typeof c.name === 'string') {
       const nameKey = c.name.trim().toLowerCase();

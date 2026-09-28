@@ -13,6 +13,7 @@ import PrintInvoiceModal, { OrderPrintData } from '../components/PrintInvoiceMod
 import { COMMON_UNITS } from './Inventory';
 import { NotificationEngine } from '../lib/notifications/notificationEngine';
 import { TenantEngine } from '../lib/tenant/tenantEngine';
+import { DEFAULT_SUPABASE_ITEMS, DEFAULT_SUPABASE_CATEGORIES } from '../lib/defaultData';
 
 interface Category {
   id: string;
@@ -150,7 +151,7 @@ export default function BillingPOS() {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch {}
     }
-    return [];
+    return DEFAULT_SUPABASE_CATEGORIES as Category[];
   });
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
@@ -161,7 +162,7 @@ export default function BillingPOS() {
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       } catch {}
     }
-    return [];
+    return DEFAULT_SUPABASE_ITEMS as MenuItem[];
   });
 
   const [customers, setCustomers] = useState<Customer[]>(() => {
