@@ -3307,9 +3307,8 @@ app.post('/api/attendance', async (req, res) => {
   return res.status(201).json({ success: true, data: record });
 });
 
-if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
-
     console.log(`⚡ Multi-Business Billing Backend API running on http://localhost:${PORT}`);
   });
 }
