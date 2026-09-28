@@ -1,20 +1,28 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const { Pool } = require('pg');
+import pg from 'pg';
+const { Pool } = pg;
 
-const pool = new Pool({
-  user: 'postgres.yqciwlvmoboszvxzodrl',
-  password: 'multibusinessbillingsoftware',
-  host: 'aws-0-ap-northeast-2.pooler.supabase.com',
-  port: 6543,
-  database: 'postgres',
-  ssl: {
-    rejectUnauthorized: false
-  },
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 8000,
-});
+let pool;
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      user: 'postgres.yqciwlvmoboszvxzodrl',
+      password: 'multibusinessbillingsoftware',
+      host: 'aws-0-ap-northeast-2.pooler.supabase.com',
+      port: 6543,
+      database: 'postgres',
+      ssl: {
+        rejectUnauthorized: false
+      },
+      max: 5,
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 5000,
+    });
+    pool.on('error', (err) => {
+      console.error('Unexpected pool error:', err);
+    });
+  }
+  return pool;
+}
 
 function getReqContext(req) {
   const url = new URL(req.url || '/', 'https://multi-business-billing-system.vercel.app');
@@ -38,6 +46,7 @@ export default async function handler(req, res) {
 
   const { path, searchParams, businessId } = getReqContext(req);
   const method = req.method;
+  const pool = getPool();
 
   try {
     // ── 1. HEALTH CHECK ──
