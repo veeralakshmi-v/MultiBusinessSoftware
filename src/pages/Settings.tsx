@@ -337,7 +337,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
       setEditingStaff(st);
       setStaffName(st.name || '');
       setStaffUsername(st.phone || st.username || '');
-      
+
       const roleVal = st.role || 'CASHIER';
       if (STANDARD_ROLES.includes(roleVal)) {
         setStaffRole(roleVal);
@@ -450,8 +450,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
     const computedAppAccess = selectedAppAccess.length === PROJECT_MENU_ITEMS.length
       ? 'Full Access (All Modules & POS)'
       : selectedAppAccess.length === 0
-      ? 'No Access'
-      : selectedAppAccess.join(', ');
+        ? 'No Access'
+        : selectedAppAccess.join(', ');
     const computedRole = isCustomRole ? (customRoleTitle.trim() || 'CUSTOM') : staffRole;
     const computedStatus = computedRole === 'ADMIN' ? 'ACTIVE' : staffStatus;
     const formattedAadharVal = formatAadhar(aadharDigits);
@@ -531,7 +531,7 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(staffPayload),
       }).catch(err => console.error('Failed to sync employee to API:', err));
-    } catch (e) {}
+    } catch (e) { }
 
     setIsStaffModalOpen(false);
   };
@@ -544,8 +544,8 @@ export default function Settings({ initialTab = 'profile' }: { initialTab?: Sett
     if (confirm('Delete this staff account?')) {
       setStaffList(prev => prev.filter(s => s.id !== id));
       try {
-        fetch(`/api/users/${id}`, { method: 'DELETE' }).catch(() => {});
-      } catch (e) {}
+        fetch(`/api/users/${id}`, { method: 'DELETE' }).catch(() => { });
+      } catch (e) { }
     }
   };
 
