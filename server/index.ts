@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import pg from 'pg';
+const { Pool } = pg;
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -10,6 +12,20 @@ app.use(express.json());
 
 const DEFAULT_SUPABASE_URL = "postgresql://postgres.yqciwlvmoboszvxzodrl:multibusinessbillingsoftware@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1";
 process.env.DATABASE_URL = process.env.DATABASE_URL || DEFAULT_SUPABASE_URL;
+
+export const pgPool = new Pool({
+  user: 'postgres.yqciwlvmoboszvxzodrl',
+  password: 'multibusinessbillingsoftware',
+  host: 'aws-0-ap-northeast-2.pooler.supabase.com',
+  port: 6543,
+  database: 'postgres',
+  ssl: {
+    rejectUnauthorized: false
+  },
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
 
 const prisma = new PrismaClient({
   datasources: {
@@ -950,22 +966,38 @@ app.delete('/api/employees/:id', deleteUserHandler);
 app.get('/api/categories', async (req, res) => {
   const { businessId } = getRequestContext(req);
   try {
-    await ensureBusinessExists(businessId);
-    let categories = await prisma.category.findMany({
-      where: {
-        OR: [
-          { businessId },
-          { businessId: 'biz-default-business' },
-          { businessId: 'default' },
-        ],
-      },
-      orderBy: { name: 'asc' },
-    });
-    if (!categories || categories.length === 0) {
+    let categories: any[] = [];
+    try {
       categories = await prisma.category.findMany({
+        where: {
+          OR: [
+            { businessId },
+            { businessId: 'biz-default-business' },
+            { businessId: 'default' },
+          ],
+        },
         orderBy: { name: 'asc' },
       });
+      if (!categories || categories.length === 0) {
+        categories = await prisma.category.findMany({
+          orderBy: { name: 'asc' },
+        });
+      }
+    } catch (prismaErr) {
+      console.warn('Prisma categories query failed, trying pgPool fallback...');
     }
+
+    if (!categories || categories.length === 0) {
+      try {
+        const pgRes = await pgPool.query('SELECT * FROM "Category" ORDER BY name ASC');
+        if (pgRes.rows && pgRes.rows.length > 0) {
+          categories = pgRes.rows;
+        }
+      } catch (pgErr) {
+        console.error('pgPool categories query error:', pgErr);
+      }
+    }
+
     return res.json(categories || []);
   } catch (err) {
     console.error('Error fetching categories from DB:', err);
@@ -1028,27 +1060,45 @@ app.delete('/api/categories/:id', async (req, res) => {
 const getMenuItemsHandler = async (req: any, res: any) => {
   const { businessId } = getRequestContext(req);
   try {
-    await ensureBusinessExists(businessId);
-    let items = await prisma.menuItem.findMany({
-      where: {
-        OR: [
-          { businessId },
-          { businessId: 'biz-default-business' },
-          { businessId: 'default' },
-        ],
-      },
-      include: { category: true },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (!items || items.length === 0) {
+    let items: any[] = [];
+    try {
       items = await prisma.menuItem.findMany({
+        where: {
+          OR: [
+            { businessId },
+            { businessId: 'biz-default-business' },
+            { businessId: 'default' },
+          ],
+        },
         include: { category: true },
         orderBy: { createdAt: 'desc' },
       });
+
+      if (!items || items.length === 0) {
+        items = await prisma.menuItem.findMany({
+          include: { category: true },
+          orderBy: { createdAt: 'desc' },
+        });
+      }
+    } catch (prismaErr) {
+      console.warn('Prisma menuItems query failed, trying pgPool fallback...');
     }
 
-    const parsedItems = items.map(item => {
+    if (!items || items.length === 0) {
+      try {
+        const pgRes = await pgPool.query('SELECT m.*, c.name as "categoryName" FROM "MenuItem" m LEFT JOIN "Category" c ON m."categoryId" = c.id ORDER BY m."createdAt" DESC');
+        if (pgRes.rows && pgRes.rows.length > 0) {
+          items = pgRes.rows.map(r => ({
+            ...r,
+            category: r.categoryName ? { id: r.categoryId, name: r.categoryName } : null
+          }));
+        }
+      } catch (pgErr) {
+        console.error('pgPool menuItems fallback error:', pgErr);
+      }
+    }
+
+    const parsedItems = (items || []).map(item => {
       const attrs = typeof item.attributes === 'string' ? JSON.parse(item.attributes || '{}') : (item.attributes || {});
       return {
         ...item,
